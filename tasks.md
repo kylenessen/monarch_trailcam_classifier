@@ -1,4 +1,3 @@
-- Build in a progress bar for number of photos left to process
 - Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?
 - make confirmed green border larger
 - Change default size so you don't have to resize the window every time.

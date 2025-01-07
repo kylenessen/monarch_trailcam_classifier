@@ -87,6 +87,12 @@ function initializeClassifications() {
 }
 
 function canEditImage(imageFile) {
+    // If the current image is confirmed, prevent edits
+    if (currentState.classifications[imageFile].confirmed) {
+        showNotification('This image is confirmed. Unconfirm it first to make changes.', 'error');
+        return false;
+    }
+
     const currentIndex = currentState.classifications[imageFile].index;
     
     // Check if all previous images are confirmed
@@ -684,7 +690,7 @@ function copyFromPrevious() {
     
     // Check if we can edit this image
     if (!canEditImage(currentImage)) {
-        showNotification('Please confirm all previous images before editing this one', 'error');
+        showNotification('Please unlock image to make edits', 'error');
         return;
     }
 
