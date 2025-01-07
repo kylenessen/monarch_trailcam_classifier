@@ -3,6 +3,12 @@ let currentImage = null;
 let gridCells = [];
 let currentClassification = {};
 
+// Progress bar elements
+let progressBar = null;
+let currentImageSpan = null;
+let totalImagesSpan = null;
+let progressPercent = null;
+
 // Global state
 let currentState = {
     deploymentFolder: null,
@@ -97,7 +103,43 @@ function canEditImage(imageFile) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
     setupEventListeners();
+    initializeProgressBar();
 });
+
+// Initialize progress bar elements
+function initializeProgressBar() {
+    progressBar = document.getElementById('progress-bar');
+    currentImageSpan = document.getElementById('current-image');
+    totalImagesSpan = document.getElementById('total-images');
+    progressPercent = document.getElementById('progress-percent');
+}
+
+// Update progress bar
+function updateProgress() {
+    if (!currentState.imageFiles.length) {
+        currentImageSpan.textContent = '0';
+        totalImagesSpan.textContent = '0';
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+        return;
+    }
+
+    const total = currentState.imageFiles.length;
+    const current = currentState.currentImageIndex + 1;
+    
+    // Count only images that have been confirmed
+    const classified = Object.values(currentState.classifications).filter(classification => 
+        classification && classification.confirmed === true
+    ).length;
+    
+    currentImageSpan.textContent = current;
+    totalImagesSpan.textContent = total;
+    
+    const progress = (classified / total) * 100;
+    const roundedProgress = Math.round(progress);
+    progressBar.style.width = `${progress}%`;
+    progressPercent.textContent = `${roundedProgress}%`;
+}
 
 function setupEventListeners() {
     // Add keyboard event listener
@@ -200,6 +242,7 @@ async function promptForDeploymentFolder() {
             // Show welcome message again if no images found
             document.getElementById('welcome-message').style.display = 'block';
         }
+        updateProgress();
     }
 }
 
@@ -229,6 +272,7 @@ function setClassification(imageName, cellId, classification) {
     
     console.log('Updated classifications:', currentState.classifications[imageName]);
     saveClassifications();
+    updateProgress();
 }
 
 async function loadImageByIndex(index) {
@@ -308,6 +352,7 @@ async function loadImageByIndex(index) {
         currentState.currentImageIndex = index;
         updateNavigationButtons();
     }
+    updateProgress();
 }
 
 function setupResizeObserver(wrapper, img) {

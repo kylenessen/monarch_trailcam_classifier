@@ -1,7 +1,7 @@
-- I would like to be able to change the working folder from the main window. 
 - Build in a progress bar for number of photos left to process
 - Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?
 - make confirmed green border larger
 - Change default size so you don't have to resize the window every time.
 - Add ability to save user name and incorporate that into the classifications file
 - Default to next unclassified image when opening the app
+- Copy from previous image works on confirmed images. This is not supposed to happen.
