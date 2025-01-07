@@ -97,13 +97,78 @@ function canEditImage(imageFile) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeUI();
     setupEventListeners();
-    promptForDeploymentFolder();
 });
+
+function setupEventListeners() {
+    // Add keyboard event listener
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    // Classification buttons
+    document.querySelectorAll('.count-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.count-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            currentState.selectedTool = button.dataset.count;
+            
+            // No longer automatically apply to selected cell
+        });
+    });
+
+    // Sunlight toggle
+    document.getElementById('sunlight-toggle').addEventListener('click', (event) => {
+        event.target.classList.toggle('active');
+        
+        // No longer automatically apply to selected cell
+    });
+
+    // Navigation buttons
+    document.getElementById('prev-image').addEventListener('click', () => {
+        navigateImage('previous');
+    });
+
+    document.getElementById('next-image').addEventListener('click', () => {
+        navigateImage('next');
+    });
+
+    document.getElementById('next-unclassified').addEventListener('click', () => {
+        findNextUnclassified();
+    });
+
+    // Confirm Image button
+    document.getElementById('confirm-image').addEventListener('click', () => {
+        confirmImage();
+    });
+
+    // Copy from Previous button
+    document.getElementById('copy-previous').addEventListener('click', () => {
+        copyFromPrevious();
+    });
+
+    // Reset button
+    document.getElementById('reset-image').addEventListener('click', resetImage);
+
+    // Add folder selection handler
+    document.getElementById('select-folder').addEventListener('click', promptForDeploymentFolder);
+
+    // Other actions
+}
 
 async function promptForDeploymentFolder() {
     const result = await ipcRenderer.invoke('select-folder');
     
     if (result.success) {
+        // Clear current state if we had a previous folder
+        if (currentState.imagesFolder) {
+            currentState.imageFiles = [];
+            currentState.currentImageIndex = 0;
+            currentState.classifications = {};
+            document.getElementById('image-container').innerHTML = '';
+        }
+        
         // Store the selected folder path
         currentState.imagesFolder = result.folderPath;
         
@@ -123,43 +188,6 @@ async function promptForDeploymentFolder() {
         } else {
             showNotification('No images found in selected folder', 'error');
         }
-    }
-}
-
-async function loadClassifications() {
-    try {
-        // Set up the classifications file path
-        currentState.classificationFile = path.join(currentState.imagesFolder, 'classifications.json');
-        console.log('Classification file path:', currentState.classificationFile);
-        
-        // Check if classifications file exists
-        if (fs.existsSync(currentState.classificationFile)) {
-            console.log('Found existing classifications file');
-            const data = await fs.promises.readFile(currentState.classificationFile, 'utf8');
-            currentState.classifications = JSON.parse(data);
-            console.log('Loaded existing classifications');
-        } else {
-            console.log('No classifications file found, creating new one');
-            initializeClassifications();
-        }
-    } catch (error) {
-        console.error('Error loading classifications:', error);
-        currentState.classifications = {};
-    }
-}
-
-async function saveClassifications() {
-    try {
-        console.log('Attempting to save to:', currentState.classificationFile);
-        console.log('Current classifications:', currentState.classifications);
-        
-        await fs.promises.writeFile(
-            currentState.classificationFile,
-            JSON.stringify(currentState.classifications, null, 2)
-        );
-        console.log('Successfully saved classifications');
-    } catch (error) {
-        console.error('Error saving classifications:', error);
     }
 }
 
@@ -508,59 +536,41 @@ function toggleShortcutsHelp() {
     }
 }
 
-function setupEventListeners() {
-    // Add keyboard event listener
-    document.addEventListener('keydown', handleKeyboardShortcuts);
-
-    // Classification buttons
-    document.querySelectorAll('.count-btn').forEach(button => {
-        button.addEventListener('click', () => {
-            // Remove active class from all buttons
-            document.querySelectorAll('.count-btn').forEach(btn => 
-                btn.classList.remove('active'));
-            
-            // Add active class to clicked button
-            button.classList.add('active');
-            currentState.selectedTool = button.dataset.count;
-            
-            // No longer automatically apply to selected cell
-        });
-    });
-
-    // Sunlight toggle
-    document.getElementById('sunlight-toggle').addEventListener('click', (event) => {
-        event.target.classList.toggle('active');
+async function loadClassifications() {
+    try {
+        // Set up the classifications file path
+        currentState.classificationFile = path.join(currentState.imagesFolder, 'classifications.json');
+        console.log('Classification file path:', currentState.classificationFile);
         
-        // No longer automatically apply to selected cell
-    });
+        // Check if classifications file exists
+        if (fs.existsSync(currentState.classificationFile)) {
+            console.log('Found existing classifications file');
+            const data = await fs.promises.readFile(currentState.classificationFile, 'utf8');
+            currentState.classifications = JSON.parse(data);
+            console.log('Loaded existing classifications');
+        } else {
+            console.log('No classifications file found, creating new one');
+            initializeClassifications();
+        }
+    } catch (error) {
+        console.error('Error loading classifications:', error);
+        currentState.classifications = {};
+    }
+}
 
-    // Navigation buttons
-    document.getElementById('prev-image').addEventListener('click', () => {
-        navigateImage('previous');
-    });
-
-    document.getElementById('next-image').addEventListener('click', () => {
-        navigateImage('next');
-    });
-
-    document.getElementById('next-unclassified').addEventListener('click', () => {
-        findNextUnclassified();
-    });
-
-    // Confirm Image button
-    document.getElementById('confirm-image').addEventListener('click', () => {
-        confirmImage();
-    });
-
-    // Copy from Previous button
-    document.getElementById('copy-previous').addEventListener('click', () => {
-        copyFromPrevious();
-    });
-
-    // Reset button
-    document.getElementById('reset-image').addEventListener('click', resetImage);
-
-    // Other actions
+async function saveClassifications() {
+    try {
+        console.log('Attempting to save to:', currentState.classificationFile);
+        console.log('Current classifications:', currentState.classifications);
+        
+        await fs.promises.writeFile(
+            currentState.classificationFile,
+            JSON.stringify(currentState.classifications, null, 2)
+        );
+        console.log('Successfully saved classifications');
+    } catch (error) {
+        console.error('Error saving classifications:', error);
+    }
 }
 
 function generateCellId(row, col) {
