@@ -498,8 +498,12 @@ function handleKeyboardShortcuts(event) {
 
 function toggleShortcutsHelp() {
     const helpContainer = document.querySelector('.keyboard-shortcuts-help');
+    const indicator = document.querySelector('.collapse-indicator');
     if (helpContainer) {
         helpContainer.classList.toggle('collapsed');
+        if (indicator) {
+            indicator.innerHTML = helpContainer.classList.contains('collapsed') ? '+' : '−';
+        }
     }
 }
 
@@ -691,13 +695,12 @@ function addKeyboardShortcutsHelp() {
     const helpTitle = document.createElement('h3');
     helpTitle.textContent = 'Keyboard Shortcuts';
     
-    const collapseButton = document.createElement('button');
-    collapseButton.className = 'collapse-button';
-    collapseButton.innerHTML = '−';
-    collapseButton.addEventListener('click', toggleShortcutsHelp);
+    const collapseIndicator = document.createElement('span');
+    collapseIndicator.className = 'collapse-indicator';
+    collapseIndicator.innerHTML = '−';
     
     helpHeader.appendChild(helpTitle);
-    helpHeader.appendChild(collapseButton);
+    helpHeader.appendChild(collapseIndicator);
     helpContainer.appendChild(helpHeader);
 
     const shortcutsList = document.createElement('ul');
