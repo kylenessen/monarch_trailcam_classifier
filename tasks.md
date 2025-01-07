@@ -1,4 +1,3 @@
-- Reset image works on confirmed images. This should be disabled.
 - I would like to be able to change the working folder from the main window. 
 - Build in a progress bar for number of photos left to process
 - Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?

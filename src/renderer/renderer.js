@@ -722,7 +722,14 @@ window.addEventListener('load', () => {
 });
 
 function resetImage() {
-    if (!currentState.imageFiles[currentState.currentImageIndex]) return;
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    if (!currentImage) return;
+    
+    // Check if the image is confirmed - if so, don't allow reset
+    if (currentState.classifications[currentImage].confirmed) {
+        showNotification('Cannot reset confirmed images', 'error');
+        return;
+    }
     
     // Create default grid cells
     const defaultCells = {};
@@ -737,8 +744,8 @@ function resetImage() {
     }
     
     // Update the classifications
-    currentState.classifications[currentState.imageFiles[currentState.currentImageIndex]] = {
-        ...currentState.classifications[currentState.imageFiles[currentState.currentImageIndex]],
+    currentState.classifications[currentImage] = {
+        ...currentState.classifications[currentImage],
         cells: defaultCells,
         confirmed: false
     };
@@ -746,7 +753,6 @@ function resetImage() {
     // Update the UI
     loadImageByIndex(currentState.currentImageIndex);
     saveClassifications();
-    showNotification('Image has been reset', 'info');
 }
 
 function findNextUnclassified() {
