@@ -288,19 +288,21 @@ button:disabled {
     z-index: 1000;
     font-size: 14px;
     max-width: 300px;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .keyboard-shortcuts-help.collapsed {
-    transform: translateX(calc(100% - 40px));
+    padding: 8px 15px;
+    max-height: 40px;
+}
+
+.keyboard-shortcuts-help:not(.collapsed) {
+    max-height: 500px;
 }
 
 .keyboard-shortcuts-help.collapsed .shortcuts-list {
     display: none;
-}
-
-.keyboard-shortcuts-help.collapsed .collapse-button {
-    transform: rotate(180deg);
 }
 
 .shortcuts-header {
@@ -308,6 +310,12 @@ button:disabled {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.keyboard-shortcuts-help.collapsed .shortcuts-header {
+    margin-bottom: 0;
 }
 
 .shortcuts-header h3 {
@@ -317,17 +325,7 @@ button:disabled {
 }
 
 .collapse-button {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    font-size: 20px;
-    padding: 0 5px;
-    transition: transform 0.3s ease;
-}
-
-.collapse-button:hover {
-    color: #333;
+    display: none;
 }
 
 .shortcuts-list {

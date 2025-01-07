@@ -686,6 +686,7 @@ function addKeyboardShortcutsHelp() {
     
     const helpHeader = document.createElement('div');
     helpHeader.className = 'shortcuts-header';
+    helpHeader.addEventListener('click', toggleShortcutsHelp);
     
     const helpTitle = document.createElement('h3');
     helpTitle.textContent = 'Keyboard Shortcuts';
