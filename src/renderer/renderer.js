@@ -482,6 +482,12 @@ function handleKeyboardShortcuts(event) {
             document.getElementById('sunlight-toggle').click();
             break;
 
+        // Reset image
+        case 'r':
+        case 'R':
+            resetImage();
+            break;
+
         // Toggle shortcuts help
         case 'h':
         case 'H':
@@ -545,6 +551,9 @@ function setupEventListeners() {
     document.getElementById('copy-previous').addEventListener('click', () => {
         copyFromPrevious();
     });
+
+    // Reset button
+    document.getElementById('reset-image').addEventListener('click', resetImage);
 
     // Other actions
 }
@@ -668,6 +677,7 @@ function addKeyboardShortcutsHelp() {
         { key: 'W / ↑', action: 'Confirm image' },
         { key: 'S / ↓', action: 'Copy from previous' },
         { key: 'F', action: 'Toggle sunlight' },
+        { key: 'R', action: 'Reset image' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
 
@@ -705,3 +715,31 @@ function addKeyboardShortcutsHelp() {
 window.addEventListener('load', () => {
     addKeyboardShortcutsHelp();
 });
+
+function resetImage() {
+    if (!currentState.imageFiles[currentState.currentImageIndex]) return;
+    
+    // Create default grid cells
+    const defaultCells = {};
+    for (let row = 0; row < GRID_CONFIG.rows; row++) {
+        for (let col = 0; col < GRID_CONFIG.columns; col++) {
+            const cellId = generateCellId(row, col);
+            defaultCells[cellId] = {
+                count: '0',
+                directSun: false
+            };
+        }
+    }
+    
+    // Update the classifications
+    currentState.classifications[currentState.imageFiles[currentState.currentImageIndex]] = {
+        ...currentState.classifications[currentState.imageFiles[currentState.currentImageIndex]],
+        cells: defaultCells,
+        confirmed: false
+    };
+    
+    // Update the UI
+    loadImageByIndex(currentState.currentImageIndex);
+    saveClassifications();
+    showNotification('Image has been reset', 'info');
+}
