@@ -543,7 +543,7 @@ function setupEventListeners() {
     });
 
     document.getElementById('next-unclassified').addEventListener('click', () => {
-        // TODO: Implement next unclassified navigation
+        findNextUnclassified();
     });
 
     // Confirm Image button
@@ -746,4 +746,15 @@ function resetImage() {
     loadImageByIndex(currentState.currentImageIndex);
     saveClassifications();
     showNotification('Image has been reset', 'info');
+}
+
+function findNextUnclassified() {
+    for (let i = 0; i < currentState.imageFiles.length; i++) {
+        const imageName = currentState.imageFiles[i];
+        if (!currentState.classifications[imageName].confirmed) {
+            loadImageByIndex(i);
+            return;
+        }
+    }
+    showNotification('All images have been classified!', 'info');
 }

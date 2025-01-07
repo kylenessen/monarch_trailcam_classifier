@@ -1,7 +1,6 @@
-- Keyboard Shortcuts when minimized can't be unminimized
-- Next Unclassified button not working
 - Excessive warnings about editing beyond confirmed photos. Should only trigger when trying to make an annotation, not just when viewing.
 - Reset image works on confirmed images. This should be disabled.
 - I would like to be able to change the working folder from the main window. 
 - Build in a progress bar for number of photos left to process
 - Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?
+- make confirmed green border larger
