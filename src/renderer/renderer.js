@@ -49,37 +49,34 @@ const DEFAULT_CELL_CLASSIFICATION = {
 
 // Initialize classifications for all images
 function initializeClassifications() {
+    console.log('Initializing classifications for images:', currentState.imageFiles);
     const defaultClassifications = {};
     
-    // Create default grid cells
+    // Create default grid cells with count of 0
     const gridCells = {};
     for (let row = 0; row < GRID_CONFIG.rows; row++) {
         for (let col = 0; col < GRID_CONFIG.columns; col++) {
             const cellId = generateCellId(row, col);
-            gridCells[cellId] = DEFAULT_CELL_CLASSIFICATION;
+            gridCells[cellId] = {
+                count: 0,
+                directSun: false
+            };
         }
     }
     
     // Initialize each image with default classifications
     currentState.imageFiles.forEach((image, index) => {
-        if (!currentState.classifications[image]) {
-            defaultClassifications[image] = {
-                confirmed: false,
-                cells: { ...gridCells },
-                index: index  // Store the sequence number
-            };
-        } else {
-            // Ensure existing classifications have an index
-            currentState.classifications[image].index = index;
-        }
+        defaultClassifications[image] = {
+            confirmed: false,
+            cells: { ...gridCells },
+            index: index
+        };
     });
     
-    // Merge with existing classifications
-    currentState.classifications = {
-        ...defaultClassifications,
-        ...currentState.classifications
-    };
+    console.log('Created default classifications:', defaultClassifications);
     
+    // Set the classifications and save to file
+    currentState.classifications = defaultClassifications;
     saveClassifications();
 }
 
@@ -121,7 +118,7 @@ async function promptForDeploymentFolder() {
                 `Deployment: ${path.basename(result.folderPath)}`;
             
             // Initialize classifications and load first image
-            initializeClassifications();
+            loadClassifications();
             loadImageByIndex(0);
         } else {
             showNotification('No images found in selected folder', 'error');
@@ -131,9 +128,19 @@ async function promptForDeploymentFolder() {
 
 async function loadClassifications() {
     try {
+        // Set up the classifications file path
+        currentState.classificationFile = path.join(currentState.imagesFolder, 'classifications.json');
+        console.log('Classification file path:', currentState.classificationFile);
+        
+        // Check if classifications file exists
         if (fs.existsSync(currentState.classificationFile)) {
+            console.log('Found existing classifications file');
             const data = await fs.promises.readFile(currentState.classificationFile, 'utf8');
             currentState.classifications = JSON.parse(data);
+            console.log('Loaded existing classifications');
+        } else {
+            console.log('No classifications file found, creating new one');
+            initializeClassifications();
         }
     } catch (error) {
         console.error('Error loading classifications:', error);
@@ -143,10 +150,14 @@ async function loadClassifications() {
 
 async function saveClassifications() {
     try {
+        console.log('Attempting to save to:', currentState.classificationFile);
+        console.log('Current classifications:', currentState.classifications);
+        
         await fs.promises.writeFile(
             currentState.classificationFile,
             JSON.stringify(currentState.classifications, null, 2)
         );
+        console.log('Successfully saved classifications');
     } catch (error) {
         console.error('Error saving classifications:', error);
     }
