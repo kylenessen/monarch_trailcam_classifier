@@ -214,13 +214,8 @@ async function loadImageByIndex(index) {
         const currentImage = currentState.imageFiles[index];
         console.log('Loading image:', currentImage);
         
-        // Check if we can edit this image
-        if (!canEditImage(currentImage)) {
-            showNotification('Please confirm all previous images before editing this one', 'error');
-            disableClassificationTools(true);
-        } else {
-            disableClassificationTools(currentState.classifications[currentImage].confirmed);
-        }
+        // Only disable tools if the image is confirmed
+        disableClassificationTools(currentState.classifications[currentImage].confirmed);
         
         const imageContainer = document.getElementById('image-container');
         
@@ -348,8 +343,14 @@ function updateNavigationButtons() {
 function handleCellClick(event, cellId) {
     const currentImage = currentState.imageFiles[currentState.currentImageIndex];
     
-    // Don't allow modifications if image is locked or can't be edited
-    if (currentState.isLocked || !canEditImage(currentImage)) {
+    // Check if we can edit this image
+    if (!canEditImage(currentImage)) {
+        showNotification('Please confirm all previous images before making annotations', 'error');
+        return;
+    }
+    
+    // Don't allow modifications if image is locked or confirmed
+    if (currentState.isLocked || currentState.classifications[currentImage].confirmed) {
         return;
     }
     
@@ -632,9 +633,9 @@ function copyFromPrevious() {
     // Copy classifications (excluding the confirmed status and maintaining the index)
     const currentIndex = currentState.classifications[currentImage].index;
     currentState.classifications[currentImage] = {
-        confirmed: false,
+        ...currentState.classifications[currentImage],
         cells: JSON.parse(JSON.stringify(previousImageData.cells)), // Deep copy to prevent reference issues
-        index: currentIndex
+        confirmed: false
     };
 
     // Save to file
