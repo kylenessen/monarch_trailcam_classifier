@@ -21,8 +21,45 @@ body {
 }
 
 .user-info {
-    padding: 10px;
+    padding: 15px;
     border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.user-info .clickable-section {
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    margin-bottom: 10px;
+}
+
+.user-info .clickable-section:hover {
+    background-color: #f0f0f0;
+}
+
+.user-info .label {
+    font-weight: bold;
+    color: #666;
+    margin-right: 5px;
+}
+
+.user-info .value {
+    color: #333;
+    word-break: break-all;
+}
+
+#deployment-id {
+    margin-top: 4px;
+    padding-left: 8px;
+}
+
+#deployment-section {
+    border: 1px solid #ddd;
+}
+
+#deployment-section:hover {
+    border-color: #999;
 }
 
 .classification-tools {
@@ -274,6 +311,25 @@ button:disabled {
         transform: translateX(100%);
         opacity: 0;
     }
+}
+
+/* Welcome message styles */
+#welcome-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #666;
+}
+
+#welcome-message h2 {
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+
+#welcome-message p {
+    font-size: 1.1em;
 }
 
 /* Keyboard shortcuts help */

@@ -152,7 +152,7 @@ function setupEventListeners() {
     document.getElementById('reset-image').addEventListener('click', resetImage);
 
     // Add folder selection handler
-    document.getElementById('select-folder').addEventListener('click', promptForDeploymentFolder);
+    document.getElementById('deployment-section').addEventListener('click', promptForDeploymentFolder);
 
     // Other actions
 }
@@ -161,12 +161,22 @@ async function promptForDeploymentFolder() {
     const result = await ipcRenderer.invoke('select-folder');
     
     if (result.success) {
+        // Hide welcome message
+        document.getElementById('welcome-message').style.display = 'none';
+        
         // Clear current state if we had a previous folder
         if (currentState.imagesFolder) {
             currentState.imageFiles = [];
             currentState.currentImageIndex = 0;
             currentState.classifications = {};
             document.getElementById('image-container').innerHTML = '';
+            // Re-add welcome message after clearing
+            document.getElementById('image-container').innerHTML = `
+                <div id="welcome-message">
+                    <h2>Welcome to Monarch Photo Classification</h2>
+                    <p>Select an image folder to begin</p>
+                </div>
+            `;
         }
         
         // Store the selected folder path
@@ -179,14 +189,16 @@ async function promptForDeploymentFolder() {
             currentState.imageFiles = imageFiles;
             
             // Update UI with deployment info
-            document.getElementById('deployment-id').textContent = 
-                `Deployment: ${path.basename(result.folderPath)}`;
+            document.getElementById('deployment-id').textContent = path.basename(result.folderPath);
             
             // Initialize classifications and load first image
             loadClassifications();
             loadImageByIndex(0);
         } else {
             showNotification('No images found in selected folder', 'error');
+            document.getElementById('deployment-id').textContent = 'Click to select folder';
+            // Show welcome message again if no images found
+            document.getElementById('welcome-message').style.display = 'block';
         }
     }
 }
