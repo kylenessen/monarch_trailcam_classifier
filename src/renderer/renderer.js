@@ -239,9 +239,9 @@ async function promptForDeploymentFolder() {
             // Update UI with deployment info
             document.getElementById('deployment-id').textContent = path.basename(result.folderPath);
             
-            // Initialize classifications and load first image
-            loadClassifications();
-            loadImageByIndex(0);
+            // Initialize classifications and load first unclassified image
+            await loadClassifications();
+            findNextUnclassified();
         } else {
             showNotification('No images found in selected folder', 'error');
             document.getElementById('deployment-id').textContent = 'Click to select folder';
