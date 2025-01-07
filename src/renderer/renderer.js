@@ -185,10 +185,7 @@ function setClassification(imageName, cellId, classification) {
     }
     
     // Update the cell classification
-    currentState.classifications[imageName].cells[cellId] = {
-        ...currentState.classifications[imageName].cells[cellId],
-        ...classification
-    };
+    currentState.classifications[imageName].cells[cellId] = classification;
     
     console.log('Updated classifications:', currentState.classifications[imageName]);
     saveClassifications();
@@ -291,6 +288,12 @@ function setupResizeObserver(wrapper, img) {
 }
 
 function createGrid(wrapper, imageWidth, imageHeight) {
+    // Remove existing grid if it exists
+    const existingGrid = wrapper.querySelector('.grid-overlay');
+    if (existingGrid) {
+        wrapper.removeChild(existingGrid);
+    }
+
     const gridOverlay = document.createElement('div');
     gridOverlay.className = 'grid-overlay';
     
