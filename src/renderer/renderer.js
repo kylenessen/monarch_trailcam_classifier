@@ -168,19 +168,29 @@ function getImageClassifications(imageName) {
 }
 
 function setClassification(imageName, cellId, classification) {
+    console.log('Setting classification for', imageName, cellId, classification);
+    
+    // Initialize the image entry if it doesn't exist
     if (!currentState.classifications[imageName]) {
-        currentState.classifications[imageName] = {};
+        currentState.classifications[imageName] = {
+            confirmed: false,
+            cells: {},
+            index: currentState.imageFiles.indexOf(imageName)
+        };
     }
     
-    if (!currentState.classifications[imageName][cellId]) {
-        currentState.classifications[imageName][cellId] = {};
+    // Initialize the cells object if it doesn't exist
+    if (!currentState.classifications[imageName].cells) {
+        currentState.classifications[imageName].cells = {};
     }
     
-    currentState.classifications[imageName][cellId] = {
-        ...currentState.classifications[imageName][cellId],
+    // Update the cell classification
+    currentState.classifications[imageName].cells[cellId] = {
+        ...currentState.classifications[imageName].cells[cellId],
         ...classification
     };
     
+    console.log('Updated classifications:', currentState.classifications[imageName]);
     saveClassifications();
 }
 
