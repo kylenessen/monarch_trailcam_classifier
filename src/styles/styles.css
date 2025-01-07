@@ -1,0 +1,358 @@
+/* General styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 250px;
+    background-color: #f5f5f5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.user-info {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.classification-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px 0;
+}
+
+.count-btn {
+    padding: 8px;
+    margin: 2px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.count-btn:hover {
+    background-color: #e9e9e9;
+}
+
+.count-btn.active {
+    background-color: #007AFF;
+    color: white;
+    border-color: #0056b3;
+}
+
+#sunlight-toggle {
+    padding: 8px;
+    margin: 2px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#sunlight-toggle:hover {
+    background-color: #e9e9e9;
+}
+
+#sunlight-toggle.active {
+    background-color: #ffd700;
+    color: black;
+    border-color: #ccac00;
+}
+
+/* Main content area */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #fff;
+    overflow: auto;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#image-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.image-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#display-image {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100vh - 40px);
+    width: auto;
+    height: auto;
+}
+
+.error-message {
+    padding: 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+}
+
+.grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Grid styles */
+.grid-cell {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.grid-cell:hover {
+    border-color: #007AFF;
+    border-width: 2px;
+}
+
+.grid-cell.selected {
+    border-color: #007AFF !important;
+    border-width: 2px !important;
+    z-index: 1;
+}
+
+/* Confirmed image styles */
+.image-wrapper.confirmed::before {
+    content: '✓ CONFIRMED';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(40, 167, 69, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 2;
+    font-weight: bold;
+}
+
+.image-wrapper.confirmed::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 4px solid rgba(40, 167, 69, 0.5);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Navigation controls */
+.navigation {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+}
+
+.navigation button {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.navigation button:hover {
+    background-color: #e9e9e9;
+}
+
+/* Add disabled button styles */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f5f5f5;
+}
+
+/* Confirm button styles */
+#confirm-image {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#confirm-image:hover {
+    background-color: #218838;
+}
+
+/* When image is confirmed, change button style */
+.confirmed ~ #confirm-image {
+    background-color: #dc3545;
+}
+
+.confirmed ~ #confirm-image:hover {
+    background-color: #c82333;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slide-in 0.3s ease-out;
+}
+
+.notification.info {
+    background-color: #17a2b8;
+}
+
+.notification.success {
+    background-color: #28a745;
+}
+
+.notification.error {
+    background-color: #dc3545;
+}
+
+.notification.fade-out {
+    animation: fade-out 0.3s ease-out forwards;
+}
+
+@keyframes slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Keyboard shortcuts help */
+.keyboard-shortcuts-help {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    font-size: 14px;
+    max-width: 300px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.keyboard-shortcuts-help.collapsed {
+    transform: translateX(calc(100% - 40px));
+}
+
+.keyboard-shortcuts-help.collapsed .shortcuts-list {
+    display: none;
+}
+
+.keyboard-shortcuts-help.collapsed .collapse-button {
+    transform: rotate(180deg);
+}
+
+.shortcuts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.shortcuts-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.collapse-button {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0 5px;
+    transition: transform 0.3s ease;
+}
+
+.collapse-button:hover {
+    color: #333;
+}
+
+.shortcuts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    transition: opacity 0.3s ease;
+}
+
+.keyboard-shortcuts-help li {
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    color: #666;
+}
+
+.shortcut-key {
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+    font-family: monospace;
+    color: #333;
+    border: 1px solid #ddd;
+    min-width: 24px;
+    text-align: center;
+    display: inline-block;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "monarch-photo-classification-tool",
+  "version": "1.0.0",
+  "description": "A desktop application for classifying monarch butterflies in trail-camera photos",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["electron", "monarch", "butterfly", "classification"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.1.0"
+  }
+}

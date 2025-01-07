@@ -1,0 +1,683 @@
+// Global variables
+let currentImage = null;
+let gridCells = [];
+let currentClassification = {};
+
+// Global state
+let currentState = {
+    deploymentFolder: null,
+    imagesFolder: null,
+    imageFiles: [],
+    currentImageIndex: -1,
+    classifications: {},
+    selectedCell: null,
+    selectedTool: '0',
+    classificationFile: null,
+    originalImageWidth: null,
+    originalImageHeight: null,
+    resizeObserver: null,
+    isLocked: false
+};
+
+const { ipcRenderer } = require('electron');
+const path = require('path');
+const fs = require('fs');
+
+// Classification categories and their colors
+const CLASSIFICATIONS = {
+    '0': { label: '0', color: 'transparent' },
+    '1-9': { label: '1-9', color: 'rgba(255, 235, 59, 0.3)' },
+    '10-99': { label: '10-99', color: 'rgba(255, 152, 0, 0.3)' },
+    '100-999': { label: '100-999', color: 'rgba(244, 67, 54, 0.3)' },
+    '1000+': { label: '1000+', color: 'rgba(156, 39, 176, 0.3)' }
+};
+
+// Grid configuration
+const GRID_CONFIG = {
+    columns: 16,
+    rows: 9
+};
+
+// Define the category order for cycling
+const CATEGORIES = ['0', '1-9', '10-99', '100-999', '1000+'];
+
+// Default classification for each cell
+const DEFAULT_CELL_CLASSIFICATION = {
+    count: '0',
+    sunlight: false
+};
+
+// Initialize classifications for all images
+function initializeClassifications() {
+    const defaultClassifications = {};
+    
+    // Create default grid cells
+    const gridCells = {};
+    for (let row = 0; row < GRID_CONFIG.rows; row++) {
+        for (let col = 0; col < GRID_CONFIG.columns; col++) {
+            const cellId = generateCellId(row, col);
+            gridCells[cellId] = DEFAULT_CELL_CLASSIFICATION;
+        }
+    }
+    
+    // Initialize each image with default classifications
+    currentState.imageFiles.forEach((image, index) => {
+        if (!currentState.classifications[image]) {
+            defaultClassifications[image] = {
+                confirmed: false,
+                cells: { ...gridCells },
+                index: index  // Store the sequence number
+            };
+        } else {
+            // Ensure existing classifications have an index
+            currentState.classifications[image].index = index;
+        }
+    });
+    
+    // Merge with existing classifications
+    currentState.classifications = {
+        ...defaultClassifications,
+        ...currentState.classifications
+    };
+    
+    saveClassifications();
+}
+
+function canEditImage(imageFile) {
+    const currentIndex = currentState.classifications[imageFile].index;
+    
+    // Check if all previous images are confirmed
+    for (let i = 0; i < currentIndex; i++) {
+        const prevImage = currentState.imageFiles[i];
+        if (!currentState.classifications[prevImage].confirmed) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', () => {
+    initializeUI();
+    setupEventListeners();
+    promptForDeploymentFolder();
+});
+
+async function promptForDeploymentFolder() {
+    const result = await ipcRenderer.invoke('select-folder');
+    
+    if (result.success) {
+        // Store the selected folder path
+        currentState.imagesFolder = result.folderPath;
+        
+        // Load images from the selected folder
+        const imageFiles = await ipcRenderer.invoke('load-images', result.folderPath);
+        
+        if (imageFiles && imageFiles.length > 0) {
+            currentState.imageFiles = imageFiles;
+            
+            // Update UI with deployment info
+            document.getElementById('deployment-id').textContent = 
+                `Deployment: ${path.basename(result.folderPath)}`;
+            
+            // Initialize classifications and load first image
+            initializeClassifications();
+            loadImageByIndex(0);
+        } else {
+            showNotification('No images found in selected folder', 'error');
+        }
+    }
+}
+
+async function loadClassifications() {
+    try {
+        if (fs.existsSync(currentState.classificationFile)) {
+            const data = await fs.promises.readFile(currentState.classificationFile, 'utf8');
+            currentState.classifications = JSON.parse(data);
+        }
+    } catch (error) {
+        console.error('Error loading classifications:', error);
+        currentState.classifications = {};
+    }
+}
+
+async function saveClassifications() {
+    try {
+        await fs.promises.writeFile(
+            currentState.classificationFile,
+            JSON.stringify(currentState.classifications, null, 2)
+        );
+    } catch (error) {
+        console.error('Error saving classifications:', error);
+    }
+}
+
+function getImageClassifications(imageName) {
+    return currentState.classifications[imageName] || {};
+}
+
+function setClassification(imageName, cellId, classification) {
+    if (!currentState.classifications[imageName]) {
+        currentState.classifications[imageName] = {};
+    }
+    
+    if (!currentState.classifications[imageName][cellId]) {
+        currentState.classifications[imageName][cellId] = {};
+    }
+    
+    currentState.classifications[imageName][cellId] = {
+        ...currentState.classifications[imageName][cellId],
+        ...classification
+    };
+    
+    saveClassifications();
+}
+
+async function loadImageByIndex(index) {
+    console.log('Loading image at index:', index);
+    console.log('Current state:', {
+        imagesFolder: currentState.imagesFolder,
+        totalImages: currentState.imageFiles.length,
+        currentIndex: currentState.currentImageIndex
+    });
+
+    if (index < 0 || index >= currentState.imageFiles.length) {
+        console.error('Invalid image index');
+        return;
+    }
+
+    const imagePath = path.join(currentState.imagesFolder, currentState.imageFiles[index]);
+    console.log('Full image path:', imagePath);
+    
+    const imageData = await ipcRenderer.invoke('get-image-data', imagePath);
+    console.log('Received image data:', imageData ? 'yes' : 'no');
+    
+    if (imageData) {
+        const currentImage = currentState.imageFiles[index];
+        console.log('Loading image:', currentImage);
+        
+        // Check if we can edit this image
+        if (!canEditImage(currentImage)) {
+            showNotification('Please confirm all previous images before editing this one', 'error');
+            disableClassificationTools(true);
+        } else {
+            disableClassificationTools(currentState.classifications[currentImage].confirmed);
+        }
+        
+        const imageContainer = document.getElementById('image-container');
+        
+        // Clear existing content
+        imageContainer.innerHTML = '';
+        
+        // Create wrapper for image and grid
+        const wrapper = document.createElement('div');
+        wrapper.className = 'image-wrapper';
+        imageContainer.appendChild(wrapper);
+        
+        // Create and load new image
+        const img = new Image();
+        img.id = 'display-image';
+        
+        // Set up image load handler before setting src
+        img.onload = () => {
+            // Store original dimensions
+            currentState.originalImageWidth = img.naturalWidth;
+            currentState.originalImageHeight = img.naturalHeight;
+            
+            // Create grid overlay after image loads
+            createGrid(wrapper, img.naturalWidth, img.naturalHeight);
+            
+            // Check if image is confirmed
+            const currentImage = currentState.imageFiles[index];
+            const imageData = currentState.classifications[currentImage] || {};
+            if (imageData.confirmed) {
+                wrapper.classList.add('confirmed');
+                document.getElementById('confirm-image').textContent = 'Unlock Image';
+                disableClassificationTools(true);
+            } else {
+                wrapper.classList.remove('confirmed');
+                document.getElementById('confirm-image').textContent = 'Confirm Image';
+                disableClassificationTools(false);
+            }
+        };
+        
+        // Add error handler
+        img.onerror = () => {
+            console.error('Failed to load image:', imagePath);
+            imageContainer.innerHTML = '<div class="error-message">Failed to load image</div>';
+        };
+        
+        // Set image source and append to wrapper
+        img.src = `data:image/jpeg;base64,${imageData}`;
+        wrapper.appendChild(img);
+        
+        // Update state and navigation
+        currentState.currentImageIndex = index;
+        updateNavigationButtons();
+    }
+}
+
+function setupResizeObserver(wrapper, img) {
+    if (currentState.resizeObserver) {
+        currentState.resizeObserver.disconnect();
+    }
+
+    currentState.resizeObserver = new ResizeObserver((entries) => {
+        // Only used for monitoring, no active resizing needed
+    });
+
+    currentState.resizeObserver.observe(wrapper);
+}
+
+function createGrid(wrapper, imageWidth, imageHeight) {
+    const gridOverlay = document.createElement('div');
+    gridOverlay.className = 'grid-overlay';
+    
+    // Calculate cell dimensions based on image size and grid configuration
+    const cellWidth = imageWidth / GRID_CONFIG.columns;
+    const cellHeight = imageHeight / GRID_CONFIG.rows;
+    
+    // Get classifications for current image
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    const imageClassifications = getImageClassifications(currentImage);
+    
+    // Create grid cells
+    for (let row = 0; row < GRID_CONFIG.rows; row++) {
+        for (let col = 0; col < GRID_CONFIG.columns; col++) {
+            const cellId = generateCellId(row, col);
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            cell.dataset.cellId = cellId;
+            
+            // Set cell dimensions as percentages
+            cell.style.width = `${(1 / GRID_CONFIG.columns) * 100}%`;
+            cell.style.height = `${(1 / GRID_CONFIG.rows) * 100}%`;
+            cell.style.left = `${(col / GRID_CONFIG.columns) * 100}%`;
+            cell.style.top = `${(row / GRID_CONFIG.rows) * 100}%`;
+            
+            // Apply existing classifications
+            const cellClassification = imageClassifications.cells[cellId];
+            if (cellClassification) {
+                applyCellStyle(cell, cellClassification);
+            }
+            
+            // Add click handler
+            cell.addEventListener('click', (e) => handleCellClick(e, cellId));
+            
+            gridOverlay.appendChild(cell);
+        }
+    }
+    
+    wrapper.appendChild(gridOverlay);
+}
+
+function updateNavigationButtons() {
+    const prevButton = document.getElementById('prev-image');
+    const nextButton = document.getElementById('next-image');
+    
+    prevButton.disabled = currentState.currentImageIndex <= 0;
+    nextButton.disabled = currentState.currentImageIndex >= currentState.imageFiles.length - 1;
+}
+
+function handleCellClick(event, cellId) {
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    
+    // Don't allow modifications if image is locked or can't be edited
+    if (currentState.isLocked || !canEditImage(currentImage)) {
+        return;
+    }
+    
+    // Remove previous selection
+    if (currentState.selectedCell) {
+        document.querySelector(`[data-cell-id="${currentState.selectedCell}"]`)
+            ?.classList.remove('selected');
+    }
+    
+    const cell = event.target;
+    cell.classList.add('selected');
+    currentState.selectedCell = cellId;
+    
+    // Apply current classification immediately
+    applyCurrentClassification(cell, cellId);
+}
+
+function applyCurrentClassification(cell, cellId) {
+    const classification = {
+        count: currentState.selectedTool,
+        sunlight: document.getElementById('sunlight-toggle').classList.contains('active')
+    };
+    
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    setClassification(currentImage, cellId, classification);
+    applyCellStyle(cell, classification);
+}
+
+function applyCellStyle(cell, classification) {
+    // Apply count classification
+    const countClass = CLASSIFICATIONS[classification.count];
+    cell.style.backgroundColor = countClass.color;
+    
+    // Apply sunlight classification
+    if (classification.sunlight) {
+        cell.style.borderColor = 'rgba(255, 235, 59, 0.8)';
+        cell.style.borderWidth = '2px';
+    } else {
+        cell.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+        cell.style.borderWidth = '1px';
+    }
+}
+
+function initializeUI() {
+    // TODO: Implement initial UI setup
+    // - Create grid overlay
+    // - Load first image
+    // - Set up classification tools
+}
+
+function cycleCategory(direction) {
+    const currentIndex = CATEGORIES.indexOf(currentState.selectedTool);
+    if (currentIndex === -1) return;
+
+    let newIndex;
+    if (direction === 'next') {
+        newIndex = (currentIndex + 1) % CATEGORIES.length;
+    } else {
+        newIndex = (currentIndex - 1 + CATEGORIES.length) % CATEGORIES.length;
+    }
+
+    // Update the selected tool
+    currentState.selectedTool = CATEGORIES[newIndex];
+
+    // Update UI
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.count === currentState.selectedTool) {
+            btn.classList.add('active');
+        }
+    });
+}
+
+function navigateImage(direction) {
+    if (direction === 'next' && currentState.currentImageIndex < currentState.imageFiles.length - 1) {
+        loadImageByIndex(currentState.currentImageIndex + 1);
+    } else if (direction === 'previous' && currentState.currentImageIndex > 0) {
+        loadImageByIndex(currentState.currentImageIndex - 1);
+    }
+}
+
+function handleKeyboardShortcuts(event) {
+    // Don't handle shortcuts if we're in an input field
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    switch (event.key) {
+        // Navigation
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            navigateImage('next');
+            break;
+
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            navigateImage('previous');
+            break;
+
+        // Category cycling
+        case 'e':
+        case 'E':
+            cycleCategory('next');
+            break;
+
+        case 'q':
+        case 'Q':
+            cycleCategory('previous');
+            break;
+
+        // Confirm image
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+            document.getElementById('confirm-image').click();
+            break;
+
+        // Copy from previous
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+            document.getElementById('copy-previous').click();
+            break;
+
+        // Toggle sunlight
+        case 'f':
+        case 'F':
+            document.getElementById('sunlight-toggle').click();
+            break;
+
+        // Toggle shortcuts help
+        case 'h':
+        case 'H':
+            toggleShortcutsHelp();
+            break;
+    }
+}
+
+function toggleShortcutsHelp() {
+    const helpContainer = document.querySelector('.keyboard-shortcuts-help');
+    if (helpContainer) {
+        helpContainer.classList.toggle('collapsed');
+    }
+}
+
+function setupEventListeners() {
+    // Add keyboard event listener
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    // Classification buttons
+    document.querySelectorAll('.count-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            document.querySelectorAll('.count-btn').forEach(btn => 
+                btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            currentState.selectedTool = button.dataset.count;
+            
+            // No longer automatically apply to selected cell
+        });
+    });
+
+    // Sunlight toggle
+    document.getElementById('sunlight-toggle').addEventListener('click', (event) => {
+        event.target.classList.toggle('active');
+        
+        // No longer automatically apply to selected cell
+    });
+
+    // Navigation buttons
+    document.getElementById('prev-image').addEventListener('click', () => {
+        navigateImage('previous');
+    });
+
+    document.getElementById('next-image').addEventListener('click', () => {
+        navigateImage('next');
+    });
+
+    document.getElementById('next-unclassified').addEventListener('click', () => {
+        // TODO: Implement next unclassified navigation
+    });
+
+    // Confirm Image button
+    document.getElementById('confirm-image').addEventListener('click', () => {
+        confirmImage();
+    });
+
+    // Copy from Previous button
+    document.getElementById('copy-previous').addEventListener('click', () => {
+        copyFromPrevious();
+    });
+
+    // Other actions
+}
+
+function generateCellId(row, col) {
+    return `cell_${row}_${col}`;
+}
+
+function disableClassificationTools(disabled) {
+    // Disable/enable count buttons
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        btn.disabled = disabled;
+    });
+    
+    // Disable/enable sunlight toggle
+    document.getElementById('sunlight-toggle').disabled = disabled;
+    
+    // Update current state
+    currentState.isLocked = disabled;
+}
+
+function confirmImage() {
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    
+    if (!currentState.classifications[currentImage]) {
+        currentState.classifications[currentImage] = {};
+    }
+    
+    const isConfirmed = currentState.classifications[currentImage].confirmed;
+    currentState.classifications[currentImage].confirmed = !isConfirmed;
+    
+    // Update UI
+    const wrapper = document.querySelector('.image-wrapper');
+    if (!isConfirmed) {
+        wrapper.classList.add('confirmed');
+        document.getElementById('confirm-image').textContent = 'Unlock Image';
+        disableClassificationTools(true);
+    } else {
+        wrapper.classList.remove('confirmed');
+        document.getElementById('confirm-image').textContent = 'Confirm Image';
+        disableClassificationTools(false);
+    }
+    
+    // Save to file
+    saveClassifications();
+}
+
+function copyFromPrevious() {
+    // Check if we have a previous image
+    if (currentState.currentImageIndex <= 0) {
+        showNotification('No previous image available', 'error');
+        return;
+    }
+
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    
+    // Check if we can edit this image
+    if (!canEditImage(currentImage)) {
+        showNotification('Please confirm all previous images before editing this one', 'error');
+        return;
+    }
+
+    // Get previous image data
+    const previousImage = currentState.imageFiles[currentState.currentImageIndex - 1];
+    const previousImageData = currentState.classifications[previousImage];
+
+    if (!previousImageData || !previousImageData.confirmed) {
+        showNotification('Previous image must be confirmed before copying', 'error');
+        return;
+    }
+
+    // Copy classifications (excluding the confirmed status and maintaining the index)
+    const currentIndex = currentState.classifications[currentImage].index;
+    currentState.classifications[currentImage] = {
+        confirmed: false,
+        cells: JSON.parse(JSON.stringify(previousImageData.cells)), // Deep copy to prevent reference issues
+        index: currentIndex
+    };
+
+    // Save to file
+    saveClassifications();
+
+    // Reload the grid to show new classifications
+    const wrapper = document.querySelector('.image-wrapper');
+    const img = document.querySelector('#display-image');
+    if (wrapper && img) {
+        createGrid(wrapper, img.naturalWidth, img.naturalHeight);
+    }
+
+    showNotification('Classifications copied from previous image', 'success');
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notification if any
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+
+    // Add to document
+    document.body.appendChild(notification);
+
+    // Remove after delay
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+function addKeyboardShortcutsHelp() {
+    const shortcuts = [
+        { key: 'D / →', action: 'Next image' },
+        { key: 'A / ←', action: 'Previous image' },
+        { key: 'E', action: 'Next category' },
+        { key: 'Q', action: 'Previous category' },
+        { key: 'W / ↑', action: 'Confirm image' },
+        { key: 'S / ↓', action: 'Copy from previous' },
+        { key: 'F', action: 'Toggle sunlight' },
+        { key: 'H', action: 'Toggle shortcuts help' }
+    ];
+
+    const helpContainer = document.createElement('div');
+    helpContainer.className = 'keyboard-shortcuts-help';
+    
+    const helpHeader = document.createElement('div');
+    helpHeader.className = 'shortcuts-header';
+    
+    const helpTitle = document.createElement('h3');
+    helpTitle.textContent = 'Keyboard Shortcuts';
+    
+    const collapseButton = document.createElement('button');
+    collapseButton.className = 'collapse-button';
+    collapseButton.innerHTML = '−';
+    collapseButton.addEventListener('click', toggleShortcutsHelp);
+    
+    helpHeader.appendChild(helpTitle);
+    helpHeader.appendChild(collapseButton);
+    helpContainer.appendChild(helpHeader);
+
+    const shortcutsList = document.createElement('ul');
+    shortcutsList.className = 'shortcuts-list';
+    shortcuts.forEach(({ key, action }) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="shortcut-key">${key}</span> ${action}`;
+        shortcutsList.appendChild(li);
+    });
+    
+    helpContainer.appendChild(shortcutsList);
+    document.body.appendChild(helpContainer);
+}
+
+// Call this after window loads
+window.addEventListener('load', () => {
+    addKeyboardShortcutsHelp();
+});
