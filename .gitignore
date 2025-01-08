@@ -3,4 +3,5 @@ node_modules/
 dist/
 *.log
 images/
-
+dist/
+node_modules/

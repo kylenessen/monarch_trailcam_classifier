@@ -2,15 +2,28 @@
   "name": "monarch-photo-classification-tool",
   "version": "1.0.0",
   "description": "A desktop application for classifying monarch butterflies in trail-camera photos",
+  "author": "",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "electron-builder"
   },
-  "keywords": ["electron", "monarch", "butterfly", "classification"],
-  "author": "",
+  "build": {
+  "appId": "com.kylenessen.monarchtrailcamclassifier",
+  "mac": {
+    "target": "dmg"
+  }
+},
+  "keywords": [
+    "electron",
+    "monarch",
+    "butterfly",
+    "classification"
+  ],
   "license": "ISC",
   "devDependencies": {
-    "electron": "^28.1.0"
+    "electron": "^28.1.0",
+    "electron-builder": "^25.1.8"
   }
 }
