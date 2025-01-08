@@ -1,4 +1,2 @@
 - Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?
-- make confirmed green border larger
-- Change default size so you don't have to resize the window every time.
 - Add ability to save user name and incorporate that into the classifications file
