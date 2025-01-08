@@ -7,3 +7,6 @@
         "directSun": false,
         "sunlight": false
       }
+- implement undo feature
+- move reset button further away. H?
+- Changing folders doesn't work 
