@@ -5,7 +5,7 @@ const fs = require('fs').promises;
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1280,
-        height: 800,
+        height: 900,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
