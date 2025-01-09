@@ -51,7 +51,7 @@ const CATEGORIES = ['0', '1-9', '10-99', '100-999', '1000+'];
 // Default classification for each cell
 const DEFAULT_CELL_CLASSIFICATION = {
     count: '0',
-    sunlight: false
+    directSun: false
 };
 
 // Initialize classifications for all images
@@ -540,7 +540,7 @@ function handleCellClick(event, cellId) {
 function applyCurrentClassification(cell, cellId) {
     const classification = {
         count: currentState.selectedTool,
-        sunlight: document.getElementById('sunlight-toggle').classList.contains('active')
+        directSun: document.getElementById('sunlight-toggle').classList.contains('active')
     };
     
     const currentImage = currentState.imageFiles[currentState.currentImageIndex];
@@ -554,7 +554,7 @@ function applyCellStyle(cell, classification) {
     cell.style.backgroundColor = countClass.color;
     
     // Apply sunlight classification
-    if (classification.sunlight) {
+    if (classification.directSun) {
         cell.style.borderColor = 'rgba(255, 235, 59, 0.8)';
         cell.style.borderWidth = '2px';
     } else {
