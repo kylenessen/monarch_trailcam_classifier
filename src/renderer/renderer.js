@@ -22,7 +22,8 @@ let currentState = {
     originalImageWidth: null,
     originalImageHeight: null,
     resizeObserver: null,
-    isLocked: false
+    isLocked: false,
+    isColorMode: false  // Default to black and white
 };
 
 const { ipcRenderer } = require('electron');
@@ -202,6 +203,14 @@ function setupEventListeners() {
     // Add folder selection handler
     document.getElementById('deployment-section').addEventListener('click', promptForDeploymentFolder);
 
+    // Color toggle button
+    document.getElementById('color-toggle').addEventListener('click', () => {
+        currentState.isColorMode = !currentState.isColorMode;
+        updateImageColorMode();
+        const button = document.getElementById('color-toggle');
+        button.textContent = currentState.isColorMode ? 'Switch to B&W' : 'Switch to Color';
+    });
+
     // Other actions
 }
 
@@ -327,21 +336,21 @@ async function loadImageByIndex(index) {
             currentState.originalImageWidth = img.naturalWidth;
             currentState.originalImageHeight = img.naturalHeight;
             
-            // Create grid overlay after image loads
+            // Apply current color mode
+            updateImageColorMode();
+            
+            // Create grid after image loads
             createGrid(wrapper, img.naturalWidth, img.naturalHeight);
             
-            // Check if image is confirmed
-            const currentImage = currentState.imageFiles[index];
-            const imageData = currentState.classifications[currentImage] || {};
-            if (imageData.confirmed) {
-                wrapper.classList.add('confirmed');
-                document.getElementById('confirm-image').textContent = 'Unlock Image';
-                disableClassificationTools(true);
-            } else {
-                wrapper.classList.remove('confirmed');
-                document.getElementById('confirm-image').textContent = 'Confirm Image';
-                disableClassificationTools(false);
+            // Set up resize observer
+            if (currentState.resizeObserver) {
+                currentState.resizeObserver.disconnect();
             }
+            setupResizeObserver(wrapper, img);
+            
+            // Update navigation buttons
+            updateNavigationButtons();
+            updateProgress();
         };
         
         // Add error handler
@@ -356,7 +365,6 @@ async function loadImageByIndex(index) {
         
         // Update state and navigation
         currentState.currentImageIndex = index;
-        updateNavigationButtons();
     }
     updateProgress();
 }
@@ -830,4 +838,15 @@ function findNextUnclassified() {
         }
     }
     showNotification('All images have been classified!', 'info');
+}
+
+function updateImageColorMode() {
+    const img = document.querySelector('#image-container img');
+    if (!img) return;
+    
+    if (currentState.isColorMode) {
+        img.style.filter = 'none';
+    } else {
+        img.style.filter = 'grayscale(100%)';
+    }
 }
