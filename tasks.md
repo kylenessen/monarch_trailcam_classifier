@@ -5,3 +5,4 @@
 - customizable categories and colors
 - add ability to add more categories
 - add brightness and contrast sliders
+- confirmed banner is no longer persistent. Or at least inconsistent. 
