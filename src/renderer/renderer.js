@@ -831,7 +831,7 @@ function addKeyboardShortcutsHelp() {
     ];
 
     const helpContainer = document.createElement('div');
-    helpContainer.className = 'keyboard-shortcuts-help';
+    helpContainer.className = 'keyboard-shortcuts-help collapsed';
     
     const helpHeader = document.createElement('div');
     helpHeader.className = 'shortcuts-header';
@@ -842,7 +842,7 @@ function addKeyboardShortcutsHelp() {
     
     const collapseIndicator = document.createElement('span');
     collapseIndicator.className = 'collapse-indicator';
-    collapseIndicator.innerHTML = '−';
+    collapseIndicator.innerHTML = '+';
     
     helpHeader.appendChild(helpTitle);
     helpHeader.appendChild(collapseIndicator);
