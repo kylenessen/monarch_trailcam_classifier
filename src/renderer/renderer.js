@@ -574,12 +574,6 @@ function handleKeyboardShortcuts(event) {
             document.getElementById('sunlight-toggle').click();
             break;
 
-        // Reset image
-        case 'r':
-        case 'R':
-            resetImage();
-            break;
-
         // Toggle shortcuts help
         case 'h':
         case 'H':
@@ -755,7 +749,6 @@ function addKeyboardShortcutsHelp() {
         { key: 'W / ↑', action: 'Confirm image' },
         { key: 'S / ↓', action: 'Copy from previous' },
         { key: 'F', action: 'Toggle sunlight' },
-        { key: 'R', action: 'Reset image' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
 
