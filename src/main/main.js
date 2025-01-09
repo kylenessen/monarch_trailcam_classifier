@@ -17,18 +17,27 @@ function createWindow() {
 
 // Handle folder selection
 ipcMain.handle('select-folder', async () => {
-    const result = await dialog.showOpenDialog({
-        properties: ['openDirectory']
-    });
+    try {
+        console.log('Opening folder selection dialog');
+        const result = await dialog.showOpenDialog({
+            properties: ['openDirectory']
+        });
+        console.log('Dialog result:', result);
 
-    if (!result.canceled) {
-        const folderPath = result.filePaths[0];
-        return {
-            success: true,
-            folderPath: folderPath
-        };
+        if (!result.canceled) {
+            const folderPath = result.filePaths[0];
+            console.log('Selected folder:', folderPath);
+            return {
+                success: true,
+                folderPath: folderPath
+            };
+        }
+        console.log('Dialog was canceled');
+        return { success: false };
+    } catch (error) {
+        console.error('Error in select-folder:', error);
+        return { success: false, error: error.message };
     }
-    return { success: false };
 });
 
 // Handle loading images from selected folder
@@ -56,7 +65,7 @@ ipcMain.handle('load-images', async (event, folderPath) => {
         return imageFiles.sort();
     } catch (error) {
         console.error('Error loading images:', error);
-        return [];
+        throw error; // Propagate error to renderer
     }
 });
 

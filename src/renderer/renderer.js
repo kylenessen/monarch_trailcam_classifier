@@ -201,7 +201,11 @@ function setupEventListeners() {
     document.getElementById('reset-image').addEventListener('click', resetImage);
 
     // Add folder selection handler
-    document.getElementById('deployment-section').addEventListener('click', promptForDeploymentFolder);
+    document.getElementById('deployment-section').addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        await promptForDeploymentFolder();
+    });
 
     // Color toggle button
     document.getElementById('color-toggle').addEventListener('click', () => {
@@ -215,49 +219,115 @@ function setupEventListeners() {
 }
 
 async function promptForDeploymentFolder() {
-    const result = await ipcRenderer.invoke('select-folder');
-    
-    if (result.success) {
-        // Hide welcome message
-        document.getElementById('welcome-message').style.display = 'none';
+    try {
+        console.log('Starting folder selection...');
+        const result = await ipcRenderer.invoke('select-folder');
+        console.log('Folder selection result:', result);
         
-        // Clear current state if we had a previous folder
-        if (currentState.imagesFolder) {
-            currentState.imageFiles = [];
-            currentState.currentImageIndex = 0;
-            currentState.classifications = {};
-            document.getElementById('image-container').innerHTML = '';
-            // Re-add welcome message after clearing
-            document.getElementById('image-container').innerHTML = `
-                <div id="welcome-message">
-                    <h2>Welcome to Monarch Photo Classification</h2>
-                    <p>Select an image folder to begin</p>
-                </div>
-            `;
-        }
-        
-        // Store the selected folder path
-        currentState.imagesFolder = result.folderPath;
-        
-        // Load images from the selected folder
-        const imageFiles = await ipcRenderer.invoke('load-images', result.folderPath);
-        
-        if (imageFiles && imageFiles.length > 0) {
-            currentState.imageFiles = imageFiles;
+        if (result.success) {
+            console.log('Successfully selected folder:', result.folderPath);
             
-            // Update UI with deployment info
-            document.getElementById('deployment-id').textContent = path.basename(result.folderPath);
+            // Clear the image container first
+            const imageContainer = document.getElementById('image-container');
+            const welcomeMessage = document.getElementById('welcome-message');
             
-            // Initialize classifications and load first unclassified image
-            await loadClassifications();
-            findNextUnclassified();
+            // Safely hide welcome message if it exists
+            if (welcomeMessage) {
+                welcomeMessage.style.display = 'none';
+            }
+            
+            // Clear current state if we had a previous folder
+            if (currentState.imagesFolder) {
+                console.log('Clearing previous folder state...');
+                // Reset all state variables
+                currentState.imageFiles = [];
+                currentState.currentImageIndex = -1;
+                currentState.classifications = {};
+                currentState.selectedCell = null;
+                currentState.selectedTool = '0';
+                currentState.classificationFile = null;
+                currentState.originalImageWidth = null;
+                currentState.originalImageHeight = null;
+                currentState.isLocked = false;
+                
+                // Clear the image container
+                while (imageContainer && imageContainer.firstChild) {
+                    imageContainer.removeChild(imageContainer.firstChild);
+                }
+                
+                // Reset grid cells
+                gridCells = [];
+                currentImage = null;
+                currentClassification = {};
+                console.log('State cleared successfully');
+            }
+            
+            // Store the selected folder path
+            currentState.imagesFolder = result.folderPath;
+            console.log('Set new folder path:', currentState.imagesFolder);
+            
+            try {
+                console.log('Loading images from folder...');
+                const imageFiles = await ipcRenderer.invoke('load-images', result.folderPath);
+                console.log('Loaded image files:', imageFiles);
+                
+                if (imageFiles && imageFiles.length > 0) {
+                    currentState.imageFiles = imageFiles;
+                    console.log('Updated image files in state');
+                    
+                    // Update UI with deployment info
+                    const deploymentId = document.getElementById('deployment-id');
+                    if (deploymentId) {
+                        deploymentId.textContent = path.basename(result.folderPath);
+                    }
+                    
+                    try {
+                        console.log('Loading classifications...');
+                        await loadClassifications();
+                        console.log('Classifications loaded');
+                        
+                        console.log('Finding next unclassified image...');
+                        await findNextUnclassified();
+                        console.log('Found and loaded next unclassified image');
+                    } catch (error) {
+                        console.error('Error in classification/image loading:', error);
+                        throw error;
+                    }
+                } else {
+                    console.log('No images found in folder');
+                    showNotification('No images found in selected folder', 'error');
+                    
+                    if (deploymentId) {
+                        deploymentId.textContent = 'Click to select folder';
+                    }
+                    
+                    // Show welcome message again if no images found
+                    if (imageContainer) {
+                        imageContainer.innerHTML = `
+                            <div id="welcome-message">
+                                <h2>Welcome to Monarch Photo Classification</h2>
+                                <p>Select an image folder to begin</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading images:', error);
+                throw error;
+            }
+            
+            // Update progress indicators
+            updateProgress();
+            console.log('Progress updated');
         } else {
-            showNotification('No images found in selected folder', 'error');
-            document.getElementById('deployment-id').textContent = 'Click to select folder';
-            // Show welcome message again if no images found
-            document.getElementById('welcome-message').style.display = 'block';
+            console.log('Folder selection was cancelled or failed');
+            if (result.error) {
+                console.error('Folder selection error:', result.error);
+            }
         }
-        updateProgress();
+    } catch (error) {
+        console.error('Error in promptForDeploymentFolder:', error);
+        showNotification(`Error switching folders: ${error.message}`, 'error');
     }
 }
 

@@ -9,6 +9,6 @@
       }
 - implement undo feature
 - Changing folders doesn't work 
-- Make images black and white by default. Add toggle for color
 - customizable categories and colors
 - add ability to add more categories
+- add brightness and contrast sliders
