@@ -564,10 +564,14 @@ function applyCellStyle(cell, classification) {
 }
 
 function initializeUI() {
-    // TODO: Implement initial UI setup
-    // - Create grid overlay
-    // - Load first image
-    // - Set up classification tools
+    progressBar = document.getElementById('progress-bar');
+    currentImageSpan = document.getElementById('current-image');
+    totalImagesSpan = document.getElementById('total-images');
+    progressPercent = document.getElementById('progress-percent');
+    
+    // Set initial color toggle button text
+    const colorToggleBtn = document.getElementById('color-toggle');
+    colorToggleBtn.textContent = currentState.isColorMode ? 'Switch to B&W' : 'Switch to Color';
 }
 
 function cycleCategory(direction) {
