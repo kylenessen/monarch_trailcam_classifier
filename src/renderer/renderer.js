@@ -878,6 +878,7 @@ function addKeyboardShortcutsHelp() {
         { key: 'W / ↑', action: 'Confirm image' },
         { key: 'S / ↓', action: 'Copy from previous' },
         { key: 'F', action: 'Toggle sunlight' },
+        { key: 'Z', action: 'Hold to zoom (300%)' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
 
