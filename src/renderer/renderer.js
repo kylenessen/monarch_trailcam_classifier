@@ -438,7 +438,8 @@ async function loadImageByIndex(index) {
         console.log('Loading image:', currentImage);
         
         // Only disable tools if the image is confirmed
-        disableClassificationTools(currentState.classifications[currentImage].confirmed);
+        const isConfirmed = currentState.classifications[currentImage]?.confirmed || false;
+    disableClassificationTools(isConfirmed);
         
         const imageContainer = document.getElementById('image-container');
         
@@ -446,8 +447,11 @@ async function loadImageByIndex(index) {
         imageContainer.innerHTML = '';
         
         // Create wrapper for image and grid
-        const wrapper = document.createElement('div');
-        wrapper.className = 'image-wrapper';
+    const wrapper = document.createElement('div');
+    wrapper.className = 'image-wrapper';
+    if (currentState.classifications[currentImage]?.confirmed) {
+        wrapper.classList.add('confirmed');
+    }
         imageContainer.appendChild(wrapper);
         
         // Create and load new image

@@ -213,7 +213,7 @@ body {
 
 /* Confirmed image styles */
 .image-wrapper.confirmed::before {
-    content: '✓ CONFIRMED';
+    content: '✓ CONFIRMED' !important;
     position: absolute;
     top: 15px;
     right: 15px;
