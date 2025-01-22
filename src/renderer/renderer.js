@@ -2,6 +2,8 @@
 let currentImage = null;
 let gridCells = [];
 let currentClassification = {};
+let isZooming = false;
+let zoomLevel = 3; // 300% zoom
 
 // Progress bar elements
 let progressBar = null;
@@ -216,6 +218,51 @@ function setupEventListeners() {
     });
 
     // Other actions
+
+    // Add zoom event listeners
+    document.addEventListener('keydown', handleZoom);
+    document.addEventListener('keyup', handleZoom);
+    document.addEventListener('mousemove', updateZoomPosition);
+}
+
+function handleZoom(event) {
+    const img = document.getElementById('display-image');
+    const container = document.getElementById('image-container');
+    const gridOverlay = document.querySelector('.grid-overlay');
+    
+    if (!img || event.key !== 'z') return;
+    
+    if (event.type === 'keydown' && !isZooming) {
+        isZooming = true;
+        img.classList.add('zoomed');
+        gridOverlay?.classList.add('hidden');
+        updateZoomPosition(event);
+    } else if (event.type === 'keyup' && isZooming) {
+        isZooming = false;
+        img.classList.remove('zoomed');
+        img.style.transform = 'none';
+        gridOverlay?.classList.remove('hidden');
+    }
+}
+
+function updateZoomPosition(event) {
+    if (!isZooming) return;
+    
+    const img = document.getElementById('display-image');
+    const container = document.getElementById('image-container');
+    if (!img || !container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // Calculate the position as a percentage of the container
+    const xPercent = (mouseX / rect.width) * 100;
+    const yPercent = (mouseY / rect.height) * 100;
+    
+    // Apply the transform with the calculated origin
+    img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+    img.style.transform = `scale(${zoomLevel})`;
 }
 
 async function promptForDeploymentFolder() {
