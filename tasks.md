@@ -1,7 +1,6 @@
-- Incorporate a zoom feature, where the selected cell is zoomed in. Surrounding cells too?
-- Add ability to save user name and incorporate that into the classifications file
 - implement undo feature
 - customizable categories and colors
 - add ability to add more categories
 - add brightness and contrast sliders
 - confirmed banner is no longer persistent. Or at least inconsistent. 
+- create optional notes field

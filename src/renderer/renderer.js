@@ -110,6 +110,13 @@ function canEditImage(imageFile) {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize username from localStorage
+    const usernameInput = document.getElementById('username-input');
+    usernameInput.value = localStorage.getItem('monarchUsername') || '';
+    usernameInput.addEventListener('input', () => {
+        localStorage.setItem('monarchUsername', usernameInput.value.trim());
+    });
+
     initializeUI();
     setupEventListeners();
     initializeProgressBar();
@@ -776,12 +783,31 @@ function disableClassificationTools(disabled) {
     currentState.isLocked = disabled;
 }
 
+function validateUsername() {
+    const username = document.getElementById('username-input').value.trim();
+    if (!username) {
+        showNotification('Please enter your initials before confirming images', 'error');
+        return false;
+    }
+    if (!/^[a-zA-Z0-9-]{1,30}$/.test(username)) {
+        showNotification('Initials can only contain letters, numbers, and hyphens', 'error');
+        return false;
+    }
+    return true;
+}
+
 function confirmImage() {
+    if (!validateUsername()) return;
+    
     const currentImage = currentState.imageFiles[currentState.currentImageIndex];
     
     if (!currentState.classifications[currentImage]) {
         currentState.classifications[currentImage] = {};
     }
+    
+    // Store username with classification
+    currentState.classifications[currentImage].user = 
+        document.getElementById('username-input').value.trim();
     
     const isConfirmed = currentState.classifications[currentImage].confirmed;
     currentState.classifications[currentImage].confirmed = !isConfirmed;
