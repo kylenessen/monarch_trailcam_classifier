@@ -899,7 +899,7 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-function addKeyboardShortcutsHelp() {
+function initializeKeyboardShortcuts() {
     const shortcuts = [
         { key: 'D / →', action: 'Next image' },
         { key: 'A / ←', action: 'Previous image' },
@@ -912,39 +912,20 @@ function addKeyboardShortcutsHelp() {
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
 
-    const helpContainer = document.createElement('div');
-    helpContainer.className = 'keyboard-shortcuts-help collapsed';
-    
-    const helpHeader = document.createElement('div');
-    helpHeader.className = 'shortcuts-header';
-    helpHeader.addEventListener('click', toggleShortcutsHelp);
-    
-    const helpTitle = document.createElement('h3');
-    helpTitle.textContent = 'Keyboard Shortcuts';
-    
-    const collapseIndicator = document.createElement('span');
-    collapseIndicator.className = 'collapse-indicator';
-    collapseIndicator.innerHTML = '+';
-    
-    helpHeader.appendChild(helpTitle);
-    helpHeader.appendChild(collapseIndicator);
-    helpContainer.appendChild(helpHeader);
-
-    const shortcutsList = document.createElement('ul');
-    shortcutsList.className = 'shortcuts-list';
+    const shortcutsList = document.querySelector('.shortcuts-list');
     shortcuts.forEach(({ key, action }) => {
         const li = document.createElement('li');
         li.innerHTML = `<span class="shortcut-key">${key}</span> ${action}`;
         shortcutsList.appendChild(li);
     });
-    
-    helpContainer.appendChild(shortcutsList);
-    document.body.appendChild(helpContainer);
+
+    // Add click handler for the shortcuts header
+    document.querySelector('.shortcuts-header').addEventListener('click', toggleShortcutsHelp);
 }
 
 // Call this after window loads
 window.addEventListener('load', () => {
-    addKeyboardShortcutsHelp();
+    initializeKeyboardShortcuts();
 });
 
 function resetImage() {

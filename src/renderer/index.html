@@ -22,6 +22,22 @@
                 </div>
             </div>
             <div class="classification-tools">
+                <div id="progress-container" class="progress-box">
+                    <div class="progress-text">Image <span id="current-image">0</span> of <span id="total-images">0</span></div>
+                    <div class="progress-bar-container">
+                        <div id="progress-bar" class="progress-bar"></div>
+                    </div>
+                    <div id="progress-percent" class="progress-percent">0%</div>
+                </div>
+
+                <div class="keyboard-shortcuts-help collapsed">
+                    <div class="shortcuts-header">
+                        <h3>Keyboard Shortcuts</h3>
+                        <span class="collapse-indicator">+</span>
+                    </div>
+                    <ul class="shortcuts-list"></ul>
+                </div>
+
                 <h3>Butterfly Count</h3>
                 <button class="count-btn" data-count="0">0</button>
                 <button class="count-btn" data-count="1-9">1-9</button>
@@ -47,13 +63,6 @@
             </div>
         </div>
         <div class="main-content">
-            <div id="progress-container" class="progress-box">
-                <div class="progress-text">Image <span id="current-image">0</span> of <span id="total-images">0</span></div>
-                <div class="progress-bar-container">
-                    <div id="progress-bar" class="progress-bar"></div>
-                </div>
-                <div id="progress-percent" class="progress-percent">0%</div>
-            </div>
             <div id="image-container">
                 <div id="welcome-message">
                     <h2>Welcome to Monarch Photo Classification</h2>
