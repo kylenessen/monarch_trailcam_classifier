@@ -174,6 +174,7 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    display: grid;
 }
 
 .grid-overlay.hidden {
@@ -184,11 +185,19 @@ body {
 /* Grid styles */
 .grid-cell {
     position: absolute;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
     pointer-events: auto;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+}
+
+.grid-cell[data-col="0"] {
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.grid-cell[data-row="0"] {
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .grid-cell:hover {
