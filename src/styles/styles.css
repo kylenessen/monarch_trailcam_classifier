@@ -230,8 +230,7 @@ button:disabled {
 
 .keyboard-shortcuts-help:not(.collapsed) .shortcuts-list {
     position: absolute;
-    top: auto;
-    bottom: 100%;
+    top: 100%;
     left: 0;
     width: 250px;
     max-height: 300px;
@@ -241,7 +240,7 @@ button:disabled {
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     z-index: 1000;
-    margin-bottom: 4px;
+    margin-top: 4px;
     padding: 8px;
 }
 
