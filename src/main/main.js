@@ -2,6 +2,9 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 
+// Constants
+const VALID_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
+
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1280,
@@ -15,24 +18,19 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
 }
 
-// Handle folder selection
+// IPC Handlers
 ipcMain.handle('select-folder', async () => {
     try {
-        console.log('Opening folder selection dialog');
         const result = await dialog.showOpenDialog({
             properties: ['openDirectory']
         });
-        console.log('Dialog result:', result);
 
         if (!result.canceled) {
-            const folderPath = result.filePaths[0];
-            console.log('Selected folder:', folderPath);
             return {
                 success: true,
-                folderPath: folderPath
+                folderPath: result.filePaths[0]
             };
         }
-        console.log('Dialog was canceled');
         return { success: false };
     } catch (error) {
         console.error('Error in select-folder:', error);
@@ -40,17 +38,14 @@ ipcMain.handle('select-folder', async () => {
     }
 });
 
-// Handle loading images from selected folder
 ipcMain.handle('load-images', async (event, folderPath) => {
     try {
-        console.log('Loading images from:', folderPath);
         const files = await fs.readdir(folderPath);
-        console.log('Found files:', files);
-        
         const imageFiles = [];
+
         for (const file of files) {
             const ext = path.extname(file).toLowerCase();
-            if (['.jpg', '.jpeg', '.png'].includes(ext)) {
+            if (VALID_IMAGE_EXTENSIONS.includes(ext)) {
                 const fullPath = path.join(folderPath, file);
                 try {
                     await fs.access(fullPath, fs.constants.R_OK);
@@ -61,27 +56,24 @@ ipcMain.handle('load-images', async (event, folderPath) => {
             }
         }
         
-        console.log('Filtered image files:', imageFiles);
         return imageFiles.sort();
     } catch (error) {
         console.error('Error loading images:', error);
-        throw error; // Propagate error to renderer
+        return { success: false, error: error.message };
     }
 });
 
-// Handle getting image data
 ipcMain.handle('get-image-data', async (event, imagePath) => {
     try {
-        console.log('Loading image data from:', imagePath);
-        const stats = await fs.stat(imagePath);
-        console.log('File stats:', stats);
-        
+        await fs.stat(imagePath); // Check if file exists and is accessible
         const imageBuffer = await fs.readFile(imagePath);
-        console.log('Successfully read image buffer of size:', imageBuffer.length);
-        return imageBuffer.toString('base64');
+        return {
+            success: true,
+            data: imageBuffer.toString('base64')
+        };
     } catch (error) {
         console.error('Error loading image:', error);
-        return null;
+        return { success: false, error: error.message };
     }
 });
 

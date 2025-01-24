@@ -58,35 +58,35 @@ const DEFAULT_CELL_CLASSIFICATION = {
 
 // Initialize classifications for all images
 function initializeClassifications() {
-    console.log('Initializing classifications for images:', currentState.imageFiles);
-    const defaultClassifications = {};
+    const defaultCells = createDefaultGridCells();
+    const defaultClassifications = createDefaultClassifications(defaultCells);
     
-    // Create default grid cells with count of 0
-    const gridCells = {};
+    currentState.classifications = defaultClassifications;
+    saveClassifications();
+}
+
+function createDefaultGridCells() {
+    const cells = {};
     for (let row = 0; row < GRID_CONFIG.rows; row++) {
         for (let col = 0; col < GRID_CONFIG.columns; col++) {
-            const cellId = generateCellId(row, col);
-            gridCells[cellId] = {
-                count: 0,
+            cells[generateCellId(row, col)] = {
+                count: '0',
                 directSun: false
             };
         }
     }
-    
-    // Initialize each image with default classifications
-    currentState.imageFiles.forEach((image, index) => {
-        defaultClassifications[image] = {
+    return cells;
+}
+
+function createDefaultClassifications(defaultCells) {
+    return currentState.imageFiles.reduce((classifications, image, index) => {
+        classifications[image] = {
             confirmed: false,
-            cells: { ...gridCells },
+            cells: { ...defaultCells },
             index: index
         };
-    });
-    
-    console.log('Created default classifications:', defaultClassifications);
-    
-    // Set the classifications and save to file
-    currentState.classifications = defaultClassifications;
-    saveClassifications();
+        return classifications;
+    }, {});
 }
 
 function canEditImage(imageFile) {
@@ -274,114 +274,95 @@ function updateZoomPosition(event) {
 
 async function promptForDeploymentFolder() {
     try {
-        console.log('Starting folder selection...');
         const result = await ipcRenderer.invoke('select-folder');
-        console.log('Folder selection result:', result);
-        
-        if (result.success) {
-            console.log('Successfully selected folder:', result.folderPath);
-            
-            // Clear the image container first
-            const imageContainer = document.getElementById('image-container');
-            const welcomeMessage = document.getElementById('welcome-message');
-            
-            // Safely hide welcome message if it exists
-            if (welcomeMessage) {
-                welcomeMessage.style.display = 'none';
-            }
-            
-            // Clear current state if we had a previous folder
-            if (currentState.imagesFolder) {
-                console.log('Clearing previous folder state...');
-                // Reset all state variables
-                currentState.imageFiles = [];
-                currentState.currentImageIndex = -1;
-                currentState.classifications = {};
-                currentState.selectedCell = null;
-                currentState.selectedTool = '0';
-                currentState.classificationFile = null;
-                currentState.originalImageWidth = null;
-                currentState.originalImageHeight = null;
-                currentState.isLocked = false;
-                
-                // Clear the image container
-                while (imageContainer && imageContainer.firstChild) {
-                    imageContainer.removeChild(imageContainer.firstChild);
-                }
-                
-                // Reset grid cells
-                gridCells = [];
-                currentImage = null;
-                currentClassification = {};
-                console.log('State cleared successfully');
-            }
-            
-            // Store the selected folder path
-            currentState.imagesFolder = result.folderPath;
-            console.log('Set new folder path:', currentState.imagesFolder);
-            
-            try {
-                console.log('Loading images from folder...');
-                const imageFiles = await ipcRenderer.invoke('load-images', result.folderPath);
-                console.log('Loaded image files:', imageFiles);
-                
-                if (imageFiles && imageFiles.length > 0) {
-                    currentState.imageFiles = imageFiles;
-                    console.log('Updated image files in state');
-                    
-                    // Update UI with deployment info
-                    const deploymentId = document.getElementById('deployment-id');
-                    if (deploymentId) {
-                        deploymentId.textContent = path.basename(result.folderPath);
-                    }
-                    
-                    try {
-                        console.log('Loading classifications...');
-                        await loadClassifications();
-                        console.log('Classifications loaded');
-                        
-                        console.log('Finding next unclassified image...');
-                        await findNextUnclassified();
-                        console.log('Found and loaded next unclassified image');
-                    } catch (error) {
-                        console.error('Error in classification/image loading:', error);
-                        throw error;
-                    }
-                } else {
-                    console.log('No images found in folder');
-                    showNotification('No images found in selected folder', 'error');
-                    
-                    if (deploymentId) {
-                        deploymentId.textContent = 'Click to select folder';
-                    }
-                    
-                    // Show welcome message again if no images found
-                    if (imageContainer) {
-                        imageContainer.innerHTML = `
-                            <div id="welcome-message">
-                                <h2>Welcome to Monarch Photo Classification</h2>
-                                <p>Select an image folder to begin</p>
-                            </div>
-                        `;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading images:', error);
-                throw error;
-            }
-            
-            // Update progress indicators
-            updateProgress();
-            console.log('Progress updated');
-        } else {
-            console.log('Folder selection was cancelled or failed');
+        if (!result.success) {
             if (result.error) {
-                console.error('Folder selection error:', result.error);
+                throw new Error(result.error);
             }
+            return; // User cancelled selection
         }
+
+        const imageContainer = document.getElementById('image-container');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const deploymentId = document.getElementById('deployment-id');
+
+        // Hide welcome message if it exists
+        if (welcomeMessage) {
+            welcomeMessage.style.display = 'none';
+        }
+
+        // Clear previous state if exists
+        if (currentState.imagesFolder) {
+            resetApplicationState();
+            clearImageContainer(imageContainer);
+        }
+
+        // Set new folder path
+        currentState.imagesFolder = result.folderPath;
+
+        // Load and process images
+        const imageFiles = await ipcRenderer.invoke('load-images', result.folderPath);
+        
+        if (!imageFiles?.success && imageFiles?.error) {
+            throw new Error(imageFiles.error);
+        }
+
+        if (imageFiles && imageFiles.length > 0) {
+            currentState.imageFiles = imageFiles;
+            
+            if (deploymentId) {
+                deploymentId.textContent = path.basename(result.folderPath);
+            }
+
+            await loadClassifications();
+            await findNextUnclassified();
+        } else {
+            handleNoImagesFound(imageContainer, deploymentId);
+        }
+
+        updateProgress();
     } catch (error) {
         console.error('Error in promptForDeploymentFolder:', error);
         showNotification(`Error switching folders: ${error.message}`, 'error');
+    }
+}
+
+function resetApplicationState() {
+    currentState.imageFiles = [];
+    currentState.currentImageIndex = -1;
+    currentState.classifications = {};
+    currentState.selectedCell = null;
+    currentState.selectedTool = '0';
+    currentState.classificationFile = null;
+    currentState.originalImageWidth = null;
+    currentState.originalImageHeight = null;
+    currentState.isLocked = false;
+    
+    gridCells = [];
+    currentImage = null;
+    currentClassification = {};
+}
+
+function clearImageContainer(container) {
+    while (container && container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+}
+
+function handleNoImagesFound(container, deploymentId) {
+    showNotification('No images found in selected folder', 'error');
+    
+    if (deploymentId) {
+        deploymentId.textContent = 'Click to select folder';
+    }
+    
+    if (container) {
+        container.innerHTML = `
+            <div id="welcome-message">
+                <h2>Welcome to Monarch Photo Classification</h2>
+                <p>Select an image folder to begin</p>
+            </div>
+        `;
     }
 }
 
@@ -390,10 +371,8 @@ function getImageClassifications(imageName) {
 }
 
 function setClassification(imageName, cellId, classification) {
-    console.log('Setting classification for', imageName, cellId, classification);
-    
-    // Initialize the image entry if it doesn't exist
-    if (!currentState.classifications[imageName]) {
+    // Ensure classification entry exists with proper structure
+    if (!currentState.classifications[imageName] || !currentState.classifications[imageName].cells) {
         currentState.classifications[imageName] = {
             confirmed: false,
             cells: {},
@@ -401,99 +380,91 @@ function setClassification(imageName, cellId, classification) {
         };
     }
     
-    // Initialize the cells object if it doesn't exist
-    if (!currentState.classifications[imageName].cells) {
-        currentState.classifications[imageName].cells = {};
-    }
-    
-    // Update the cell classification
+    // Update classification and save
     currentState.classifications[imageName].cells[cellId] = classification;
-    
-    console.log('Updated classifications:', currentState.classifications[imageName]);
     saveClassifications();
     updateProgress();
 }
 
 async function loadImageByIndex(index) {
-    console.log('Loading image at index:', index);
-    console.log('Current state:', {
-        imagesFolder: currentState.imagesFolder,
-        totalImages: currentState.imageFiles.length,
-        currentIndex: currentState.currentImageIndex
-    });
+    try {
+        if (index < 0 || index >= currentState.imageFiles.length) {
+            throw new Error('Invalid image index');
+        }
 
-    if (index < 0 || index >= currentState.imageFiles.length) {
-        console.error('Invalid image index');
-        return;
-    }
+        const imagePath = path.join(currentState.imagesFolder, currentState.imageFiles[index]);
+        const imageData = await ipcRenderer.invoke('get-image-data', imagePath);
+        
+        if (!imageData?.success) {
+            throw new Error(imageData?.error || 'Failed to load image data');
+        }
 
-    const imagePath = path.join(currentState.imagesFolder, currentState.imageFiles[index]);
-    console.log('Full image path:', imagePath);
-    
-    const imageData = await ipcRenderer.invoke('get-image-data', imagePath);
-    console.log('Received image data:', imageData ? 'yes' : 'no');
-    
-    if (imageData) {
         const currentImage = currentState.imageFiles[index];
-        console.log('Loading image:', currentImage);
-        
-        // Only disable tools if the image is confirmed
-        const isConfirmed = currentState.classifications[currentImage]?.confirmed || false;
-    disableClassificationTools(isConfirmed);
-        
         const imageContainer = document.getElementById('image-container');
         
-        // Clear existing content
-        imageContainer.innerHTML = '';
+        // Update state early to ensure consistent state
+        currentState.currentImageIndex = index;
         
-        // Create wrapper for image and grid
+        await setupImageDisplay(currentImage, imageData.data, imageContainer);
+        updateProgress();
+        
+    } catch (error) {
+        console.error('Error loading image:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+function setupImageDisplay(currentImage, imageData, container) {
+    return new Promise((resolve) => {
+        const isConfirmed = currentState.classifications[currentImage]?.confirmed || false;
+        disableClassificationTools(isConfirmed);
+        
+        // Clear and setup container
+        container.innerHTML = '';
+        const wrapper = createImageWrapper(currentImage);
+        container.appendChild(wrapper);
+        
+        // Setup image
+        const img = new Image();
+        img.id = 'display-image';
+        
+        img.onload = () => {
+            updateImageState(img, wrapper);
+            resolve();
+        };
+        
+        img.onerror = () => {
+            container.innerHTML = '<div class="error-message">Failed to load image</div>';
+            resolve();
+        };
+        
+        img.src = `data:image/jpeg;base64,${imageData}`;
+        wrapper.appendChild(img);
+    });
+}
+
+function createImageWrapper(currentImage) {
     const wrapper = document.createElement('div');
     wrapper.className = 'image-wrapper';
     if (currentState.classifications[currentImage]?.confirmed) {
         wrapper.classList.add('confirmed');
     }
-        imageContainer.appendChild(wrapper);
-        
-        // Create and load new image
-        const img = new Image();
-        img.id = 'display-image';
-        
-        // Set up image load handler before setting src
-        img.onload = () => {
-            // Store original dimensions
-            currentState.originalImageWidth = img.naturalWidth;
-            currentState.originalImageHeight = img.naturalHeight;
-            
-            // Apply current color mode
-            updateImageColorMode();
-            
-            // Create grid after image loads
-            createGrid(wrapper, img.naturalWidth, img.naturalHeight);
-            
-            // Set up resize observer
-            if (currentState.resizeObserver) {
-                currentState.resizeObserver.disconnect();
-            }
-            setupResizeObserver(wrapper, img);
-            
-            // Update navigation buttons
-            updateNavigationButtons();
-            updateProgress();
-        };
-        
-        // Add error handler
-        img.onerror = () => {
-            console.error('Failed to load image:', imagePath);
-            imageContainer.innerHTML = '<div class="error-message">Failed to load image</div>';
-        };
-        
-        // Set image source and append to wrapper
-        img.src = `data:image/jpeg;base64,${imageData}`;
-        wrapper.appendChild(img);
-        
-        // Update state and navigation
-        currentState.currentImageIndex = index;
+    return wrapper;
+}
+
+function updateImageState(img, wrapper) {
+    currentState.originalImageWidth = img.naturalWidth;
+    currentState.originalImageHeight = img.naturalHeight;
+    
+    updateImageColorMode();
+    createGrid(wrapper, img.naturalWidth, img.naturalHeight);
+    
+    if (currentState.resizeObserver) {
+        currentState.resizeObserver.disconnect();
     }
+    setupResizeObserver(wrapper, img);
+    
+    updateNavigationButtons();
     updateProgress();
 }
 
@@ -663,62 +634,39 @@ function navigateImage(direction) {
     }
 }
 
+// Keyboard shortcut mappings
+const KEYBOARD_SHORTCUTS = {
+    'ArrowRight': () => navigateImage('next'),
+    'd': () => navigateImage('next'),
+    'D': () => navigateImage('next'),
+    'ArrowLeft': () => navigateImage('previous'),
+    'a': () => navigateImage('previous'),
+    'A': () => navigateImage('previous'),
+    'e': () => cycleCategory('next'),
+    'E': () => cycleCategory('next'),
+    'q': () => cycleCategory('previous'),
+    'Q': () => cycleCategory('previous'),
+    'ArrowUp': () => document.getElementById('confirm-image').click(),
+    'w': () => document.getElementById('confirm-image').click(),
+    'W': () => document.getElementById('confirm-image').click(),
+    'ArrowDown': () => document.getElementById('copy-previous').click(),
+    's': () => document.getElementById('copy-previous').click(),
+    'S': () => document.getElementById('copy-previous').click(),
+    'f': () => document.getElementById('sunlight-toggle').click(),
+    'F': () => document.getElementById('sunlight-toggle').click(),
+    'h': () => toggleShortcutsHelp(),
+    'H': () => toggleShortcutsHelp()
+};
+
 function handleKeyboardShortcuts(event) {
     // Don't handle shortcuts if we're in an input field
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
         return;
     }
 
-    switch (event.key) {
-        // Navigation
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-            navigateImage('next');
-            break;
-
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-            navigateImage('previous');
-            break;
-
-        // Category cycling
-        case 'e':
-        case 'E':
-            cycleCategory('next');
-            break;
-
-        case 'q':
-        case 'Q':
-            cycleCategory('previous');
-            break;
-
-        // Confirm image
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-            document.getElementById('confirm-image').click();
-            break;
-
-        // Copy from previous
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-            document.getElementById('copy-previous').click();
-            break;
-
-        // Toggle sunlight
-        case 'f':
-        case 'F':
-            document.getElementById('sunlight-toggle').click();
-            break;
-
-        // Toggle shortcuts help
-        case 'h':
-        case 'H':
-            toggleShortcutsHelp();
-            break;
+    const handler = KEYBOARD_SHORTCUTS[event.key];
+    if (handler) {
+        handler();
     }
 }
 
@@ -735,38 +683,35 @@ function toggleShortcutsHelp() {
 
 async function loadClassifications() {
     try {
-        // Set up the classifications file path
         currentState.classificationFile = path.join(currentState.imagesFolder, 'classifications.json');
-        console.log('Classification file path:', currentState.classificationFile);
         
-        // Check if classifications file exists
         if (fs.existsSync(currentState.classificationFile)) {
-            console.log('Found existing classifications file');
             const data = await fs.promises.readFile(currentState.classificationFile, 'utf8');
             currentState.classifications = JSON.parse(data);
-            console.log('Loaded existing classifications');
         } else {
-            console.log('No classifications file found, creating new one');
             initializeClassifications();
         }
     } catch (error) {
         console.error('Error loading classifications:', error);
+        showNotification('Failed to load classifications. Starting fresh.', 'error');
         currentState.classifications = {};
+        initializeClassifications();
     }
 }
 
 async function saveClassifications() {
     try {
-        console.log('Attempting to save to:', currentState.classificationFile);
-        console.log('Current classifications:', currentState.classifications);
+        if (!currentState.classificationFile) {
+            throw new Error('No classification file path set');
+        }
         
         await fs.promises.writeFile(
             currentState.classificationFile,
             JSON.stringify(currentState.classifications, null, 2)
         );
-        console.log('Successfully saved classifications');
     } catch (error) {
         console.error('Error saving classifications:', error);
+        showNotification('Failed to save classifications', 'error');
     }
 }
 
@@ -932,34 +877,25 @@ function resetImage() {
     const currentImage = currentState.imageFiles[currentState.currentImageIndex];
     if (!currentImage) return;
     
-    // Check if the image is confirmed - if so, don't allow reset
-    if (currentState.classifications[currentImage].confirmed) {
-        showNotification('Cannot reset confirmed images', 'error');
-        return;
-    }
-    
-    // Create default grid cells
-    const defaultCells = {};
-    for (let row = 0; row < GRID_CONFIG.rows; row++) {
-        for (let col = 0; col < GRID_CONFIG.columns; col++) {
-            const cellId = generateCellId(row, col);
-            defaultCells[cellId] = {
-                count: '0',
-                directSun: false
-            };
+    try {
+        if (currentState.classifications[currentImage].confirmed) {
+            throw new Error('Cannot reset confirmed images');
         }
+        
+        // Reset to default state while preserving the image's index
+        const currentIndex = currentState.classifications[currentImage].index;
+        currentState.classifications[currentImage] = {
+            confirmed: false,
+            cells: createDefaultGridCells(),
+            index: currentIndex
+        };
+        
+        loadImageByIndex(currentState.currentImageIndex);
+        saveClassifications();
+        showNotification('Image reset successfully', 'success');
+    } catch (error) {
+        showNotification(error.message, 'error');
     }
-    
-    // Update the classifications
-    currentState.classifications[currentImage] = {
-        ...currentState.classifications[currentImage],
-        cells: defaultCells,
-        confirmed: false
-    };
-    
-    // Update the UI
-    loadImageByIndex(currentState.currentImageIndex);
-    saveClassifications();
 }
 
 function findNextUnclassified() {
