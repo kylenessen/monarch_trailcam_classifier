@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
+        <div class="top-pane">
             <div class="user-info">
                 <div id="deployment-section" class="clickable-section">
                     <span class="label">Deployment:</span>
@@ -21,45 +21,19 @@
                            class="value">
                 </div>
             </div>
-            <div class="classification-tools">
-                <div id="progress-container" class="progress-box">
-                    <div class="progress-text">Image <span id="current-image">0</span> of <span id="total-images">0</span></div>
-                    <div class="progress-bar-container">
-                        <div id="progress-bar" class="progress-bar"></div>
-                    </div>
-                    <div id="progress-percent" class="progress-percent">0%</div>
+            <div id="progress-container" class="progress-box">
+                <div class="progress-text">Image <span id="current-image">0</span> of <span id="total-images">0</span></div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar"></div>
                 </div>
-
-                <div class="keyboard-shortcuts-help collapsed">
-                    <div class="shortcuts-header">
-                        <h3>Keyboard Shortcuts</h3>
-                        <span class="collapse-indicator">+</span>
-                    </div>
-                    <ul class="shortcuts-list"></ul>
-                </div>
-
-                <h3>Butterfly Count</h3>
-                <button class="count-btn" data-count="0">0</button>
-                <button class="count-btn" data-count="1-9">1-9</button>
-                <button class="count-btn" data-count="10-99">10-99</button>
-                <button class="count-btn" data-count="100-999">100-999</button>
-                <button class="count-btn" data-count="1000+">1000+</button>
-                
-                <h3>Sunlight</h3>
-                <button id="sunlight-toggle">Toggle Sunlight</button>
-                
-                <h3>Actions</h3>
-                <div class="actions-group">
-                    <button id="reset-image">Reset Image</button>
-                    <button id="copy-previous">Copy from Previous</button>
-                    <button id="confirm-image">Confirm Image</button>
-                    <button id="color-toggle">Toggle Color</button>
-                </div>
+                <div id="progress-percent" class="progress-percent">0%</div>
             </div>
-            <div class="navigation">
-                <button id="prev-image">Previous</button>
-                <button id="next-image">Next</button>
-                <button id="next-unclassified">Next Unclassified</button>
+            <div class="keyboard-shortcuts-help collapsed">
+                <div class="shortcuts-header">
+                    <h3>Keyboard Shortcuts</h3>
+                    <span class="collapse-indicator">+</span>
+                </div>
+                <ul class="shortcuts-list"></ul>
             </div>
         </div>
         <div class="main-content">
@@ -69,6 +43,29 @@
                     <p>Select an image folder to begin</p>
                 </div>
                 <!-- Image and grid will be rendered here -->
+            </div>
+        </div>
+        <div class="bottom-pane">
+            <div class="button-group count-buttons">
+                <button class="count-btn" data-count="0">0</button>
+                <button class="count-btn" data-count="1-9">1-9</button>
+                <button class="count-btn" data-count="10-99">10-99</button>
+                <button class="count-btn" data-count="100-999">100-999</button>
+                <button class="count-btn" data-count="1000+">1000+</button>
+            </div>
+            
+            <div class="button-group action-buttons">
+                <button id="sunlight-toggle">Toggle Sunlight</button>
+                <button id="reset-image">Reset Image</button>
+                <button id="copy-previous">Copy from Previous</button>
+                <button id="confirm-image">Confirm Image</button>
+                <button id="color-toggle">Toggle Color</button>
+            </div>
+            
+            <div class="button-group nav-buttons">
+                <button id="prev-image">Previous</button>
+                <button id="next-image">Next</button>
+                <button id="next-unclassified">Next Unclassified</button>
             </div>
         </div>
     </div>
