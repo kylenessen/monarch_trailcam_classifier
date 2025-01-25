@@ -19,7 +19,7 @@ let currentState = {
     currentImageIndex: -1,
     classifications: {},
     selectedCell: null,
-    selectedTool: '0',
+    selectedTool: '10-99',
     classificationFile: null,
     originalImageWidth: null,
     originalImageHeight: null,
@@ -332,7 +332,7 @@ function resetApplicationState() {
     currentState.currentImageIndex = -1;
     currentState.classifications = {};
     currentState.selectedCell = null;
-    currentState.selectedTool = '0';
+    currentState.selectedTool = '10-99';
     currentState.classificationFile = null;
     currentState.originalImageWidth = null;
     currentState.originalImageHeight = null;
@@ -562,8 +562,10 @@ function handleCellClick(event, cellId) {
     cell.classList.add('selected');
     currentState.selectedCell = cellId;
     
-    // Apply current classification immediately
-    applyCurrentClassification(cell, cellId);
+    // Only apply classification if Shift key is pressed
+    if (event.shiftKey) {
+        applyCurrentClassification(cell, cellId);
+    }
 }
 
 function applyCurrentClassification(cell, cellId) {
