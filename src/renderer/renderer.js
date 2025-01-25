@@ -186,9 +186,6 @@ function setupEventListeners() {
         });
     });
 
-    // Sunlight toggle button is now just a visual indicator
-    document.getElementById('sunlight-toggle').disabled = true;
-
     // Navigation buttons
     document.getElementById('prev-image').addEventListener('click', () => {
         navigateImage('previous');
@@ -580,13 +577,6 @@ function handleCellClick(event, cellId) {
         setClassification(currentImage, cellId, currentClassification);
         applyCellStyle(cell, currentClassification);
         
-        // Update sunlight toggle button to reflect current cell's state
-        const sunlightToggle = document.getElementById('sunlight-toggle');
-        if (currentClassification.directSun) {
-            sunlightToggle.classList.add('active');
-        } else {
-            sunlightToggle.classList.remove('active');
-        }
     }
 }
 

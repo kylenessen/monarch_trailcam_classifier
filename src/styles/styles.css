@@ -160,13 +160,6 @@ button:disabled {
     border-color: #0056b3;
 }
 
-/* Sunlight toggle styles */
-#sunlight-toggle.active {
-    background-color: #ffd700;
-    color: black;
-    border-color: #ccac00;
-}
-
 /* Confirm button styles */
 #confirm-image {
     background-color: var(--success-color);
