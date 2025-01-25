@@ -373,29 +373,21 @@ button:disabled {
 
 .grid-cell {
     position: absolute;
-    border-right: 1px solid var(--grid-border);
-    border-bottom: 1px solid var(--grid-border);
+    border: 1px solid var(--grid-border);
     pointer-events: auto;
     cursor: pointer;
-    transition: background-color var(--transition-speed) ease;
-}
-
-.grid-cell[data-col="0"] {
-    border-left: 1px solid var(--grid-border);
-}
-
-.grid-cell[data-row="0"] {
-    border-top: 1px solid var(--grid-border);
+    transition: all var(--transition-speed) ease;
+    box-sizing: border-box;
 }
 
 .grid-cell:hover {
-    border-color: var(--primary-color);
-    border-width: 2px;
+    border: 2px solid var(--primary-color);
+    margin: -1px;
 }
 
 .grid-cell.selected {
-    border-color: var(--primary-color) !important;
-    border-width: 2px !important;
+    border: 2px solid var(--primary-color) !important;
+    margin: -1px;
     z-index: 1;
 }
 

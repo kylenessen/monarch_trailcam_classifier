@@ -1,10 +1,8 @@
 ## Necessary
 - create optional notes field
-- Grids appear to be not rendering correctly. Only bottom and right sides show up when selecting or adding sunglight highlight
 - Z for zoom is awkward. Change to shift or space bar
 - make it so that you have to hold down a key, such as space to actually change the category of the grid
-- move UI elements to bottom instead of left panel
-- Fix UI bugs.
+- make it so that you have to hold down F to classify a sunlight square
 
 ## Optional
 - implement undo feature

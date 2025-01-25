@@ -584,11 +584,11 @@ function applyCellStyle(cell, classification) {
     
     // Apply sunlight classification
     if (classification.directSun) {
-        cell.style.borderColor = 'rgba(255, 235, 59, 0.8)';
-        cell.style.borderWidth = '2px';
+        cell.style.border = '2px solid rgba(255, 235, 59, 0.8)';
+        cell.style.margin = '-1px';
     } else {
-        cell.style.borderColor = 'rgba(255, 255, 255, 0.5)';
-        cell.style.borderWidth = '1px';
+        cell.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+        cell.style.margin = '0';
     }
 }
 
