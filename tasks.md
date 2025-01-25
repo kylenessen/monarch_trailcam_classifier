@@ -1,6 +1,6 @@
 ## Necessary
 - create optional notes field
-- Z for zoom is awkward. Change to shift or space bar
+
 
 ## Optional
 - implement undo feature

@@ -26,7 +26,11 @@ let currentState = {
     originalImageHeight: null,
     resizeObserver: null,
     isLocked: false,
-    isColorMode: false  // Default to black and white
+    isColorMode: false,  // Default to black and white
+    notesDialog: {
+        isVisible: false,
+        isMinimized: false
+    }
 };
 
 const { ipcRenderer } = require('electron');
@@ -166,6 +170,15 @@ function setupEventListeners() {
             handleKeyboardShortcuts(e);
         }
     });
+
+    // Notes button click handler
+    document.getElementById('notes-button').addEventListener('click', toggleNotesDialog);
+    
+    // Notes minimize button click handler
+    document.getElementById('minimize-notes').addEventListener('click', toggleMinimizeNotes);
+    
+    // Notes content change handler
+    document.getElementById('notes-content').addEventListener('input', handleNotesChange);
     
     document.addEventListener('keyup', (e) => {
         if (e.key.toLowerCase() === 'f') {
@@ -338,10 +351,97 @@ function resetApplicationState() {
     currentState.originalImageWidth = null;
     currentState.originalImageHeight = null;
     currentState.isLocked = false;
+    currentState.notesDialog = {
+        isVisible: false,
+        isMinimized: false
+    };
     
     gridCells = [];
     currentImage = null;
     currentClassification = {};
+}
+
+// Notes functionality
+function toggleNotesDialog() {
+    const notesDialog = document.getElementById('notes-dialog');
+    const notesContent = document.getElementById('notes-content');
+    
+    if (!currentState.notesDialog.isVisible) {
+        // Show dialog
+        currentState.notesDialog.isVisible = true;
+        currentState.notesDialog.isMinimized = false;
+        notesDialog.classList.add('show');
+        notesDialog.classList.remove('minimized');
+        
+        // Load existing notes
+        const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+        if (currentImage && currentState.classifications[currentImage]) {
+            notesContent.value = currentState.classifications[currentImage].notes || '';
+        }
+        
+        notesContent.focus();
+    } else if (currentState.notesDialog.isMinimized) {
+        // Restore from minimized state
+        currentState.notesDialog.isMinimized = false;
+        notesDialog.classList.remove('minimized');
+        notesContent.focus();
+    } else {
+        // Hide dialog
+        currentState.notesDialog.isVisible = false;
+        notesDialog.classList.remove('show', 'minimized');
+    }
+}
+
+function toggleMinimizeNotes() {
+    const notesDialog = document.getElementById('notes-dialog');
+    const minimizeButton = document.getElementById('minimize-notes');
+    
+    currentState.notesDialog.isMinimized = !currentState.notesDialog.isMinimized;
+    
+    if (currentState.notesDialog.isMinimized) {
+        notesDialog.classList.add('minimized');
+        minimizeButton.textContent = '+';
+    } else {
+        notesDialog.classList.remove('minimized');
+        minimizeButton.textContent = '−';
+        document.getElementById('notes-content').focus();
+    }
+}
+
+function handleNotesChange(event) {
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    if (!currentImage) return;
+    
+    // Initialize classification object if it doesn't exist
+    if (!currentState.classifications[currentImage]) {
+        currentState.classifications[currentImage] = {
+            confirmed: false,
+            cells: createDefaultGridCells(),
+            index: currentState.currentImageIndex
+        };
+    }
+    
+    // Update notes
+    currentState.classifications[currentImage].notes = event.target.value;
+    
+    // Update notes button appearance
+    updateNotesButtonState();
+    
+    // Auto-save
+    saveClassifications();
+}
+
+function updateNotesButtonState() {
+    const notesButton = document.getElementById('notes-button');
+    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+    
+    if (currentImage && 
+        currentState.classifications[currentImage]?.notes && 
+        currentState.classifications[currentImage].notes.trim() !== '') {
+        notesButton.classList.add('has-notes');
+    } else {
+        notesButton.classList.remove('has-notes');
+    }
 }
 
 function clearImageContainer(container) {
@@ -388,6 +488,11 @@ function setClassification(imageName, cellId, classification) {
 }
 
 async function loadImageByIndex(index) {
+    // Reset notes dialog state when changing images
+    currentState.notesDialog.isVisible = false;
+    currentState.notesDialog.isMinimized = false;
+    document.getElementById('notes-dialog').classList.remove('show', 'minimized');
+    
     try {
         if (index < 0 || index >= currentState.imageFiles.length) {
             throw new Error('Invalid image index');
@@ -408,6 +513,7 @@ async function loadImageByIndex(index) {
         
         await setupImageDisplay(currentImage, imageData.data, imageContainer);
         updateProgress();
+        updateNotesButtonState();
         
     } catch (error) {
         console.error('Error loading image:', error);
@@ -663,7 +769,9 @@ const KEYBOARD_SHORTCUTS = {
     's': () => document.getElementById('copy-previous').click(),
     'S': () => document.getElementById('copy-previous').click(),
     'h': () => toggleShortcutsHelp(),
-    'H': () => toggleShortcutsHelp()
+    'H': () => toggleShortcutsHelp(),
+    'n': () => document.getElementById('notes-button').click(),
+    'N': () => document.getElementById('notes-button').click()
 };
 
 function handleKeyboardShortcuts(event) {
@@ -857,6 +965,7 @@ function initializeKeyboardShortcuts() {
         { key: 'Q', action: 'Previous category' },
         { key: 'W / ↑', action: 'Confirm image' },
         { key: 'S / ↓', action: 'Copy from previous' },
+        { key: 'N', action: 'Toggle notes' },
         { key: 'Hold F + Click', action: 'Toggle sunlight for cell' },
         { key: 'Hold Shift + Click', action: 'Set count for cell' },
         { key: 'Space', action: 'Hold to zoom (300%)' },
