@@ -381,14 +381,8 @@ button:disabled {
 }
 
 .grid-cell:hover {
-    border: 2px solid var(--primary-color);
+    border: 2px solid rgba(255, 255, 255, 0.8);
     margin: -1px;
-}
-
-.grid-cell.selected {
-    border: 2px solid var(--primary-color) !important;
-    margin: -1px;
-    z-index: 1;
 }
 
 /* Confirmed image styles */

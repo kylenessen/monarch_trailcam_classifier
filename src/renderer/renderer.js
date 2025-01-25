@@ -552,17 +552,10 @@ function handleCellClick(event, cellId) {
         return;
     }
     
-    // Remove previous selection
-    if (currentState.selectedCell) {
-        document.querySelector(`[data-cell-id="${currentState.selectedCell}"]`)
-            ?.classList.remove('selected');
-    }
-    
     const cell = event.target;
-    cell.classList.add('selected');
     currentState.selectedCell = cellId;
     
-    // Only apply classification if Shift key is pressed
+    // Apply classification if Shift key is pressed
     if (event.shiftKey) {
         applyCurrentClassification(cell, cellId);
     }
