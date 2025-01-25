@@ -604,6 +604,13 @@ function initializeUI() {
     // Set initial color toggle button text
     const colorToggleBtn = document.getElementById('color-toggle');
     colorToggleBtn.textContent = currentState.isColorMode ? 'Switch to B&W' : 'Switch to Color';
+
+    // Set active class on the default category button
+    document.querySelectorAll('.count-btn').forEach(btn => {
+        if (btn.dataset.count === currentState.selectedTool) {
+            btn.classList.add('active');
+        }
+    });
 }
 
 function cycleCategory(direction) {
