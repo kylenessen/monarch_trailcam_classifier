@@ -4,6 +4,7 @@ let gridCells = [];
 let currentClassification = {};
 let isZooming = false;
 let zoomLevel = 3; // 300% zoom
+let isFKeyPressed = false; // Track F key state
 
 // Progress bar elements
 let progressBar = null;
@@ -56,7 +57,6 @@ const DEFAULT_CELL_CLASSIFICATION = {
     directSun: false
 };
 
-// Initialize classifications for all images
 function initializeClassifications() {
     const defaultCells = createDefaultGridCells();
     const defaultClassifications = createDefaultClassifications(defaultCells);
@@ -158,8 +158,20 @@ function updateProgress() {
 }
 
 function setupEventListeners() {
-    // Add keyboard event listener
-    document.addEventListener('keydown', handleKeyboardShortcuts);
+    // Add keyboard event listeners
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'f') {
+            isFKeyPressed = true;
+        } else {
+            handleKeyboardShortcuts(e);
+        }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (e.key.toLowerCase() === 'f') {
+            isFKeyPressed = false;
+        }
+    });
 
     // Classification buttons
     document.querySelectorAll('.count-btn').forEach(button => {
@@ -171,17 +183,11 @@ function setupEventListeners() {
             // Add active class to clicked button
             button.classList.add('active');
             currentState.selectedTool = button.dataset.count;
-            
-            // No longer automatically apply to selected cell
         });
     });
 
-    // Sunlight toggle
-    document.getElementById('sunlight-toggle').addEventListener('click', (event) => {
-        event.target.classList.toggle('active');
-        
-        // No longer automatically apply to selected cell
-    });
+    // Sunlight toggle button is now just a visual indicator
+    document.getElementById('sunlight-toggle').disabled = true;
 
     // Navigation buttons
     document.getElementById('prev-image').addEventListener('click', () => {
@@ -224,8 +230,6 @@ function setupEventListeners() {
         button.textContent = currentState.isColorMode ? 'Switch to B&W' : 'Switch to Color';
     });
 
-    // Other actions
-
     // Add zoom event listeners
     document.addEventListener('keydown', handleZoom);
     document.addEventListener('keyup', handleZoom);
@@ -237,7 +241,7 @@ function handleZoom(event) {
     const container = document.getElementById('image-container');
     const gridOverlay = document.querySelector('.grid-overlay');
     
-    if (!img || event.key !== 'z') return;
+    if (!img || event.key !== ' ') return;
     
     if (event.type === 'keydown' && !isZooming) {
         isZooming = true;
@@ -555,21 +559,35 @@ function handleCellClick(event, cellId) {
     const cell = event.target;
     currentState.selectedCell = cellId;
     
-    // Apply classification if Shift key is pressed
-    if (event.shiftKey) {
-        applyCurrentClassification(cell, cellId);
-    }
-}
-
-function applyCurrentClassification(cell, cellId) {
-    const classification = {
-        count: currentState.selectedTool,
-        directSun: document.getElementById('sunlight-toggle').classList.contains('active')
+    // Get current cell classification
+    const currentClassification = currentState.classifications[currentImage].cells[cellId] || {
+        count: '0',
+        directSun: false
     };
     
-    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
-    setClassification(currentImage, cellId, classification);
-    applyCellStyle(cell, classification);
+    // Handle shift key for count classification
+    if (event.shiftKey) {
+        currentClassification.count = currentState.selectedTool;
+    }
+    
+    // Handle F key for sunlight classification
+    if (isFKeyPressed) {
+        currentClassification.directSun = !currentClassification.directSun;
+    }
+    
+    // Only update if either shift or F was pressed
+    if (event.shiftKey || isFKeyPressed) {
+        setClassification(currentImage, cellId, currentClassification);
+        applyCellStyle(cell, currentClassification);
+        
+        // Update sunlight toggle button to reflect current cell's state
+        const sunlightToggle = document.getElementById('sunlight-toggle');
+        if (currentClassification.directSun) {
+            sunlightToggle.classList.add('active');
+        } else {
+            sunlightToggle.classList.remove('active');
+        }
+    }
 }
 
 function applyCellStyle(cell, classification) {
@@ -647,8 +665,6 @@ const KEYBOARD_SHORTCUTS = {
     'ArrowDown': () => document.getElementById('copy-previous').click(),
     's': () => document.getElementById('copy-previous').click(),
     'S': () => document.getElementById('copy-previous').click(),
-    'f': () => document.getElementById('sunlight-toggle').click(),
-    'F': () => document.getElementById('sunlight-toggle').click(),
     'h': () => toggleShortcutsHelp(),
     'H': () => toggleShortcutsHelp()
 };
@@ -719,9 +735,6 @@ function disableClassificationTools(disabled) {
     document.querySelectorAll('.count-btn').forEach(btn => {
         btn.disabled = disabled;
     });
-    
-    // Disable/enable sunlight toggle
-    document.getElementById('sunlight-toggle').disabled = disabled;
     
     // Update current state
     currentState.isLocked = disabled;
@@ -847,8 +860,9 @@ function initializeKeyboardShortcuts() {
         { key: 'Q', action: 'Previous category' },
         { key: 'W / ↑', action: 'Confirm image' },
         { key: 'S / ↓', action: 'Copy from previous' },
-        { key: 'F', action: 'Toggle sunlight' },
-        { key: 'Z', action: 'Hold to zoom (300%)' },
+        { key: 'Hold F + Click', action: 'Toggle sunlight for cell' },
+        { key: 'Hold Shift + Click', action: 'Set count for cell' },
+        { key: 'Space', action: 'Hold to zoom (300%)' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
 
