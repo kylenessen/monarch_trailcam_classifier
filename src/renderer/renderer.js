@@ -250,6 +250,9 @@ function handleZoom(event) {
     const container = document.getElementById('image-container');
     const wrapper = document.querySelector('.image-wrapper');
     
+    // Don't zoom if we're in the notes textarea
+    if (event.target.tagName === 'TEXTAREA') return;
+    
     if (!img || event.key !== ' ') return;
     
     if (event.type === 'keydown' && !isZooming) {
