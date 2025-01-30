@@ -28,8 +28,7 @@ let currentState = {
     isLocked: false,
     isColorMode: false,  // Default to black and white
     notesDialog: {
-        isVisible: false,
-        isMinimized: false
+        isVisible: false
     }
 };
 
@@ -174,8 +173,8 @@ function setupEventListeners() {
     // Notes button click handler
     document.getElementById('notes-button').addEventListener('click', toggleNotesDialog);
     
-    // Notes minimize button click handler
-    document.getElementById('minimize-notes').addEventListener('click', toggleMinimizeNotes);
+    // Notes close button click handler
+    document.getElementById('close-notes').addEventListener('click', closeNotesDialog);
     
     // Notes content change handler
     document.getElementById('notes-content').addEventListener('input', handleNotesChange);
@@ -352,8 +351,7 @@ function resetApplicationState() {
     currentState.originalImageHeight = null;
     currentState.isLocked = false;
     currentState.notesDialog = {
-        isVisible: false,
-        isMinimized: false
+        isVisible: false
     };
     
     gridCells = [];
@@ -369,9 +367,7 @@ function toggleNotesDialog() {
     if (!currentState.notesDialog.isVisible) {
         // Show dialog
         currentState.notesDialog.isVisible = true;
-        currentState.notesDialog.isMinimized = false;
         notesDialog.classList.add('show');
-        notesDialog.classList.remove('minimized');
         
         // Load existing notes
         const currentImage = currentState.imageFiles[currentState.currentImageIndex];
@@ -380,32 +376,16 @@ function toggleNotesDialog() {
         }
         
         notesContent.focus();
-    } else if (currentState.notesDialog.isMinimized) {
-        // Restore from minimized state
-        currentState.notesDialog.isMinimized = false;
-        notesDialog.classList.remove('minimized');
-        notesContent.focus();
     } else {
         // Hide dialog
-        currentState.notesDialog.isVisible = false;
-        notesDialog.classList.remove('show', 'minimized');
+        closeNotesDialog();
     }
 }
 
-function toggleMinimizeNotes() {
+function closeNotesDialog() {
     const notesDialog = document.getElementById('notes-dialog');
-    const minimizeButton = document.getElementById('minimize-notes');
-    
-    currentState.notesDialog.isMinimized = !currentState.notesDialog.isMinimized;
-    
-    if (currentState.notesDialog.isMinimized) {
-        notesDialog.classList.add('minimized');
-        minimizeButton.textContent = '+';
-    } else {
-        notesDialog.classList.remove('minimized');
-        minimizeButton.textContent = '−';
-        document.getElementById('notes-content').focus();
-    }
+    currentState.notesDialog.isVisible = false;
+    notesDialog.classList.remove('show');
 }
 
 function handleNotesChange(event) {
@@ -490,8 +470,7 @@ function setClassification(imageName, cellId, classification) {
 async function loadImageByIndex(index) {
     // Reset notes dialog state when changing images
     currentState.notesDialog.isVisible = false;
-    currentState.notesDialog.isMinimized = false;
-    document.getElementById('notes-dialog').classList.remove('show', 'minimized');
+    document.getElementById('notes-dialog').classList.remove('show');
     
     try {
         if (index < 0 || index >= currentState.imageFiles.length) {
