@@ -647,8 +647,8 @@ function handleCellClick(event, cellId) {
         directSun: false
     };
     
-    // Handle shift key for count classification
-    if (event.shiftKey) {
+    // Handle ctrl/cmd key for count classification
+    if (event.ctrlKey || event.metaKey) {
         currentClassification.count = currentState.selectedTool;
     }
     
@@ -657,8 +657,8 @@ function handleCellClick(event, cellId) {
         currentClassification.directSun = !currentClassification.directSun;
     }
     
-    // Only update if either shift or F was pressed
-    if (event.shiftKey || isFKeyPressed) {
+    // Only update if either ctrl/cmd or F was pressed
+    if ((event.ctrlKey || event.metaKey) || isFKeyPressed) {
         setClassification(currentImage, cellId, currentClassification);
         applyCellStyle(cell, currentClassification);
         
@@ -946,7 +946,7 @@ function initializeKeyboardShortcuts() {
         { key: 'S / ↓', action: 'Copy from previous' },
         { key: 'N', action: 'Toggle notes' },
         { key: 'Hold F + Click', action: 'Toggle sunlight for cell' },
-        { key: 'Hold Shift + Click', action: 'Set count for cell' },
+        { key: 'Hold ⌘ + Click', action: 'Set count for cell' },
         { key: 'Space', action: 'Hold to zoom (300%)' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
