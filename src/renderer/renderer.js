@@ -606,6 +606,20 @@ function createGrid(wrapper, imageWidth, imageHeight) {
             
             // Add click handler
             cell.addEventListener('click', (e) => handleCellClick(e, cellId));
+
+            // Add right-click handler
+            cell.addEventListener('contextmenu', (e) => {
+                e.preventDefault(); // Prevent default context menu
+                
+                // Only proceed if cmd/meta key is pressed
+                if (e.metaKey || e.ctrlKey) {
+                    const currentImage = currentState.imageFiles[currentState.currentImageIndex];
+                    if (canEditImage(currentImage) && !currentState.isLocked && !currentState.classifications[currentImage].confirmed) {
+                        setClassification(currentImage, cellId, { ...DEFAULT_CELL_CLASSIFICATION });
+                        applyCellStyle(cell, DEFAULT_CELL_CLASSIFICATION);
+                    }
+                }
+            });
             
             gridOverlay.appendChild(cell);
         }
@@ -945,6 +959,7 @@ function initializeKeyboardShortcuts() {
         { key: 'N', action: 'Toggle notes' },
         { key: 'Hold F + Click', action: 'Toggle sunlight for cell' },
         { key: 'Hold ⌘ + Click', action: 'Set count for cell' },
+        { key: 'Hold ⌘ + Right Click', action: 'Set cell to 0' },
         { key: 'Space', action: 'Hold to zoom (300%)' },
         { key: 'H', action: 'Toggle shortcuts help' }
     ];
