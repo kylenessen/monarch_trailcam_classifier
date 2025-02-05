@@ -1,6 +1,6 @@
 title: Monarch Trailcam Classifier
 description: Documentation for the Monarch Trailcam Classifier application
-theme: jekyll-theme-minimal
+theme: minima
 baseurl: "/monarch_trailcam_classifier"
 url: ""
 
