@@ -1,5 +1,3 @@
-# Monarch Butterfly Image Analysis Guide
-
 ## Overview
 This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
 
