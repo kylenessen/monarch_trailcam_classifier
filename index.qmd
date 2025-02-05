@@ -1,12 +1,13 @@
 ---
 title: Test title
 author: Kyle Nessen
+theme: theme.scss
 format:
-  html:
-    toc: true
-    embed-resources: true
+    html:
+        toc: false
+        embed-resources: true
 ---
-Hello, this is a new line. 
+
 ## Overview
 This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
 
