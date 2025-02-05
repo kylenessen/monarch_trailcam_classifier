@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>index</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+:root {
+--primary-color: #2c3e50;
+--text-color: #333;
+--link-color: #3498db;
+--code-bg: #f5f7f9;
+--border-color: #eaecef;
+--max-width: 900px;
+}
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+line-height: 1.6;
+color: var(--text-color);
+max-width: var(--max-width);
+margin: 0 auto;
+padding: 2rem;
+background-color: #ffffff;
+}
+
+h1, h2, h3, h4, h5, h6 {
+color: var(--primary-color);
+margin-top: 2rem;
+margin-bottom: 1rem;
+font-weight: 600;
+}
+h1 { font-size: 2.5rem; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+h2 { font-size: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.3rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+a {
+color: var(--link-color);
+text-decoration: none;
+}
+a:hover {
+text-decoration: underline;
+}
+
+pre {
+background-color: var(--code-bg);
+padding: 1rem;
+border-radius: 4px;
+overflow-x: auto;
+}
+code {
+font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+font-size: 0.9em;
+background-color: var(--code-bg);
+padding: 0.2em 0.4em;
+border-radius: 3px;
+}
+
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem 0;
+}
+th, td {
+border: 1px solid var(--border-color);
+padding: 0.5rem;
+text-align: left;
+}
+th {
+background-color: var(--code-bg);
+}
+
+ul, ol {
+padding-left: 2rem;
+}
+li {
+margin: 0.5rem 0;
+}
+
+blockquote {
+margin: 1rem 0;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--border-color);
+color: #666;
+}
+
+img {
+max-width: 100%;
+height: auto;
+}
+
+.meta {
+color: #666;
+font-size: 0.9rem;
+margin-bottom: 2rem;
+}
+
+@media print {
+body {
+padding: 1.5cm;
+}
+pre, code {
+white-space: pre-wrap;
+}
+}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+Started</a>
+<ul>
+<li><a href="#basic-controls" id="toc-basic-controls">Basic
+Controls</a></li>
+<li><a href="#count-categories" id="toc-count-categories">Count
+Categories</a></li>
+</ul></li>
+<li><a href="#classification-process" id="toc-classification-process">Classification Process</a>
+<ul>
+<li><a href="#initial-assessment" id="toc-initial-assessment">1. Initial
+Assessment</a></li>
+<li><a href="#dense-cluster-protocol" id="toc-dense-cluster-protocol">2.
+Dense Cluster Protocol</a></li>
+<li><a href="#medium-density-areas" id="toc-medium-density-areas">3.
+Medium Density Areas</a></li>
+<li><a href="#scanning-for-singles" id="toc-scanning-for-singles">4.
+Scanning for Singles</a></li>
+<li><a href="#border-cases" id="toc-border-cases">5. Border
+Cases</a></li>
+<li><a href="#sunlight-labeling" id="toc-sunlight-labeling">6. Sunlight
+Labeling</a></li>
+</ul></li>
+<li><a href="#best-practices" id="toc-best-practices">Best Practices</a>
+<ul>
+<li><a href="#speed-vs.-accuracy" id="toc-speed-vs.-accuracy">Speed
+vs. Accuracy</a></li>
+<li><a href="#required-steps-before-moving-on" id="toc-required-steps-before-moving-on">Required Steps Before Moving
+On</a></li>
+</ul></li>
+<li><a href="#common-scenarios-and-solutions" id="toc-common-scenarios-and-solutions">Common Scenarios and
+Solutions</a></li>
+</ul>
+</nav>
+<h2 id="overview">Overview</h2>
+<p>This guide provides instructions for using Monarch Image Labeler to
+estimate monarch butterfly numbers in gridded images. The goal is to
+efficiently categorize butterfly counts while maintaining consistency
+across different observers.</p>
+<h2 id="getting-started">Getting Started</h2>
+<h3 id="basic-controls">Basic Controls</h3>
+<ul>
+<li>Use <code>S</code> or <code>→</code>to go to next photo</li>
+<li>Use <code>A</code> or <code>←</code> to go to previous photo</li>
+<li>Use <code>Space</code> to zoom in 300% for detailed inspection</li>
+<li>Press <code>W</code> or click “Confirm Image” to save and
+proceed</li>
+<li>Press <code>S</code> to copy classifications from previous
+image</li>
+<li>Use <code>N</code> to toggle notes for unusual circumstances</li>
+<li>“Switch to Color” button toggles between B&amp;W and color
+views</li>
+<li>Keyboard shortcuts can be referenced anytime from the button in the
+top right.</li>
+</ul>
+<h3 id="count-categories">Count Categories</h3>
+<p>Each grid cell is categorized by the number of butterflies present: -
+0 (Default): No butterflies (No color) - 1-9: Single digits (Yellow) -
+10-99: Dozens (Orange) - 100-999: Hundreds (Red) - 1000+: Thousands
+(Purple)</p>
+<p>[INSERT: Example image showing different colored cells with
+corresponding counts]</p>
+<h2 id="classification-process">Classification Process</h2>
+<h3 id="initial-assessment">1. Initial Assessment</h3>
+<ol type="1">
+<li>Begin with the most densely populated cells</li>
+<li>Use Space-bar zoom (300%) to inspect unclear areas</li>
+<li>All cells start as 0 (uncolored) by default</li>
+</ol>
+<h3 id="dense-cluster-protocol">2. Dense Cluster Protocol</h3>
+<p>For cells with large clusters: - If butterflies clearly exceed 100,
+classify as hundreds (red) - For dense clusters where butterflies may be
+obscured, apply a 1.3X multiplier - Example: If you can count ~80
+butterflies in a dense cluster, multiply by 1.3 = 104, classify as
+hundreds - Only apply this multiplier when butterflies are likely
+obscured in dense clusters</p>
+<p>[INSERT: Animation/images showing dense cluster assessment]</p>
+<h3 id="medium-density-areas">3. Medium Density Areas</h3>
+<ul>
+<li>If more than a few butterflies but not obviously hundreds, classify
+as dozens (orange)</li>
+<li>No need to get exact counts - if you can quickly count &lt;10, it’s
+yellow; if it takes longer, it’s likely orange</li>
+</ul>
+<h3 id="scanning-for-singles">4. Scanning for Singles</h3>
+<ul>
+<li>After marking dense areas, scan for isolated butterflies or small
+groups</li>
+<li>Include both flying and roosting butterflies</li>
+<li>For 1-9 butterflies, mark as yellow</li>
+</ul>
+<h3 id="border-cases">5. Border Cases</h3>
+<p>When clusters cross grid lines: - Only count butterflies within the
+current cell - Round up when in doubt - Some double-counting at borders
+is acceptable given the coarse estimation scale</p>
+<p>[INSERT: Example of border case handling]</p>
+<h3 id="sunlight-labeling">6. Sunlight Labeling</h3>
+<ul>
+<li>For cells containing butterflies, note if they are in full sun</li>
+<li>Only label sun exposure for cells that contain butterflies</li>
+<li>Use F + Click to toggle sunlight for a cell</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="speed-vs.-accuracy">Speed vs. Accuracy</h3>
+<ul>
+<li>Prioritize efficiency over precise counts</li>
+<li>When uncertain between categories, round up</li>
+<li>The goal is order-of-magnitude estimation</li>
+<li>Don’t spend excessive time on exact counts</li>
+</ul>
+<h3 id="required-steps-before-moving-on">Required Steps Before Moving
+On</h3>
+<ol start="4" type="1">
+<li>Ensure username is entered</li>
+<li>Complete all cell classifications</li>
+<li>Mark sunlight exposure where applicable</li>
+<li>Add notes if necessary (blue button indicates notes present)</li>
+<li>Confirm image to save and proceed</li>
+</ol>
+<p>[INSERT: Screenshot of completed image with various
+classifications]</p>
+<h2 id="common-scenarios-and-solutions">Common Scenarios and
+Solutions</h2>
+<p>[This section will be populated with specific examples based on your
+image collection]</p>
+<hr />
+<p><em>Note: This documentation will be enhanced with relevant images
+and animations to illustrate key concepts and procedures.</em></p>
+</body>
+</html>

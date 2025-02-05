@@ -1,8 +1,0 @@
-title: Monarch Trailcam Classifier
-description: Documentation for the Monarch Trailcam Classifier application
-theme: minima
-baseurl: "/monarch_trailcam_classifier"
-url: ""
-
-# Build settings
-markdown: kramdown
