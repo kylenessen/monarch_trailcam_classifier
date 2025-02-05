@@ -1,3 +1,11 @@
+---
+title: Test title
+author: Kyle Nessen
+format:
+  html:
+    toc: true
+---
+
 ## Overview
 This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
 
@@ -15,6 +23,7 @@ This guide provides instructions for using Monarch Image Labeler to estimate mon
 
 ### Count Categories
 Each grid cell is categorized by the number of butterflies present:
+
 - 0 (Default): No butterflies (No color)
 - 1-9: Single digits (Yellow)
 - 10-99: Dozens (Orange)
@@ -32,6 +41,7 @@ Each grid cell is categorized by the number of butterflies present:
 
 ### 2. Dense Cluster Protocol
 For cells with large clusters:
+
 - If butterflies clearly exceed 100, classify as hundreds (red)
 - For dense clusters where butterflies may be obscured, apply a 1.3X multiplier
 - Example: If you can count ~80 butterflies in a dense cluster, multiply by 1.3 = 104, classify as hundreds
