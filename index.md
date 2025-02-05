@@ -1,37 +1,87 @@
-# Monarch Trailcam Classifier
-
-Welcome to the documentation for the Monarch Trailcam Classifier application. This tool helps process and classify images from trail cameras used in monarch butterfly research.
+# Monarch Butterfly Image Analysis Guide
 
 ## Overview
+This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
 
-The Monarch Trailcam Classifier is a desktop application built to streamline the process of analyzing trail camera images for monarch butterfly research. It provides an intuitive interface for researchers to efficiently process, classify, and organize trail camera footage.
+## Getting Started
 
-## Features
+### Basic Controls
+- Use `S` or `→`to go to next photo
+- Use `A` or `←` to go to previous photo
+- Use `Space` to zoom in 300% for detailed inspection
+- Press `W` or click "Confirm Image" to save and proceed
+- Press `S` to copy classifications from previous image
+- Use `N` to toggle notes for unusual circumstances
+- "Switch to Color" button toggles between B&W and color views
+- Keyboard shortcuts can be referenced anytime from the button in the top right.
 
-- Image classification interface
-- Batch processing capabilities
-- Custom image organization
-- Research-focused workflow
+### Count Categories
+Each grid cell is categorized by the number of butterflies present:
+- 0 (Default): No butterflies (No color)
+- 1-9: Single digits (Yellow)
+- 10-99: Dozens (Orange)
+- 100-999: Hundreds (Red)
+- 1000+: Thousands (Purple)
 
-## Installation
+[INSERT: Example image showing different colored cells with corresponding counts]
 
-1. Download the latest release from the GitHub repository
-2. Install the application following the platform-specific instructions:
-   - **macOS**: Double-click the .dmg file and drag the application to your Applications folder
-   - **Windows**: Run the installer and follow the prompts
-   - **Linux**: Extract the archive and run the executable
+## Classification Process
 
-## Usage
+### 1. Initial Assessment
+1. Begin with the most densely populated cells
+2. Use Space-bar zoom (300%) to inspect unclear areas
+3. All cells start as 0 (uncolored) by default
 
-1. Launch the application
-2. Select your source folder containing trail camera images
-3. Use the interface to classify and organize images
-4. Export your results for further analysis
+### 2. Dense Cluster Protocol
+For cells with large clusters:
+- If butterflies clearly exceed 100, classify as hundreds (red)
+- For dense clusters where butterflies may be obscured, apply a 1.3X multiplier
+- Example: If you can count ~80 butterflies in a dense cluster, multiply by 1.3 = 104, classify as hundreds
+- Only apply this multiplier when butterflies are likely obscured in dense clusters
 
-## Contributing
+[INSERT: Animation/images showing dense cluster assessment]
 
-We welcome contributions to improve the Monarch Trailcam Classifier. Please see our [GitHub repository](https://github.com/yourusername/monarch_trailcam_classifier) for more information on how to contribute.
+### 3. Medium Density Areas
+- If more than a few butterflies but not obviously hundreds, classify as dozens (orange)
+- No need to get exact counts - if you can quickly count <10, it's yellow; if it takes longer, it's likely orange
 
-## License
+### 4. Scanning for Singles
+- After marking dense areas, scan for isolated butterflies or small groups
+- Include both flying and roosting butterflies
+- For 1-9 butterflies, mark as yellow
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### 5. Border Cases
+When clusters cross grid lines:
+- Only count butterflies within the current cell
+- Round up when in doubt
+- Some double-counting at borders is acceptable given the coarse estimation scale
+
+[INSERT: Example of border case handling]
+
+### 6. Sunlight Labeling
+- For cells containing butterflies, note if they are in full sun
+- Only label sun exposure for cells that contain butterflies
+- Use F + Click to toggle sunlight for a cell
+
+## Best Practices
+
+### Speed vs. Accuracy
+- Prioritize efficiency over precise counts
+- When uncertain between categories, round up
+- The goal is order-of-magnitude estimation
+- Don't spend excessive time on exact counts
+
+### Required Steps Before Moving On
+4. Ensure username is entered
+5. Complete all cell classifications
+6. Mark sunlight exposure where applicable
+7. Add notes if necessary (blue button indicates notes present)
+8. Confirm image to save and proceed
+
+[INSERT: Screenshot of completed image with various classifications]
+
+## Common Scenarios and Solutions
+[This section will be populated with specific examples based on your image collection]
+
+---
+*Note: This documentation will be enhanced with relevant images and animations to illustrate key concepts and procedures.*
