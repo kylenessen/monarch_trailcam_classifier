@@ -4,94 +4,143 @@ author: Kyle Nessen
 theme: theme.scss
 format:
     html:
-        toc: false
+        toc: true
         embed-resources: true
 ---
 
 ## Overview
+
 This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
+
+## Image Context
+
+The photographs you will be analyzing in this project come from modified trail cameras, which are designed to be deployed in outdoor conditions for many weeks to months. Unlike a typical camera, visible light is filtered out, and near-infrared light is allowed to pass through. The purpose of this modification is that it makes living leaves appear quite bright in the image, while butterflies appear dark. This is to enhance the contrast between the two so the butterflies can be more easily identified. This is can have a side effect where images appear purple, which is the white balance not functioning properly, or the will be converted to black and white by the camera.
+
+![Modified trail camera and wind meter observing small cluster of monarch butterflies](resources/camera.jpg){width="400" fig-align="center"}
+
+Here is a short video to show what I mean. Notice that the eucalyptus leaves are bright, almost glowing, while the butterflies are much darker in comparison.
+
+![](resources/cluster.gif){fig-align="center"}
+
+And here is another video showing even more butterflies, but in black and white:
+
+![](resources/clusters2.gif){fig-align="center"}
 
 ## Getting Started
 
-### Basic Controls
-- Use `S` or `→`to go to next photo
-- Use `A` or `←` to go to previous photo
-- Use `Space` to zoom in 300% for detailed inspection
-- Press `W` or click "Confirm Image" to save and proceed
-- Press `S` to copy classifications from previous image
-- Use `N` to toggle notes for unusual circumstances
-- "Switch to Color" button toggles between B&W and color views
-- Keyboard shortcuts can be referenced anytime from the button in the top right.
+### Shared OneDrive With Images
 
-### Count Categories
-Each grid cell is categorized by the number of butterflies present:
+I should have shared a OneDrive link with your Cal Poly email called "Deployments." You can find the link below. If you have trouble accessing this link, please let me know.
 
-- 0 (Default): No butterflies (No color)
-- 1-9: Single digits (Yellow)
-- 10-99: Dozens (Orange)
-- 100-999: Hundreds (Red)
-- 1000+: Thousands (Purple)
+::: text-center
+<a href="https://cpslo-my.sharepoint.com/:f:/g/personal/knessen_calpoly_edu/ErvonPRpFOtBjDGUXYD6oN8BpxXiRz819CKByxWuEEOVVA?e=mVxlbQ" class="btn btn-primary">Deployments</a>
+:::
 
-[INSERT: Example image showing different colored cells with corresponding counts]
+Everything you need to get started is in this folder.
+
+### Syncing
+
+I recommend using the desktop version of OneDrive to sync the images between your local machine and the cloud. You can can [download the program here](https://www.microsoft.com/en-us/microsoft-365/onedrive/download) if you do not have installed already.
+
+Once installed, navigate to the deployment folder on your computer. Look under "OneDrive - Cal Poly" or "OneDrive - Shared Libraries - Cal Poly" for the deployments folder. 
+
+#### Managing storage
+
+
+
+### Installation
+
+## Basic Controls
+
+-   Use `S` or `→`to go to next photo
+-   Use `A` or `←` to go to previous photo
+-   Use `Space` to zoom in 300% for detailed inspection
+-   Press `W` or click "Confirm Image" to save and proceed
+-   Press `S` to copy classifications from previous image
+-   Use `N` to toggle notes for unusual circumstances
+-   "Switch to Color" button toggles between B&W and color views
+-   Keyboard shortcuts can be referenced anytime from the button in the top right.
+
+## Count Categories
+
+Each image is divided into a grid cells, and our job is to categorize each cell by the count category. These follow orders of magnitude, so there can be zero butterflies (empty cell), a few butterflies (1-9), tens of butterflies (10-99), hundreds (100-999) or thousands (1000+). The software is designed to easily be able to label each grid cell with a few clicks. Each category corresponds to a certain color (see points below) so you can easily tell what you have already labeled.
+
+-   0 (Default): No butterflies (No color)
+-   1-9: Single digits (Yellow)
+-   10-99: Dozens (Orange)
+-   100-999: Hundreds (Red)
+-   1000+: Thousands (Purple)
+
+Below I'll go through each category and how to determine when to apply them. 
+
+## (0) No Butterflies
+
+By default, all cells start with this category, and it has no associated symbology (e.g., an empty cell). The vast majority of cells will fall into this category, with many photos being entirely composed of empty cells. The cell should be completely free of butterflies to have this label. If a butterfly is partially within the grid, upgrade the category to the next appropriate level, likely 1-9. 
+
+
+
+
 
 ## Classification Process
 
 ### 1. Initial Assessment
-1. Begin with the most densely populated cells
-2. Use Space-bar zoom (300%) to inspect unclear areas
-3. All cells start as 0 (uncolored) by default
+
+1.  Begin with the most densely populated cells
+2.  Use Space-bar zoom (300%) to inspect unclear areas
+3.  All cells start as 0 (uncolored) by default
 
 ### 2. Dense Cluster Protocol
+
 For cells with large clusters:
 
-- If butterflies clearly exceed 100, classify as hundreds (red)
-- For dense clusters where butterflies may be obscured, apply a 1.3X multiplier
-- Example: If you can count ~80 butterflies in a dense cluster, multiply by 1.3 = 104, classify as hundreds
-- Only apply this multiplier when butterflies are likely obscured in dense clusters
+-   If butterflies clearly exceed 100, classify as hundreds (red)
+-   For dense clusters where butterflies may be obscured, apply a 1.3X multiplier
+-   Example: If you can count \~80 butterflies in a dense cluster, multiply by 1.3 = 104, classify as hundreds
+-   Only apply this multiplier when butterflies are likely obscured in dense clusters
 
-[INSERT: Animation/images showing dense cluster assessment]
+\[INSERT: Animation/images showing dense cluster assessment\]
 
 ### 3. Medium Density Areas
-- If more than a few butterflies but not obviously hundreds, classify as dozens (orange)
-- No need to get exact counts - if you can quickly count <10, it's yellow; if it takes longer, it's likely orange
+
+-   If more than a few butterflies but not obviously hundreds, classify as dozens (orange)
+-   No need to get exact counts - if you can quickly count \<10, it's yellow; if it takes longer, it's likely orange
 
 ### 4. Scanning for Singles
-- After marking dense areas, scan for isolated butterflies or small groups
-- Include both flying and roosting butterflies
-- For 1-9 butterflies, mark as yellow
+
+-   After marking dense areas, scan for isolated butterflies or small groups
+-   Include both flying and roosting butterflies
+-   For 1-9 butterflies, mark as yellow
 
 ### 5. Border Cases
-When clusters cross grid lines:
-- Only count butterflies within the current cell
-- Round up when in doubt
-- Some double-counting at borders is acceptable given the coarse estimation scale
 
-[INSERT: Example of border case handling]
+When clusters cross grid lines: - Only count butterflies within the current cell - Round up when in doubt - Some double-counting at borders is acceptable given the coarse estimation scale
+
+\[INSERT: Example of border case handling\]
 
 ### 6. Sunlight Labeling
-- For cells containing butterflies, note if they are in full sun
-- Only label sun exposure for cells that contain butterflies
-- Use F + Click to toggle sunlight for a cell
+
+-   For cells containing butterflies, note if they are in full sun
+-   Only label sun exposure for cells that contain butterflies
+-   Use F + Click to toggle sunlight for a cell
 
 ## Best Practices
 
 ### Speed vs. Accuracy
-- Prioritize efficiency over precise counts
-- When uncertain between categories, round up
-- The goal is order-of-magnitude estimation
-- Don't spend excessive time on exact counts
+
+-   Prioritize efficiency over precise counts
+-   When uncertain between categories, round up
+-   The goal is order-of-magnitude estimation
+-   Don't spend excessive time on exact counts
 
 ### Required Steps Before Moving On
-4. Ensure username is entered
-5. Complete all cell classifications
-6. Mark sunlight exposure where applicable
-7. Add notes if necessary (blue button indicates notes present)
-8. Confirm image to save and proceed
 
-[INSERT: Screenshot of completed image with various classifications]
+4.  Ensure username is entered
+5.  Complete all cell classifications
+6.  Mark sunlight exposure where applicable
+7.  Add notes if necessary (blue button indicates notes present)
+8.  Confirm image to save and proceed
+
+\[INSERT: Screenshot of completed image with various classifications\]
 
 ## Common Scenarios and Solutions
-[This section will be populated with specific examples based on your image collection]
 
----
-*Note: This documentation will be enhanced with relevant images and animations to illustrate key concepts and procedures.*
