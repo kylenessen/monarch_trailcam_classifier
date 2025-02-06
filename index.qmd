@@ -44,7 +44,7 @@ I recommend using the desktop version of OneDrive to sync the images between you
 
 Once installed, navigate to the deployment folder on your computer. Look under "OneDrive - Cal Poly" or "OneDrive - Shared Libraries - Cal Poly" for the deployments folder. 
 
-#### Managing storage
+### Managing storage
 
 
 
@@ -73,13 +73,34 @@ Each image is divided into a grid cells, and our job is to categorize each cell 
 
 Below I'll go through each category and how to determine when to apply them. 
 
-## (0) No Butterflies
+### (0) No Butterflies
 
 By default, all cells start with this category, and it has no associated symbology (e.g., an empty cell). The vast majority of cells will fall into this category, with many photos being entirely composed of empty cells. The cell should be completely free of butterflies to have this label. If a butterfly is partially within the grid, upgrade the category to the next appropriate level, likely 1-9. 
 
+You can always select the 0 category to "remove" a color on the screen. Additionally, you can hold command + right click (two fingers on a Mac trackpad) to reclassify a grid cell as zero while selecting any category. Useful for deleting or cleaning up your categories. 
 
+While there are many ways a zero category can look here is a selection of a few. All grid cells fall into the zero category.
 
+|                                               |                                               |
+| --------------------------------------------- | --------------------------------------------- |
+| ![](resources/zeros/zero_1.png){width="100%"} | ![](resources/zeros/zero_2.png){width="100%"} |
+| ![](resources/zeros/zero_3.png){width="100%"} | ![](resources/zeros/zero_4.png){width="100%"} |
+| ![](resources/zeros/zero_5.png){width="100%"} | ![](resources/zeros/zero_6.png){width="100%"} |
 
+### (1-9) Single Butterflies
+
+This category should be used when you can clearly count all butterflies within the grid cell and there are less than 10 present. Partial butterflies should be included in this count, and can be included in the count for both partial cells. If this "double counting" happens to upgrade the neighboring cell to a higher category, then use your best judgement to accurately and conservatively estimate the scene. 
+
+It does not matter if the butterflies are at rest or in flight, if they are in the cell, they should be counted.
+
+I generally do this category last as a final clean up of the larger clusters. 
+
+Here are some example images:
+
+|                                                    |                                                    |
+| -------------------------------------------------- | -------------------------------------------------- |
+| ![](resources/singles/singles_1.png){width="100%"} | ![](resources/singles/singles_2.png){width="50%"} |
+| ![](resources/singles/singles_3.png){width="100%"} | ![](resources/singles/singles_4.png){width="100%"} |
 
 ## Classification Process
 
