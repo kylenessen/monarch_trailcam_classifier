@@ -162,6 +162,23 @@ Here are some example images:
 
 ### (10-99) Dozens of butterflies
 
+This will be one of the most common categories. Use this category when you can see that butterflies are present in decent numbers, but obviously more than you can quickly count. If you suspect the number goes over 100, then upgrade to next category. Only consider butterflies that you can actually see in the photo, and don't try to extrapolate of what might actually be there. When in doubt, be more conservative and go lower.
+
+Here are some example scenarios:
+
+|                                                    |                                                    |
+| -------------------------------------------------- | -------------------------------------------------- |
+| ![](resources/dozens/dozens_1.png){width="100%"} | ![](resources/dozens/dozens_2.png){width="100%"} |
+| ![](resources/dozens/dozens_3.png){width="100%"} | ![](resources/dozens/dozens_4.png){width="100%"} |
+
+::: {.callout-tip}
+If you find yourself spending more than a few seconds trying to count individual butterflies, it's probably appropriate to use this category rather than the singles (1-9) category.
+:::
+
+::: {.callout-warning}
+Remember that overlapping butterflies in clusters can hide others behind them. However, only count what you can actually see - don't try to estimate hidden butterflies.
+:::
+
 ### (100-999) Hundreds of butterflies
 
 ### (1000+) Thousands of butterflies
