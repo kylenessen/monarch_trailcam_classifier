@@ -231,6 +231,20 @@ Night photos can be challenging to classify due to the trail camera's flash. Whi
 
 If you do observe significant changes in butterfly numbers during nighttime hours, please contact me, as this would be an interesting and unusual finding.
 
+## Label storage
+
+When you open a deployment folder for the first time, the program will make a file called `classifications.json` next to the images. This is where all of your hard earned work will be saved, so please be careful! You don't need to actually interact with this file, but deleting it or moving it can cause unexpected behavior.
+
+::: {.callout-important}
+It is critical that two people are not classifying the same set of images at the same time, as this can cause data loss. Please check with me before moving on to the next folder.
+:::
+
+The program automatically saves your work after each image classification. If you need to take a break, you can simply close the program - your progress will be there when you return.
+
+::: {.callout-tip}
+Consider making periodic backups of the `classifications.json` file to prevent data loss. You can do this by simply copying the file to another location.
+:::
+
 ## Classification process
 
 This section is intended to give some guidance on how I think you should approach the classification process. Please do what works best for you, however. The key to this project is that we are consisistingly labeling photos across a deployment, and we generally agree on categorizations across each other's work. 
