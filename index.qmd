@@ -1,6 +1,7 @@
 ---
-title: Test title
+title: Monarch Butterfly Image Classification Guide
 author: Kyle Nessen
+date: "February 15, 2025"
 theme: theme.scss
 format:
     html:
@@ -10,11 +11,11 @@ format:
 
 ## Overview
 
-This guide provides instructions for using Monarch Image Labeler to estimate monarch butterfly numbers in gridded images. The goal is to efficiently categorize butterfly counts while maintaining consistency across different observers.
+This guide explains how to use the Monarch Image Labeler tool to count butterflies in gridded photographs. The tool helps estimate butterfly populations consistently across multiple observers, focusing on efficiency and accuracy.
 
 ## Image Context
 
-The photographs you will be analyzing in this project come from modified trail cameras, which are designed to be deployed in outdoor conditions for many weeks to months. Unlike a typical camera, visible light is filtered out, and near-infrared light is allowed to pass through. The purpose of this modification is that it makes living leaves appear quite bright in the image, while butterflies appear dark. This is to enhance the contrast between the two so the butterflies can be more easily identified. This is can have a side effect where images appear purple, which is the white balance not functioning properly, or the will be converted to black and white by the camera.
+This project uses modified trail cameras designed for long-term outdoor deployment. These cameras are equipped with infrared filters that block visible light while allowing near-infrared light to pass through. This modification creates a stark contrast between living leaves (which appear bright) and butterflies (which appear dark), making butterfly identification easier. Due to this modification, images may sometimes appear purple (caused by white balance issues) or be converted to black and white by the camera.
 
 ![Modified trail camera and wind meter observing small cluster of monarch butterflies](resources/camera.jpg){width="400" fig-align="center"}
 
@@ -36,7 +37,15 @@ I should have shared a OneDrive link with your Cal Poly email called "Deployment
 <a href="https://cpslo-my.sharepoint.com/:f:/g/personal/knessen_calpoly_edu/ErvonPRpFOtBjDGUXYD6oN8BpxXiRz819CKByxWuEEOVVA?e=mVxlbQ" class="btn btn-primary">Deployments</a>
 :::
 
-Everything you need to get started is in this folder.
+Everything you need to get started is in this folder, including the Monarch Image Labeler software, and all the images that need to be analyzed. 
+
+::: {.callout-important}
+Please note that there are two versions of the software available. I have labeled them with your name, so make sure to download and use the version I specified for you. If you're unsure which version to use, please contact me.
+:::
+
+### What is a "deployment?"
+
+Images are organized into sets called "deployments." A deployment represents data from a single camera, positioned at a specific location and direction, over a defined time period. Each deployment has a unique identifier (e.g., "SC4"). The identifier's prefix indicates the location - most are from Spring Canyon (SC), with some from Space Launch Complex 6 (SLC6) and UDMH. Deployments are numbered sequentially starting from the first setup at each location. You will typically be assigned one deployment to analyze using the software.
 
 ### Syncing
 

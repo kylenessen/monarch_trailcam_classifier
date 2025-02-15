@@ -2,6 +2,16 @@ import os
 import shutil
 import random
 import uuid
+import tkinter as tk
+from tkinter import filedialog
+
+
+def select_directory(title="Select Directory"):
+    """Open a file dialog to select a directory."""
+    root = tk.Tk()
+    root.withdraw()  # Hide the main window
+    directory = filedialog.askdirectory(title=title)
+    return clean_path(directory) if directory else None
 
 
 def get_photos_by_folder(source_dir):
@@ -73,13 +83,22 @@ def copy_random_photos(source_dir, dest_dir, photos_per_folder=10):
 
 def clean_path(path):
     """Remove quotes and extra whitespace from path."""
-    return path.strip().strip("'").strip('"')
+    return path.strip().strip("'").strip('"') if path else None
 
 
 def main():
-    # Get directory paths from user and clean them
-    source_dir = clean_path(input("Enter the source directory path: "))
-    dest_dir = clean_path(input("Enter the destination directory path: "))
+    # Get directory paths using file dialogs
+    print("Please select the source directory...")
+    source_dir = select_directory("Select Source Directory")
+    if not source_dir:
+        print("No source directory selected. Exiting...")
+        return
+
+    print("Please select the destination directory...")
+    dest_dir = select_directory("Select Destination Directory")
+    if not dest_dir:
+        print("No destination directory selected. Exiting...")
+        return
 
     # Validate source directory exists
     if not os.path.isdir(source_dir):
