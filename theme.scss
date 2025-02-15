@@ -1,0 +1,148 @@
+/*-- scss:defaults --*/
+
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Taviraj:wght@400;500;600&family=Raleway:wght@400;600&family=Oswald&display=swap');
+
+// Typography
+$font-family-sans-serif: "Merriweather", Georgia, "Times New Roman", serif;
+$font-family-monospace: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+$headings-font-family: "Oswald", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+
+// Font sizes
+$font-size-base: 1rem;
+$h1-font-size: $font-size-base * 2.5;
+$h2-font-size: $font-size-base * 2;
+$h3-font-size: $font-size-base * 1.75;
+$h4-font-size: $font-size-base * 1.5;
+$code-font-size: 0.875em;
+
+// Colors
+$primary: #2c5282;        // Deep blue for primary elements
+$secondary: #718096;      // Neutral gray for secondary elements
+$body-color: #2d3748;     // Dark gray for main text
+$body-bg: #ffffff;        // White background
+$link-color: #3182ce;     // Bright blue for links
+$code-bg: #f7fafc;        // Light gray for code backgrounds
+$pre-bg: #f7fafc;         // Light gray for pre blocks
+$border-color: #e2e8f0;   // Light gray for borders
+
+// Spacing and layout
+$spacer: 1rem;
+$paragraph-margin-bottom: $spacer * 1.25;
+$headings-margin-bottom: $spacer;
+$line-height-base: 1.6;
+$line-height-sm: 1.4;
+$border-radius: 0.375rem;
+$border-radius-lg: 0.5rem;
+
+/*-- scss:rules --*/
+
+// Body styles
+body {
+  font-family: $font-family-sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Heading styles
+h1, h2, h3, h4, h5, h6 {
+  color: #000000;
+  font-weight: 400;  
+  letter-spacing: -0.015em;
+  margin-top: $spacer * 2;
+}
+
+h1 {
+  border-bottom: 2px solid $border-color;
+  padding-bottom: $spacer * 0.5;
+}
+
+// Link styles
+a {
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+  
+  &:hover {
+    color: darken($link-color, 15%);
+    text-decoration: underline;
+  }
+}
+
+// Code blocks
+pre {
+  padding: $spacer * 1.25;
+  border: 1px solid $border-color;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+code {
+  color: #d15a0a;
+  padding: 0.2em 0.4em;
+}
+
+// Block quotes
+blockquote {
+  border-left: 4px solid $primary;
+  margin: $spacer 0;
+  padding: $spacer;
+  background-color: rgba($primary, 0.05);
+  color: rgba($body-color, 0.9);
+}
+
+// Tables
+table {
+  width: 100%;
+  margin-bottom: $spacer * 1.5;
+  border-collapse: collapse;
+  
+  th {
+    background-color: rgba($primary, 0.05);
+    border-bottom: 2px solid $border-color;
+    padding: $spacer * 0.75;
+    text-align: left;
+    font-weight: 600;
+  }
+  
+  td {
+    padding: $spacer * 0.75;
+    border-bottom: 1px solid $border-color;
+  }
+}
+
+// Lists
+ul, ol {
+  padding-left: $spacer * 1.5;
+  margin-bottom: $spacer * 1.25;
+}
+
+// Images
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: $border-radius;
+  margin: $spacer 0;
+}
+
+// Navigation
+.nav-footer {
+  border-top: 1px solid $border-color;
+  padding-top: $spacer;
+  margin-top: $spacer * 2;
+}
+
+// Print styles
+@media print {
+  body {
+    font-size: 11pt;
+  }
+  
+  a {
+    text-decoration: underline;
+  }
+  
+  pre, code {
+    border: 1px solid $border-color;
+    page-break-inside: avoid;
+  }
+}
