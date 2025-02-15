@@ -221,6 +221,12 @@ Here's an example of correctly labeled sunlight exposure:
 
 If you have any further questions on this aspect of the photo labeling, please get in touch. 
 
+## Night photos
+
+Night photos can be challenging to classify due to the trail camera's flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours. You can typically use the `S` key or the "Copy Previous" button to copy classifications from the previous image.
+
+If you do observe significant changes in butterfly numbers during nighttime hours, please contact me, as this would be an interesting and unusual finding.
+
 ## Classification Process
 
 This section is intended to give some guidance on how I think you should approach the classification process. Please do what works best for you, however. The key to this project is that we are consisistingly labeling photos across a deployment, and we generally agree on categorizations across each other's work. 
@@ -278,5 +284,4 @@ When clusters cross grid lines: - Only count butterflies within the current cell
 
 \[INSERT: Screenshot of completed image with various classifications\]
 
-## Common Scenarios and Solutions
 
