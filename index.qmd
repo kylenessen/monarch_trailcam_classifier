@@ -29,7 +29,7 @@ And here is another video showing even more butterflies, but in black and white:
 
 ## Getting Started
 
-### Shared OneDrive With Images
+### Shared OneDrive folder
 
 I should have shared a OneDrive link with your Cal Poly email called "Deployments." You can find the link below. If you have trouble accessing this link, please let me know.
 
@@ -47,13 +47,53 @@ Please note that there are two versions of the software available. I have labele
 
 Images are organized into sets called "deployments." A deployment represents data from a single camera, positioned at a specific location and direction, over a defined time period. Each deployment has a unique identifier (e.g., "SC4"). The identifier's prefix indicates the location - most are from Spring Canyon (SC), with some from Space Launch Complex 6 (SLC6) and UDMH. Deployments are numbered sequentially starting from the first setup at each location. You will typically be assigned one deployment to analyze using the software.
 
-### Syncing
+### Syncing images with OneDrive
 
-I recommend using the desktop version of OneDrive to sync the images between your local machine and the cloud. You can can [download the program here](https://www.microsoft.com/en-us/microsoft-365/onedrive/download) if you do not have installed already.
+For reliable access to the images, we'll use OneDrive's desktop sync feature:
 
-Once installed, navigate to the deployment folder on your computer. Look under "OneDrive - Cal Poly" or "OneDrive - Shared Libraries - Cal Poly" for the deployments folder. 
+1. **Install OneDrive Desktop**
+    - [Download OneDrive](https://www.microsoft.com/en-us/microsoft-365/onedrive/download) if not already installed
+    - Sign in with your Cal Poly credentials when prompted
+
+2. **Set Up Sync**
+    - Open OneDrive settings (click the cloud icon in your taskbar)
+    - Choose "Settings" > "Account" > "Add a folder"
+    - Navigate to the shared "Deployments" folder
+    - Select it for syncing
+
+3. **Locate Your Files**
+    - On Mac: Look under "OneDrive - Cal Poly" or "OneDrive - Shared Libraries - Cal Poly"
+    - On Windows: Check "OneDrive - California Polytechnic State University"
+    - The deployment folders should appear in your local file system
+
+::: {.callout-tip}
+Make sure you have enough free disk space before syncing. Each deployment can contain several gigabytes of images.
+:::
+
+::: {.callout-warning}
+If you can't find the synchronized files on your computer (NOT in browser), please contact me. The software requires local file access to function properly.
+:::
 
 ### Managing storage
+
+Since deployments can be quite large, you can manage your local storage efficiently using OneDrive's built-in features:
+
+- **For your current deployment:**
+    - Right-click the deployment folder
+    - Select "Always keep on this device" to ensure constant access
+
+![](resources/always_keep.png){width="300" fig-align="center"}
+
+- **For completed deployments:**
+    - Right-click the folder
+    - Choose "Free up space" to remove local copies
+    - Files remain accessible in OneDrive but won't take up local storage
+
+![](resources/free_up_space.png){width="300" fig-align="center"}
+
+::: {.callout-tip}
+Only keep the deployment you're currently working on downloaded locally. This helps manage disk space while ensuring you have quick access to the files you need.
+:::
 
 
 
