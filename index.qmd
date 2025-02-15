@@ -6,7 +6,7 @@ theme: theme.scss
 format:
     html:
         toc: true
-        embed-resources: true
+        embed-resources: false
 ---
 
 ## Overview
@@ -203,6 +203,24 @@ You likely won't need this category, but it's included for completeness. If you 
 
 No example photos are provided, but please let me know if you think you've found a case that might qualify.
 
+## Direct Sunlight
+
+When classifying butterflies, we also track whether they are in direct sunlight. To mark a cell as "in direct sun," hold `F` and click the cell. Cells in direct sunlight will have a yellow border.
+
+Direct sunlight is relatively rare in our photos. When present, it can make butterflies harder to spot because both the butterflies and leaves become bright and oversaturated. Zooming in often helps identify butterflies in these conditions, especially when you have context from previous images (before the sun hit).
+
+We track sunlight exposure because it may influence butterfly behavior. Our hypothesis is that direct sun causes overheating, forcing butterflies to relocate for temperature regulation. This data will help us test this theory.
+
+Below is an animation showing morning sun passing over a butterfly cluster. Notice how the cells become very bright and the butterflies appear to leave once the sunlight hits:
+
+![](resources/passing_sun.gif){fig-align="center"}
+
+Here's an example of correctly labeled sunlight exposure:
+
+![](resources/full_sun.png){fig-align="center"}
+
+If you have any further questions on this aspect of the photo labeling, please get in touch. 
+
 ## Classification Process
 
 This section is intended to give some guidance on how I think you should approach the classification process. Please do what works best for you, however. The key to this project is that we are consisistingly labeling photos across a deployment, and we generally agree on categorizations across each other's work. 
@@ -239,7 +257,7 @@ When clusters cross grid lines: - Only count butterflies within the current cell
 
 -   For cells containing butterflies, note if they are in full sun
 -   Only label sun exposure for cells that contain butterflies
--   Use F + Click to toggle sunlight for a cell
+-   Use F + Click to toggle sunlight for a cell   
 
 ## Best Practices
 
