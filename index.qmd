@@ -97,6 +97,17 @@ Only keep the deployment you're currently working on downloaded locally. This he
 
 ### Installation
 
+1. In the Deployments folder, open the "Software" folder
+2. Find and download the DMG file that has your name on it
+3. Double-click the downloaded DMG file to open it
+4. Drag the Monarch Image Labeler icon to the Applications folder as shown below:
+
+![](resources/install.png){width="500" fig-align="center"}
+
+::: {.callout-note}
+The first time you open the app, you may need to right-click the icon in Applications and select "Open" to bypass Mac security settings. After the first launch, you can open it normally. Let me know if you have issues.
+:::
+
 ## Basic Controls
 
 -   Use `S` or `→`to go to next photo
