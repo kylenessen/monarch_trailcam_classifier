@@ -13,7 +13,15 @@
   "build": {
     "appId": "com.kylenessen.monarchtrailcamclassifier",
     "mac": {
-      "target": "dmg",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
       "icon": "build/icon.icns"
     }
   },
