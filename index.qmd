@@ -95,8 +95,6 @@ Since deployments can be quite large, you can manage your local storage efficien
 Only keep the deployment you're currently working on downloaded locally. This helps manage disk space while ensuring you have quick access to the files you need.
 :::
 
-
-
 ### Installation
 
 ## Basic Controls
