@@ -1,7 +1,3 @@
-## Necessary
-- create optional notes field
-
-
 ## Optional
 - implement undo feature
 - customizable categories and colors
