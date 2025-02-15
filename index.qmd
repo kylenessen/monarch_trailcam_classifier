@@ -121,7 +121,7 @@ The first time you open the app, you may need to right-click the icon in Applica
 
 ## Count Categories
 
-Each image is divided into a grid cells, and our job is to categorize each cell by the count category. These follow orders of magnitude, so there can be zero butterflies (empty cell), a few butterflies (1-9), tens of butterflies (10-99), hundreds (100-999) or thousands (1000+). The software is designed to easily be able to label each grid cell with a few clicks. Each category corresponds to a certain color (see points below) so you can easily tell what you have already labeled.
+Each image is divided into grid cells, and our task is to categorize each cell by count. Instead of estimating exact numbers, we only need to estimate the order of magnitude of butterflies in each cell. The software makes it easy to label cells with just a few clicks. Each category corresponds to a specific color for easy visual reference:
 
 -   0 (Default): No butterflies (No color)
 -   1-9: Single digits (Yellow)
@@ -129,15 +129,15 @@ Each image is divided into a grid cells, and our job is to categorize each cell 
 -   100-999: Hundreds (Red)
 -   1000+: Thousands (Purple)
 
-Below I'll go through each category and how to determine when to apply them. 
+Below, I'll explain each category and how to determine when to apply them.
 
-### (0) No Butterflies
+### (0) No butterflies
 
-By default, all cells start with this category, and it has no associated symbology (e.g., an empty cell). The vast majority of cells will fall into this category, with many photos being entirely composed of empty cells. The cell should be completely free of butterflies to have this label. If a butterfly is partially within the grid, upgrade the category to the next appropriate level, likely 1-9. 
+The zero category is the default for all cells and has no color or symbol. Most cells will be in this category, and many photos will be entirely empty. A cell should only be labeled zero if it is completely free of butterflies. If even part of a butterfly extends into the cell, upgrade to the appropriate category (usually 1-9).
 
-You can always select the 0 category to "remove" a color on the screen. Additionally, you can hold command + right click (two fingers on a Mac trackpad) to reclassify a grid cell as zero while selecting any category. Useful for deleting or cleaning up your categories. 
+You can use the 0 category to "clear" a colored cell. Additionally, holding Command + right-click (two-finger click on Mac trackpad) while selecting any category will reset a cell to zero. This is useful for correcting mistakes.
 
-While there are many ways a zero category can look here is a selection of a few. All grid cells fall into the zero category.
+Below are several examples of cells that should be classified as zero:
 
 |                                               |                                               |
 | --------------------------------------------- | --------------------------------------------- |
@@ -145,13 +145,13 @@ While there are many ways a zero category can look here is a selection of a few.
 | ![](resources/zeros/zero_3.png){width="100%"} | ![](resources/zeros/zero_4.png){width="100%"} |
 | ![](resources/zeros/zero_5.png){width="100%"} | ![](resources/zeros/zero_6.png){width="100%"} |
 
-### (1-9) Single Butterflies
+### (1-9) Single butterflies
 
-This category should be used when you can clearly count all butterflies within the grid cell and there are less than 10 present. Partial butterflies should be included in this count, and can be included in the count for both partial cells. If this "double counting" happens to upgrade the neighboring cell to a higher category, then use your best judgement to accurately and conservatively estimate the scene. 
+Use this category when you can clearly count all butterflies within a grid cell and there are fewer than 10 present. Include partial butterflies in the count, even if they extend into neighboring cells and are counted there too. If this "double counting" causes a neighboring cell to move into a higher category, use your best judgment to make an accurate but conservative estimate.
 
-It does not matter if the butterflies are at rest or in flight, if they are in the cell, they should be counted.
+Count all butterflies in the cell, whether they are resting or in flight.
 
-I generally do this category last as a final clean up of the larger clusters. 
+I recommend marking this category last, after handling larger clusters, as a final cleanup step.
 
 Here are some example images:
 
@@ -159,6 +159,12 @@ Here are some example images:
 | -------------------------------------------------- | -------------------------------------------------- |
 | ![](resources/singles/singles_1.png){width="100%"} | ![](resources/singles/singles_2.png){width="50%"} |
 | ![](resources/singles/singles_3.png){width="100%"} | ![](resources/singles/singles_4.png){width="100%"} |
+
+### (10-99) Dozens of butterflies
+
+### (100-999) Hundreds of butterflies
+
+### (1000+) Thousands of butterflies
 
 ## Classification Process
 
