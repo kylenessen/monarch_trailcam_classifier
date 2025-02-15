@@ -181,9 +181,31 @@ Remember that overlapping butterflies in clusters can hide others behind them. H
 
 ### (100-999) Hundreds of butterflies
 
+This will be another very common category, especially when the camera is positioned farther from the clusters, allowing more butterflies to fit within a single cell. When classifying:
+
+- Only count butterflies clearly visible in the image
+- Use relative size comparisons: find what 10 butterflies look like, then scale up
+- With practice, you'll quickly recognize what 100+ butterflies look like
+- When in doubt between dozens (10-99) and hundreds (100-999), be conservative
+- Consider density: tightly packed clusters often indicate hundreds
+- Look for overlapping layers of butterflies, which suggest higher counts
+
+Here are some example scenarios showing the hundreds category:
+
+|                                                    |                                                    |
+| -------------------------------------------------- | -------------------------------------------------- |
+| ![](resources/hundreds/hundreds_1.png){width="100%"} | ![](resources/hundreds/hundreds_2.png){width="100%"} |
+| ![](resources/hundreds/hundreds_3.png){width="100%"} | ![](resources/hundreds/hundreds_4.png){width="100%"} |
+
 ### (1000+) Thousands of butterflies
 
+You likely won't need this category, but it's included for completeness. If you think you've encountered a cell with 1000+ butterflies, please contact me so we can review it together. For context, Spring Canyon's peak count was about 3000 butterflies around Thanksgiving, though it's unlikely any single photo captured them all in one frame.
+
+No example photos are provided, but please let me know if you think you've found a case that might qualify.
+
 ## Classification Process
+
+This section is intended to give some guidance on how I think you should approach the classification process. Please do what works best for you, however. The key to this project is that we are consisistingly labeling photos across a deployment, and we generally agree on categorizations across each other's work. 
 
 ### 1. Initial Assessment
 
@@ -196,11 +218,7 @@ Remember that overlapping butterflies in clusters can hide others behind them. H
 For cells with large clusters:
 
 -   If butterflies clearly exceed 100, classify as hundreds (red)
--   For dense clusters where butterflies may be obscured, apply a 1.3X multiplier
--   Example: If you can count \~80 butterflies in a dense cluster, multiply by 1.3 = 104, classify as hundreds
--   Only apply this multiplier when butterflies are likely obscured in dense clusters
-
-\[INSERT: Animation/images showing dense cluster assessment\]
+-   Count only butterflies that are clearly visible - do not try to estimate hidden ones
 
 ### 3. Medium Density Areas
 
@@ -216,8 +234,6 @@ For cells with large clusters:
 ### 5. Border Cases
 
 When clusters cross grid lines: - Only count butterflies within the current cell - Round up when in doubt - Some double-counting at borders is acceptable given the coarse estimation scale
-
-\[INSERT: Example of border case handling\]
 
 ### 6. Sunlight Labeling
 
