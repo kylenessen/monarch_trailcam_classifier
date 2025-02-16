@@ -85,7 +85,7 @@ function createDefaultClassifications(defaultCells) {
     return currentState.imageFiles.reduce((classifications, image, index) => {
         classifications[image] = {
             confirmed: false,
-            cells: { ...defaultCells },
+            cells: { ...JSON.parse(JSON.stringify(defaultCells)) }, // Deep copy to ensure unique object
             index: index
         };
         return classifications;
