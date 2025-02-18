@@ -151,7 +151,7 @@ Below are several examples of cells that should be classified as zero:
 
 ### (1-9) Single butterflies
 
-Use this category when you can clearly count all butterflies within a grid cell and there are fewer than 10 present. Include partial butterflies in the count, even if they extend into neighboring cells and are counted there too. If this "double counting" causes a neighboring cell to move into a higher category, use your best judgment to make an accurate but conservative estimate.
+Use this category when you can clearly count all butterflies within a grid cell and there are fewer than 10 present. Include partial butterflies in the count, even if they extend into neighboring cells and are counted there too. If double counting causes a neighboring cell to move to a higher category, then don’t double count.
 
 Count all butterflies in the cell, whether they are resting or in flight.
 

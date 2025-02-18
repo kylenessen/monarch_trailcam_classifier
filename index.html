@@ -68,6 +68,7 @@ ul.task-list li input[type="checkbox"] {
   </ul></li>
   <li><a href="#direct-sunlight" id="toc-direct-sunlight" class="nav-link" data-scroll-target="#direct-sunlight">Direct sunlight</a></li>
   <li><a href="#night-photos" id="toc-night-photos" class="nav-link" data-scroll-target="#night-photos">Night photos</a></li>
+  <li><a href="#label-storage" id="toc-label-storage" class="nav-link" data-scroll-target="#label-storage">Label storage</a></li>
   <li><a href="#classification-process" id="toc-classification-process" class="nav-link" data-scroll-target="#classification-process">Classification process</a>
   <ul class="collapse">
   <li><a href="#initial-assessment" id="toc-initial-assessment" class="nav-link" data-scroll-target="#initial-assessment">1. Initial assessment</a></li>
@@ -294,14 +295,18 @@ Note
 <section id="basic-controls" class="level2">
 <h2 class="anchored" data-anchor-id="basic-controls">Basic controls</h2>
 <ul>
-<li>Use <code>S</code> or <code>→</code>to go to next photo</li>
+<li>Use <code>D</code> or <code>→</code> to go to next photo</li>
 <li>Use <code>A</code> or <code>←</code> to go to previous photo</li>
-<li>Use <code>Space</code> to zoom in 300% for detailed inspection</li>
-<li>Press <code>W</code> or click “Confirm Image” to save and proceed</li>
-<li>Press <code>S</code> to copy classifications from previous image</li>
+<li>Use <code>E</code> to select next category</li>
+<li>Use <code>Q</code> to select previous category</li>
+<li>Use <code>W</code> or <code>↑</code> to confirm image and proceed</li>
+<li>Use <code>S</code> or <code>↓</code> to copy classifications from previous image</li>
 <li>Use <code>N</code> to toggle notes for unusual circumstances</li>
-<li>“Switch to Color” button toggles between B&amp;W and color views</li>
-<li>Keyboard shortcuts can be referenced anytime from the button in the top right.</li>
+<li>Hold <code>F</code> and click to toggle sunlight for a cell</li>
+<li>Hold <code>⌘</code> and click to set count for cell</li>
+<li>Hold <code>⌘</code> and right-click to set cell to 0</li>
+<li>Hold <code>Space</code> to zoom in 300% for detailed inspection</li>
+<li>Press <code>H</code> to toggle shortcuts help display</li>
 </ul>
 </section>
 <section id="count-categories" class="level2">
@@ -343,7 +348,7 @@ Note
 </section>
 <section id="single-butterflies" class="level3">
 <h3 class="anchored" data-anchor-id="single-butterflies">(1-9) Single butterflies</h3>
-<p>Use this category when you can clearly count all butterflies within a grid cell and there are fewer than 10 present. Include partial butterflies in the count, even if they extend into neighboring cells and are counted there too. If this “double counting” causes a neighboring cell to move into a higher category, use your best judgment to make an accurate but conservative estimate.</p>
+<p>Use this category when you can clearly count all butterflies within a grid cell and there are fewer than 10 present. Include partial butterflies in the count, even if they extend into neighboring cells and are counted there too. If double counting causes a neighboring cell to move to a higher category, then don’t double count.</p>
 <p>Count all butterflies in the cell, whether they are resting or in flight.</p>
 <p>I recommend marking this category last, after handling larger clusters, as a final cleanup step.</p>
 <p>Here are some example images:</p>
@@ -469,6 +474,37 @@ Warning
 <h2 class="anchored" data-anchor-id="night-photos">Night photos</h2>
 <p>Night photos can be challenging to classify due to the trail camera’s flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours. You can typically use the <code>S</code> key or the “Copy Previous” button to copy classifications from the previous image.</p>
 <p>If you do observe significant changes in butterfly numbers during nighttime hours, please contact me, as this would be an interesting and unusual finding.</p>
+</section>
+<section id="label-storage" class="level2">
+<h2 class="anchored" data-anchor-id="label-storage">Label storage</h2>
+<p>When you open a deployment folder for the first time, the program will make a file called <code>classifications.json</code> next to the images. This is where all of your hard earned work will be saved, so please be careful! You don’t need to actually interact with this file, but deleting it or moving it can cause unexpected behavior.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It is critical that two people are not classifying the same set of images at the same time, as this can cause data loss. Please check with me before moving on to the next folder.</p>
+</div>
+</div>
+<p>The program automatically saves your work after each image classification. If you need to take a break, you can simply close the program - your progress will be there when you return.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Consider making periodic backups of the <code>classifications.json</code> file to prevent data loss. You can do this by simply copying the file to another location.</p>
+</div>
+</div>
 </section>
 <section id="classification-process" class="level2">
 <h2 class="anchored" data-anchor-id="classification-process">Classification process</h2>
