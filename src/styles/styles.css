@@ -230,7 +230,8 @@ button:disabled {
 }
 
 /* Keyboard shortcuts help */
-.keyboard-shortcuts-help {
+.keyboard-shortcuts-help,
+#documentation-button {
     background-color: var(--white);
     padding: 4px 6px;
     border-radius: var(--border-radius);
@@ -242,7 +243,8 @@ button:disabled {
 }
 
 .keyboard-shortcuts-help.collapsed {
-    padding: 4px 6px;
+    padding: 4px 8px;
+    cursor: pointer;
     height: 24px;
     overflow: hidden;
 }
@@ -264,6 +266,19 @@ button:disabled {
 }
 
 .keyboard-shortcuts-help.collapsed .shortcuts-list {
+    display: none;
+}
+
+#documentation-button.keyboard-shortcuts-help {
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+#documentation-button.keyboard-shortcuts-help:hover {
+    background-color: var(--hover-bg);
+}
+
+#documentation-button .collapse-indicator {
     display: none;
 }
 

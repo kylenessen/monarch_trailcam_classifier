@@ -32,7 +32,7 @@ let currentState = {
     }
 };
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -178,6 +178,12 @@ function setupEventListeners() {
     
     // Notes content change handler
     document.getElementById('notes-content').addEventListener('input', handleNotesChange);
+    
+    // Documentation button click handler
+    document.getElementById('documentation-button').addEventListener('click', () => {
+        shell.openExternal('https://kylenessen.github.io/monarch_trailcam_classifier/')
+            .catch(err => showNotification('Failed to open documentation', 'error'));
+    });
     
     document.addEventListener('keyup', (e) => {
         if (e.key.toLowerCase() === 'f') {
