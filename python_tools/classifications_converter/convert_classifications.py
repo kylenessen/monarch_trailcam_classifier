@@ -4,13 +4,15 @@ Trail Camera Classification Converter
 
 This script reads a classifications.json file containing trail camera image
 classifications, converts categorical count values (like "1-9", "10-99") to 
-numerical values, and sums them for each image.
+numerical values, and sums them for each image. It also extracts deployment ID
+and timestamp information from the image filenames.
 
 The script performs the following operations:
 1. Loads the classifications JSON file
 2. Converts categorical count values to numerical equivalents
 3. Sums the converted values for each image
-4. Outputs a mapping of filenames to their calculated count totals
+4. Extracts deployment ID and timestamp from image filenames
+5. Outputs a mapping of filenames to their calculated count totals, deployment ID, and timestamp
 
 Count Conversion:
 - "1-9" → 1
@@ -18,6 +20,10 @@ Count Conversion:
 - "100-999" → 100
 - "1000+" → 1000
 - 0 → Ignored in totals
+
+Filename Parsing:
+- Deployment ID: The first part of the filename before the underscore (e.g., "SC1" from "SC1_20231117114501.JPG")
+- Timestamp: The part between the underscore and file extension (e.g., "20231117114501" from "SC1_20231117114501.JPG")
 
 Usage:
     python convert_classifications.py
@@ -83,6 +89,31 @@ def convert_count_value(count):
         print(f"Warning: Unexpected count value '{count}'. Using 0 as default.")
         return 0
 
+def extract_deployment_and_timestamp(filename):
+    """
+    Extract deployment ID and timestamp from the filename.
+    
+    Args:
+        filename (str): The image filename (e.g., SC1_20231117114501.JPG)
+        
+    Returns:
+        tuple: (deployment_id, timestamp) if successful, (None, None) otherwise
+    """
+    try:
+        # Split the filename at underscore
+        parts = filename.split('_')
+        if len(parts) >= 2:
+            deployment_id = parts[0]
+            # Get timestamp from the second part (remove file extension)
+            timestamp = parts[1].split('.')[0]
+            return deployment_id, timestamp
+        else:
+            print(f"Warning: Couldn't parse deployment ID and timestamp from '{filename}'")
+            return None, None
+    except Exception as e:
+        print(f"Error parsing filename '{filename}': {e}")
+        return None, None
+
 def process_classifications(classifications_data):
     """
     Process the classifications data to calculate numerical totals for each image.
@@ -91,7 +122,8 @@ def process_classifications(classifications_data):
         classifications_data (dict): The loaded classifications JSON data
         
     Returns:
-        dict: Dictionary with image filenames as keys and count totals as values
+        dict: Dictionary with image filenames as keys and details including count totals,
+              deployment ID, and timestamp as values
     """
     results = {}
     
@@ -119,8 +151,15 @@ def process_classifications(classifications_data):
         else:
             print(f"Warning: No cells found for image '{filename}'.")
         
-        # Store the result for this image
-        results[filename] = total_count
+        # Extract deployment ID and timestamp from filename
+        deployment_id, timestamp = extract_deployment_and_timestamp(filename)
+        
+        # Store the results for this image
+        results[filename] = {
+            "count": total_count,
+            "deployment_id": deployment_id,
+            "timestamp": timestamp
+        }
     
     return results
 
@@ -129,7 +168,8 @@ def save_results_to_json(results, output_file="count_totals.json"):
     Save the results to a JSON file.
     
     Args:
-        results (dict): Dictionary with image filenames as keys and count totals as values
+        results (dict): Dictionary with image filenames as keys and details
+                       including count, deployment_id, and timestamp as values
         output_file (str): Path to the output JSON file
     
     Returns:
@@ -158,19 +198,20 @@ def main(file_path="classifications.json", output_file=None):
     if not classifications_data:
         return
     
-    # Process classifications to get count totals
+    # Process classifications to get count totals and metadata
     results = process_classifications(classifications_data)
     
     # Print results
     if results:
-        print("\nCalculated Count Totals:")
-        print("------------------------")
-        for filename, count in results.items():
-            print(f"{filename}: {count}")
+        print("\nCalculated Results:")
+        print("------------------")
+        for filename, data in results.items():
+            print(f"{filename}: Count={data['count']}, Deployment={data['deployment_id']}, Timestamp={data['timestamp']}")
         
         # Also print total number of images processed and total monarch count
         print(f"\nTotal images processed: {len(results)}")
-        print(f"Total monarch count across all images: {sum(results.values())}")
+        total_count = sum(data['count'] for data in results.values())
+        print(f"Total monarch count across all images: {total_count}")
         
         # Save results to JSON file if specified
         if output_file:

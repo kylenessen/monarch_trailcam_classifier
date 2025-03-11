@@ -1,16 +1,19 @@
 # Trail Camera Classification Converter
 
 ## Project Overview
-A simple Python script to convert categorical count values from trail camera classifications to numerical totals.
+A simple Python script to convert categorical count values from trail camera classifications to numerical totals, and extract deployment ID and timestamp information from filenames.
 
 ## What it does
-This script reads a `classifications.json` file containing trail camera image classifications, converts categorical count values (like "1-9", "10-99") to numerical values, and sums them for each image.
+This script reads a `classifications.json` file containing trail camera image classifications, converts categorical count values (like "1-9", "10-99") to numerical values, and sums them for each image. It also extracts the deployment ID and timestamp from the image filenames.
 
 ## Input
 - `classifications.json` file with image classifications
 
 ## Output
-- Dictionary/JSON with image filenames as keys and calculated count totals as values
+- Dictionary/JSON with image filenames as keys and objects containing:
+  - `count`: The calculated count total
+  - `deployment_id`: The deployment ID extracted from the filename (e.g., "SC1" from "SC1_20231117114501.JPG")
+  - `timestamp`: The timestamp extracted from the filename (e.g., "20231117114501" from "SC1_20231117114501.JPG")
 
 ## Count Conversion
 - "1-9" → 1
@@ -30,7 +33,24 @@ Just run the script in the same directory as your classifications.json file, or 
 python convert_classifications.py
 ```
 
-The script will output a simple mapping of filenames to their total counts.
+The script will output a mapping of filenames to their total counts, deployment ID, and timestamp.
+
+## Example Output JSON
+
+```json
+{
+  "SC1_20231117114501.JPG": {
+    "count": 12,
+    "deployment_id": "SC1",
+    "timestamp": "20231117114501"
+  },
+  "SC1_20231117120030.JPG": {
+    "count": 5,
+    "deployment_id": "SC1",
+    "timestamp": "20231117120030"
+  }
+}
+```
 
 
 ## Example JSON
