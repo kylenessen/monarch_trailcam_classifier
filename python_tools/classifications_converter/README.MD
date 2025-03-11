@@ -21,26 +21,36 @@ This script reads a `classifications.json` file containing trail camera image cl
 - "10-99" → 10
 - "100-999" → 100
 - "1000+" → 1000
-- 0 → Ignored in totals
+- 0 → Included in total calculation
 
 ## Example
 For an image with cells containing counts: 0, "1-9", "1-9", "10-99"
 The calculated total would be: 0 + 1 + 1 + 10 = 12
 
 ## Usage
-Just run the script in the same directory as your classifications.json file, or modify the file path in the script.
+Run the script in the same directory as your classifications.json file:
 
 ```
 python convert_classifications.py
 ```
 
-Or specify an output CSV file:
+Specify a custom input file:
 
 ```
-python convert_classifications.py -o results.csv
+python convert_classifications.py -i /path/to/your/classifications.json
 ```
 
-The script will output a CSV file with filenames, total counts, deployment IDs, and timestamps.
+Specify both input and output files:
+
+```
+python convert_classifications.py -i /path/to/your/classifications.json -o results.csv
+```
+
+Command-line Arguments:
+- `-i, --input`: Path to input classifications.json file (default: classifications.json in current directory)
+- `-o, --output`: Path to output CSV file (default: count_totals.csv in current directory)
+
+The script will output a CSV file with filenames, total counts, deployment IDs, and timestamps, and will also print summary statistics to the console.
 
 ## Example Output CSV
 
