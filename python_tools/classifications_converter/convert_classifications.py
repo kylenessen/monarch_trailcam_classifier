@@ -114,9 +114,8 @@ def process_classifications(classifications_data):
                     # Convert categorical count to numerical value
                     count_value = convert_count_value(cell_data["count"])
                     
-                    # Only add non-zero counts to the total
-                    if count_value > 0:
-                        total_count += count_value
+                    # Add all counts to the total (including zeros)
+                    total_count += count_value
         else:
             print(f"Warning: No cells found for image '{filename}'.")
         
