@@ -3,7 +3,7 @@
 ## Run Commands
 - Run the converter: `python convert_classifications.py`
 - Run with custom input: `python convert_classifications.py -i /Users/kylenessen/Library/CloudStorage/OneDrive-CalPoly/Deployments/SC1/classifications.json`
-- Run with output file: `python convert_classifications.py -i /Users/kylenessen/Library/CloudStorage/OneDrive-CalPoly/Deployments/SC1/classifications.json -o results.json`
+- Run with CSV output file: `python convert_classifications.py -i /Users/kylenessen/Library/CloudStorage/OneDrive-CalPoly/Deployments/SC1/classifications.json -o results.csv`
 
 ## Code Style Guidelines
 - **Formatting**: Use 4-space indentation, follow PEP 8 guidelines

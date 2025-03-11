@@ -12,7 +12,7 @@ The script performs the following operations:
 2. Converts categorical count values to numerical equivalents
 3. Sums the converted values for each image
 4. Extracts deployment ID and timestamp from image filenames
-5. Outputs a mapping of filenames to their calculated count totals, deployment ID, and timestamp
+5. Outputs a CSV file with columns for filename, total count, deployment ID, and timestamp
 
 Count Conversion:
 - "1-9" → 1
@@ -28,14 +28,15 @@ Filename Parsing:
 Usage:
     python convert_classifications.py
     python convert_classifications.py -i path/to/classifications.json
-    python convert_classifications.py -i input.json -o output.json
+    python convert_classifications.py -i input.json -o output.csv
 
 Command-line Arguments:
     -i, --input  : Path to input classifications.json file (default: classifications.json)
-    -o, --output : Path to output JSON file (optional)
+    -o, --output : Path to output CSV file (optional)
 """
 
 import json
+import csv
 
 def load_classifications(file_path="classifications.json"):
     """
@@ -163,21 +164,32 @@ def process_classifications(classifications_data):
     
     return results
 
-def save_results_to_json(results, output_file="count_totals.json"):
+def save_results_to_csv(results, output_file="count_totals.csv"):
     """
-    Save the results to a JSON file.
+    Save the results to a CSV file.
     
     Args:
         results (dict): Dictionary with image filenames as keys and details
                        including count, deployment_id, and timestamp as values
-        output_file (str): Path to the output JSON file
+        output_file (str): Path to the output CSV file
     
     Returns:
         bool: True if successful, False otherwise
     """
     try:
-        with open(output_file, 'w') as f:
-            json.dump(results, f, indent=2)
+        with open(output_file, 'w', newline='') as f:
+            fieldnames = ['filename', 'count', 'deployment_id', 'timestamp']
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            
+            writer.writeheader()
+            for filename, data in results.items():
+                writer.writerow({
+                    'filename': filename,
+                    'count': data['count'],
+                    'deployment_id': data['deployment_id'],
+                    'timestamp': data['timestamp']
+                })
+                
         print(f"Results saved to {output_file}")
         return True
     except Exception as e:
@@ -190,7 +202,7 @@ def main(file_path="classifications.json", output_file=None):
     
     Args:
         file_path (str): Path to the classifications.json file
-        output_file (str, optional): Path to save the results as JSON
+        output_file (str, optional): Path to save the results as CSV
     """
     # Load classifications
     classifications_data = load_classifications(file_path)
@@ -213,9 +225,9 @@ def main(file_path="classifications.json", output_file=None):
         total_count = sum(data['count'] for data in results.values())
         print(f"Total monarch count across all images: {total_count}")
         
-        # Save results to JSON file if specified
+        # Save results to CSV file if specified
         if output_file:
-            save_results_to_json(results, output_file)
+            save_results_to_csv(results, output_file)
     else:
         print("No results generated. Check the input file and try again.")
 
@@ -225,7 +237,7 @@ if __name__ == "__main__":
     # Set up command line argument parsing
     parser = argparse.ArgumentParser(description="Convert trail camera classification counts from categorical to numerical values.")
     parser.add_argument("-i", "--input", default="classifications.json", help="Path to input classifications.json file")
-    parser.add_argument("-o", "--output", help="Path to output JSON file (optional)")
+    parser.add_argument("-o", "--output", help="Path to output CSV file (optional)")
     
     args = parser.parse_args()
     

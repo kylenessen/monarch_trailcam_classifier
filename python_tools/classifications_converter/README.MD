@@ -10,9 +10,10 @@ This script reads a `classifications.json` file containing trail camera image cl
 - `classifications.json` file with image classifications
 
 ## Output
-- Dictionary/JSON with image filenames as keys and objects containing:
+- CSV file with columns:
+  - `filename`: The image filename
   - `count`: The calculated count total
-  - `deployment_id`: The deployment ID extracted from the filename (e.g., "SC1" from "SC1_20231117114501.JPG")
+  - `deployment_id`: The deployment ID extracted from the filename (e.g., "SC1" from "SC1_20231117114501.JPG") 
   - `timestamp`: The timestamp extracted from the filename (e.g., "20231117114501" from "SC1_20231117114501.JPG")
 
 ## Count Conversion
@@ -33,23 +34,20 @@ Just run the script in the same directory as your classifications.json file, or 
 python convert_classifications.py
 ```
 
-The script will output a mapping of filenames to their total counts, deployment ID, and timestamp.
+Or specify an output CSV file:
 
-## Example Output JSON
+```
+python convert_classifications.py -o results.csv
+```
 
-```json
-{
-  "SC1_20231117114501.JPG": {
-    "count": 12,
-    "deployment_id": "SC1",
-    "timestamp": "20231117114501"
-  },
-  "SC1_20231117120030.JPG": {
-    "count": 5,
-    "deployment_id": "SC1",
-    "timestamp": "20231117120030"
-  }
-}
+The script will output a CSV file with filenames, total counts, deployment IDs, and timestamps.
+
+## Example Output CSV
+
+```
+filename,count,deployment_id,timestamp
+SC1_20231117114501.JPG,12,SC1,20231117114501
+SC1_20231117120030.JPG,5,SC1,20231117120030
 ```
 
 
