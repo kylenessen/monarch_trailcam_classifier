@@ -2,7 +2,9 @@
 title: "Check Image Skip Analysis"
 author: "Kyle Nessen"
 date: today
-format: html
+format: 
+    html:
+        embed-resources: true
 execute:
     echo: false
     warning: false
