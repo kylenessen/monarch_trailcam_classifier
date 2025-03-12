@@ -19,7 +19,46 @@ csv_files <- list.files(path = "python_tools/classifications_converter/analysis/
 
 # Read and combine all CSV files, properly parsing timestamp
 df <- csv_files %>%
-    map_df(~read_csv(.x) %>%
-           mutate(timestamp = ymd_hms(timestamp, tz = "America/Los_Angeles")))
+    map_df(~ read_csv(.x) %>%
+        mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")))
 ```
 
+## Visualize Existing Data
+
+### SC1 
+```{r}
+# Filter data for SC1
+sc1_data <- df %>%
+    filter(deployment_id == "SC1")
+
+# Plot counts over time
+ggplot(sc1_data, aes(x = time, y = count)) +
+    geom_line() +
+    geom_point(alpha = 0.5) +
+    labs(
+        title = "Monarch Counts Over Time - SC1",
+        x = "Time",
+        y = "Count",
+        caption = "Source: Trailcam Images"
+    ) +
+    theme_minimal()
+```
+
+### SC2
+```{r}
+# Filter data for SC2
+sc2_data <- df %>%
+    filter(deployment_id == "SC2")
+
+# Plot counts over time
+ggplot(sc2_data, aes(x = time, y = count)) +
+    geom_line() +
+    geom_point(alpha = 0.5) +
+    labs(
+        title = "Monarch Counts Over Time - SC2",
+        x = "Time",
+        y = "Count",
+        caption = "Source: Trailcam Images"
+    ) +
+    theme_minimal()
+```
