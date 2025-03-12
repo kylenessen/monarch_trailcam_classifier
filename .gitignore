@@ -3,3 +3,5 @@ node_modules/
 dist/
 *.log
 images/
+.Rproj.user
+python_tools/classifications_converter/analysis/analysis.Rproj

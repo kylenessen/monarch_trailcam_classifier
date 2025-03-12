@@ -15,7 +15,7 @@ library(tidyverse)
 library(lubridate)
 
 # Get list of all CSV files in the data directory
-csv_files <- list.files(path = "python_tools/classifications_converter/analysis/data", pattern = "*.csv", full.names = TRUE)
+csv_files <- list.files(path = "data", pattern = "*.csv", full.names = TRUE)
 
 # Read and combine all CSV files, properly parsing timestamp
 df <- csv_files %>%
@@ -33,8 +33,8 @@ sc1_data <- df %>%
 
 # Plot counts over time
 ggplot(sc1_data, aes(x = time, y = count)) +
-    geom_line() +
     geom_point(alpha = 0.5) +
+    geom_smooth() +
     labs(
         title = "Monarch Counts Over Time - SC1",
         x = "Time",
@@ -52,8 +52,8 @@ sc2_data <- df %>%
 
 # Plot counts over time
 ggplot(sc2_data, aes(x = time, y = count)) +
-    geom_line() +
     geom_point(alpha = 0.5) +
+    geom_smooth() +
     labs(
         title = "Monarch Counts Over Time - SC2",
         x = "Time",
@@ -62,3 +62,30 @@ ggplot(sc2_data, aes(x = time, y = count)) +
     ) +
     theme_minimal()
 ```
+### SC4
+
+```{r}
+sc4_data <- df %>%
+    filter(deployment_id == "SC4")
+
+# Plot counts over time
+ggplot(sc4_data, aes(x = time, y = count)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    labs(
+        title = "Monarch Counts Over Time - SC4",
+        x = "Time",
+        y = "Count",
+        caption = "Source: Trailcam Images"
+    ) +
+    theme_minimal()
+```
+
+It's interesting that there's a lot of spread among the different counts per photo. You can see that most clearly in mine SC4 where I'm using the hundreds category more frequently and that's creating a lot more variance. I think telling a story that may or may not be true. And this like tracks with what I noticed while I was doing the actual labeling leaves would shift and turn and that would change the categories as I was making them. And I was worried I was generating a lot of noise, which seems like may be the case.
+
+For SC1 and SC2, they also have some amount of noise, but it's much more predictable and it looks cleaner. And I think that's partly because they were sampling more frequently. So these photos were every five minutes versus every 10 minutes like in mine. And also the cameras are much closer to the butterflies, so you could actually see the them much more clearly. The scope of the scene was much more reduced as compared to SC4 where you could see more of the landscape. And as we continue along these different deployments, the overall field of view that I took with my camera gets bigger and bigger. So I'm a little concerned that it just might get more noisy as we get further along.
+
+You'll also notice that there are these long series of identical measurements. Those are nighttime photos and that came from my explicit directions to the students and for myself which was it's difficult to observe the butterflies at night because the light sort switches it goes from. That is ambient that is more favorable for contrast to a direct flash from the camera itself, which really causes the butterflies to blend in with the leaves. It may be possible. to sort it out, but I think it'd be much more difficult. And my suspicion, at least before seeing these graphs, was that they don't move at night. But maybe there's some change or maybe it's measurement error. So anyway, I think for what I have now, I'm probably just going to remove the night photos and remove them from future graphs. And it's worth a discussion whether this is something we want to try to extract information from or if it's simply just not going to be part of our study.
+
+## Trying different intervals
+
