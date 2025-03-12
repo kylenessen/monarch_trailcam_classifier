@@ -3,13 +3,21 @@ title: "Check Image Skip Analysis"
 author: "Kyle Nessen"
 date: today
 format: html
+execute:
+    echo: false
+    warning: false
+    message: false
 ---
 
 ## Background
 
 The purpose of this script is that it is taking a long time to classify the images. And part of the problem there is I set the interval at a really high frequency. So for most of the deployments it was 10 minutes. But for the first two that I have classified, it was every five minutes. And what I'm hoping to discover in this notebook is whether I can skip some number of images and have it tell the same story, thereby reducing the total number of images that I have to manually label.
 
-## Load Data
+
+
+## Visualize Existing Data
+Here I'll plot the raw monarch count data as a function of time from the few deployments that we have data for. So SC1 and SC2, which were classified by Skylar and Vincent respectively, are complete. This is the total monarch seen. Anything past that is zero butterflies. And SC4 is being done by me and I have not finished this particular deployment yet.
+
 ```{r}
 library(tidyverse)
 library(lubridate)
@@ -22,8 +30,6 @@ df <- csv_files %>%
     map_df(~ read_csv(.x) %>%
         mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")))
 ```
-
-## Visualize Existing Data
 
 ### SC1 
 ```{r}
@@ -89,3 +95,179 @@ You'll also notice that there are these long series of identical measurements. T
 
 ## Trying different intervals
 
+Let's analyze how different sampling intervals affect our ability to detect patterns. Here, I'll sample the data at 5-minute (original), 15-minute, 30-minute, and 60-minute intervals.
+
+### SC1 with different sampling intervals
+
+```{r}
+# Original 5-minute interval (no skipping)
+sc1_5min <- sc1_data
+
+# Create 15-minute interval data (every 3rd point)
+sc1_15min <- sc1_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 3))
+
+# Create 30-minute interval data (every 6th point)
+sc1_30min <- sc1_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 6))
+
+# Create 60-minute interval data (every 12th point)
+sc1_60min <- sc1_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 12))
+
+# Function to create plot with specific title
+create_plot <- function(data, interval_text) {
+  ggplot(data, aes(x = time, y = count)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    labs(
+      title = paste0("Monarch Counts Over Time - SC1 (", interval_text, ")"),
+      x = "Time",
+      y = "Count",
+      caption = paste0("Sampling interval: ", interval_text)
+    ) +
+    theme_minimal()
+}
+
+# Create and display the plots
+create_plot(sc1_5min, "5 minutes")
+create_plot(sc1_15min, "15 minutes")
+create_plot(sc1_30min, "30 minutes")
+create_plot(sc1_60min, "60 minutes")
+```
+
+### SC2 with different sampling intervals
+
+```{r}
+# Original 5-minute interval (no skipping)
+sc2_5min <- sc2_data
+
+# Create 15-minute interval data (every 3rd point)
+sc2_15min <- sc2_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 3))
+
+# Create 30-minute interval data (every 6th point)
+sc2_30min <- sc2_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 6))
+
+# Create 60-minute interval data (every 12th point)
+sc2_60min <- sc2_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 12))
+
+# Create and display the plots
+create_plot <- function(data, interval_text) {
+  ggplot(data, aes(x = time, y = count)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    labs(
+      title = paste0("Monarch Counts Over Time - SC2 (", interval_text, ")"),
+      x = "Time",
+      y = "Count",
+      caption = paste0("Sampling interval: ", interval_text)
+    ) +
+    theme_minimal()
+}
+
+create_plot(sc2_5min, "5 minutes")
+create_plot(sc2_15min, "15 minutes")
+create_plot(sc2_30min, "30 minutes")
+create_plot(sc2_60min, "60 minutes")
+```
+
+### SC4 with different sampling intervals
+```{r}
+# SC4 appears to be at 10-minute intervals based on your notes
+sc4_10min <- sc4_data
+
+# Create 20-minute interval data (every 2nd point)
+sc4_20min <- sc4_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 2))
+
+# Create 30-minute interval data (every 3rd point)
+sc4_30min <- sc4_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 3))
+
+# Create 60-minute interval data (every 6th point)
+sc4_60min <- sc4_data %>%
+  arrange(time) %>%
+  slice(seq(1, n(), by = 6))
+
+# Create and display the plots
+create_plot <- function(data, interval_text) {
+  ggplot(data, aes(x = time, y = count)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    labs(
+      title = paste0("Monarch Counts Over Time - SC4 (", interval_text, ")"),
+      x = "Time",
+      y = "Count",
+      caption = paste0("Sampling interval: ", interval_text)
+    ) +
+    theme_minimal()
+}
+
+create_plot(sc4_10min, "10 minutes")
+create_plot(sc4_20min, "20 minutes")
+create_plot(sc4_30min, "30 minutes")
+create_plot(sc4_60min, "60 minutes")
+```
+
+It's encouraging to see that reducing the number of images from, say, every five or ten minutes to every hour doesn't seem to change the trend line of the data itself. I think this is a viable way to reduce the number of images that need to be manually classified.
+
+
+## Analysis of Different Sampling Intervals
+
+To better compare the sampling intervals, let's examine how well each sampling rate captures the key patterns in the data:
+
+```{r}
+# Calculate summary statistics for each sampling rate
+get_summary <- function(data, name) {
+  data %>%
+    summarize(
+      interval = name,
+      mean_count = mean(count, na.rm = TRUE),
+      median_count = median(count, na.rm = TRUE),
+      min_count = min(count, na.rm = TRUE),
+      max_count = max(count, na.rm = TRUE),
+      std_dev = sd(count, na.rm = TRUE),
+      n_samples = n()
+    )
+}
+
+# SC1 summaries
+bind_rows(
+  get_summary(sc1_5min, "5 min"),
+  get_summary(sc1_15min, "15 min"),
+  get_summary(sc1_30min, "30 min"),
+  get_summary(sc1_60min, "60 min")
+) %>%
+  knitr::kable(caption = "SC1 - Summary Statistics by Sampling Interval")
+
+# SC2 summaries
+bind_rows(
+  get_summary(sc2_5min, "5 min"),
+  get_summary(sc2_15min, "15 min"),
+  get_summary(sc2_30min, "30 min"),
+  get_summary(sc2_60min, "60 min")
+) %>%
+  knitr::kable(caption = "SC2 - Summary Statistics by Sampling Interval")
+
+# SC4 summaries
+bind_rows(
+  get_summary(sc4_10min, "10 min"),
+  get_summary(sc4_20min, "20 min"),
+  get_summary(sc4_30min, "30 min"),
+  get_summary(sc4_60min, "60 min")
+) %>%
+  knitr::kable(caption = "SC4 - Summary Statistics by Sampling Interval")
+```
+
+Looking at it in a different way from a descriptive statistics perspective, it seems like the number of samples or the mean count and the standard deviation looks really good compared to different sampling intervals. This is worth considering further.
