@@ -65,7 +65,8 @@ COUNT_MAPPING = {
     "10-99": 10,
     "100-999": 100,
     "1000+": 1000,
-    0: 0  # Will be ignored in totals
+    "0": 0,
+    0: 0  
 }
 
 def convert_count_value(count):

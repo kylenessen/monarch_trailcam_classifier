@@ -1,0 +1,25 @@
+---
+title: "Check Image Skip Analysis"
+author: "Kyle Nessen"
+date: today
+format: html
+---
+
+## Background
+
+The purpose of this script is that it is taking a long time to classify the images. And part of the problem there is I set the interval at a really high frequency. So for most of the deployments it was 10 minutes. But for the first two that I have classified, it was every five minutes. And what I'm hoping to discover in this notebook is whether I can skip some number of images and have it tell the same story, thereby reducing the total number of images that I have to manually label.
+
+## Load Data
+```{r}
+library(tidyverse)
+library(lubridate)
+
+# Get list of all CSV files in the data directory
+csv_files <- list.files(path = "python_tools/classifications_converter/analysis/data", pattern = "*.csv", full.names = TRUE)
+
+# Read and combine all CSV files, properly parsing timestamp
+df <- csv_files %>%
+    map_df(~read_csv(.x) %>%
+           mutate(timestamp = ymd_hms(timestamp, tz = "America/Los_Angeles")))
+```
+
