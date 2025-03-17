@@ -125,7 +125,7 @@ def process_classifications(classifications_data):
         
     Returns:
         dict: Dictionary with image filenames as keys and details including count totals,
-              deployment ID, and timestamp as values
+              deployment ID, timestamp, and sun cell count as values
     """
     results = {}
     
@@ -136,6 +136,7 @@ def process_classifications(classifications_data):
     # Iterate through each image in the JSON
     for filename, image_data in classifications_data.items():
         total_count = 0
+        sun_cell_count = 0
         
         # Skip images that aren't confirmed (if confirmation status is available)
         if "confirmed" in image_data and not image_data["confirmed"]:
@@ -150,6 +151,11 @@ def process_classifications(classifications_data):
                     
                     # Add all counts to the total (including zeros)
                     total_count += count_value
+                
+                # Count cells where sunlight or directSun is true
+                if ("sunlight" in cell_data and cell_data["sunlight"]) or \
+                   ("directSun" in cell_data and cell_data["directSun"]):
+                    sun_cell_count += 1
         else:
             print(f"Warning: No cells found for image '{filename}'.")
         
@@ -160,7 +166,8 @@ def process_classifications(classifications_data):
         results[filename] = {
             "count": total_count,
             "deployment_id": deployment_id,
-            "timestamp": timestamp
+            "timestamp": timestamp,
+            "sun_cell_count": sun_cell_count
         }
     
     return results
@@ -171,7 +178,7 @@ def save_results_to_csv(results, output_file="count_totals.csv"):
     
     Args:
         results (dict): Dictionary with image filenames as keys and details
-                       including count, deployment_id, and timestamp as values
+                       including count, deployment_id, timestamp, and sun_cell_count as values
         output_file (str): Path to the output CSV file
     
     Returns:
@@ -179,7 +186,7 @@ def save_results_to_csv(results, output_file="count_totals.csv"):
     """
     try:
         with open(output_file, 'w', newline='') as f:
-            fieldnames = ['filename', 'count', 'deployment_id', 'timestamp']
+            fieldnames = ['filename', 'count', 'deployment_id', 'timestamp', 'sun_cell_count']
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             
             writer.writeheader()
@@ -188,7 +195,8 @@ def save_results_to_csv(results, output_file="count_totals.csv"):
                     'filename': filename,
                     'count': data['count'],
                     'deployment_id': data['deployment_id'],
-                    'timestamp': data['timestamp']
+                    'timestamp': data['timestamp'],
+                    'sun_cell_count': data['sun_cell_count']
                 })
                 
         print(f"Results saved to {output_file}")
@@ -219,12 +227,14 @@ def main(file_path="classifications.json", output_file=None):
         print("\nCalculated Results:")
         print("------------------")
         for filename, data in results.items():
-            print(f"{filename}: Count={data['count']}, Deployment={data['deployment_id']}, Timestamp={data['timestamp']}")
+            print(f"{filename}: Count={data['count']}, Deployment={data['deployment_id']}, Timestamp={data['timestamp']}, Sun Cells={data['sun_cell_count']}")
         
         # Also print total number of images processed and total monarch count
         print(f"\nTotal images processed: {len(results)}")
         total_count = sum(data['count'] for data in results.values())
         print(f"Total monarch count across all images: {total_count}")
+        total_sun_cells = sum(data['sun_cell_count'] for data in results.values())
+        print(f"Total sun cells across all images: {total_sun_cells}")
         
         # Save results to CSV file if specified
         if output_file:

@@ -15,8 +15,6 @@ execute:
 
 The purpose of this script is that it is taking a long time to classify the images. And part of the problem there is I set the interval at a really high frequency. So for most of the deployments it was 10 minutes. But for the first two that I have classified, it was every five minutes. And what I'm hoping to discover in this notebook is whether I can skip some number of images and have it tell the same story, thereby reducing the total number of images that I have to manually label.
 
-
-
 ## Visualize Existing Data
 Here I'll plot the raw monarch count data as a function of time from the few deployments that we have data for. So SC1 and SC2, which were classified by Skylar and Vincent respectively, are complete. This is the total monarch seen. Anything past that is zero butterflies. And SC4 is being done by me and I have not finished this particular deployment yet.
 
