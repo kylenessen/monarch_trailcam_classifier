@@ -5,14 +5,18 @@ Trail Camera Classification Converter
 This script reads a classifications.json file containing trail camera image
 classifications, converts categorical count values (like "1-9", "10-99") to 
 numerical values, and sums them for each image. It also extracts deployment ID
-and timestamp information from the image filenames.
+and timestamp information from the image filenames. Optionally, it can incorporate 
+wind data from a SQLite database to calculate wind statistics between consecutive images.
 
 The script performs the following operations:
 1. Loads the classifications JSON file
-2. Converts categorical count values to numerical equivalents
-3. Sums the converted values for each image
-4. Extracts deployment ID and timestamp from image filenames
-5. Outputs a CSV file with columns for filename, total count, deployment ID, and timestamp
+2. Optionally loads wind data from a SQLite database
+3. Converts categorical count values to numerical equivalents
+4. Sums the converted values for each image
+5. Extracts deployment ID and timestamp from image filenames
+6. If wind data is provided, calculates wind statistics between consecutive images
+7. Outputs a CSV file with columns for filename, total count, deployment ID, timestamp, 
+   sun cell count, and wind statistics (if available)
 
 Count Conversion:
 - "1-9" → 1
@@ -25,18 +29,67 @@ Filename Parsing:
 - Deployment ID: The first part of the filename before the underscore (e.g., "SC1" from "SC1_20231117114501.JPG")
 - Timestamp: The part between the underscore and file extension (e.g., "20231117114501" from "SC1_20231117114501.JPG")
 
+Wind Statistics (when wind database is provided):
+- Calculated for the period between consecutive images
+- Statistics include mean, mode, and variability for wind speed and gust
+- Statistics are associated with the later image in each pair
+
 Usage:
     python convert_classifications.py
     python convert_classifications.py -i path/to/classifications.json
     python convert_classifications.py -i input.json -o output.csv
+    python convert_classifications.py -i input.json -o output.csv -w wind_data.s3db
 
 Command-line Arguments:
     -i, --input  : Path to input classifications.json file (default: classifications.json)
     -o, --output : Path to output CSV file (optional)
+    -w, --wind   : Path to SQLite database containing wind data (optional)
 """
 
 import json
 import csv
+import os
+import glob
+import sqlite3
+import pandas as pd
+from tqdm import tqdm
+import numpy as np
+from datetime import datetime
+from collections import Counter
+
+def load_wind_data(db_path):
+    """
+    Load wind data from a SQLite database.
+    
+    Args:
+        db_path (str): Path to the SQLite database containing wind data
+        
+    Returns:
+        pd.DataFrame: DataFrame containing wind data with processed columns
+    """
+    try:
+        conn = sqlite3.connect(db_path)
+        
+        # Read wind data from the database
+        df = pd.read_sql_query("SELECT * FROM Wind", conn,
+                              dtype={"speed": float, "gust": float, "direction": int, "time": str})
+        
+        # Convert speed from m/s to mph
+        df['speed_mph'] = round(df['speed'] * 2.23694, 1)
+        df['gust_mph'] = round(df['gust'] * 2.23694, 1)
+        
+        # Drop unnecessary columns
+        if 'id' in df.columns:
+            df = df.drop('id', axis=1)
+        
+        # Convert time to datetime
+        df['time'] = pd.to_datetime(df['time'])
+        
+        conn.close()
+        return df
+    except Exception as e:
+        print(f"Error loading wind data from {db_path}: {e}")
+        return pd.DataFrame()  # Return empty DataFrame on error
 
 def load_classifications(file_path="classifications.json"):
     """
@@ -116,16 +169,73 @@ def extract_deployment_and_timestamp(filename):
         print(f"Error parsing filename '{filename}': {e}")
         return None, None
 
-def process_classifications(classifications_data):
+def calculate_wind_stats(wind_df, start_time, end_time):
+    """
+    Calculate wind statistics for observations between two timestamps.
+    
+    Args:
+        wind_df (pd.DataFrame): DataFrame containing wind data
+        start_time (datetime): Start time for filtering wind observations
+        end_time (datetime): End time for filtering wind observations
+        
+    Returns:
+        dict: Dictionary containing wind statistics (mean, mode, variability for speed and gust)
+    """
+    # Filter wind data between the two timestamps
+    mask = (wind_df['time'] >= start_time) & (wind_df['time'] <= end_time)
+    filtered_df = wind_df[mask]
+    
+    # Initialize results dictionary with default values
+    stats = {
+        'wind_speed_mean': None,
+        'wind_speed_mode': None,
+        'wind_speed_var': None,
+        'wind_gust_mean': None,
+        'wind_gust_mode': None,
+        'wind_gust_var': None,
+        'wind_observations': 0
+    }
+    
+    # Calculate statistics if we have observations
+    if not filtered_df.empty:
+        # Count observations
+        stats['wind_observations'] = len(filtered_df)
+        
+        # Wind speed statistics
+        stats['wind_speed_mean'] = round(filtered_df['speed_mph'].mean(), 2)
+        
+        # Calculate mode - handle case where there might be multiple modes
+        if not filtered_df['speed_mph'].empty:
+            mode_result = Counter(filtered_df['speed_mph']).most_common(1)
+            if mode_result:
+                stats['wind_speed_mode'] = round(mode_result[0][0], 2)
+        
+        stats['wind_speed_var'] = round(filtered_df['speed_mph'].var(), 2)
+        
+        # Wind gust statistics
+        stats['wind_gust_mean'] = round(filtered_df['gust_mph'].mean(), 2)
+        
+        # Calculate mode for gust
+        if not filtered_df['gust_mph'].empty:
+            mode_result = Counter(filtered_df['gust_mph']).most_common(1)
+            if mode_result:
+                stats['wind_gust_mode'] = round(mode_result[0][0], 2)
+        
+        stats['wind_gust_var'] = round(filtered_df['gust_mph'].var(), 2)
+    
+    return stats
+
+def process_classifications(classifications_data, wind_df=None):
     """
     Process the classifications data to calculate numerical totals for each image.
     
     Args:
         classifications_data (dict): The loaded classifications JSON data
+        wind_df (pd.DataFrame, optional): DataFrame containing wind data
         
     Returns:
         dict: Dictionary with image filenames as keys and details including count totals,
-              deployment ID, timestamp, and sun cell count as values
+              deployment ID, timestamp, wind statistics, and sun cell count as values
     """
     results = {}
     
@@ -133,8 +243,31 @@ def process_classifications(classifications_data):
         print("Error: No valid classification data to process.")
         return results
     
-    # Iterate through each image in the JSON
-    for filename, image_data in classifications_data.items():
+    # Sort filenames by timestamp to process chronologically
+    sorted_filenames = []
+    for filename in classifications_data.keys():
+        deployment_id, timestamp_str = extract_deployment_and_timestamp(filename)
+        if timestamp_str:
+            try:
+                # Create a datetime object for sorting
+                timestamp = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S")
+                sorted_filenames.append((filename, timestamp))
+            except ValueError:
+                print(f"Warning: Invalid timestamp format in {filename}")
+                sorted_filenames.append((filename, None))
+        else:
+            sorted_filenames.append((filename, None))
+    
+    # Sort by timestamp
+    sorted_filenames.sort(key=lambda x: x[1] if x[1] is not None else datetime.min)
+    
+    # Track previous image for wind calculations
+    prev_filename = None
+    prev_timestamp = None
+    
+    # Iterate through each image in chronological order
+    for filename, current_timestamp in sorted_filenames:
+        image_data = classifications_data[filename]
         total_count = 0
         sun_cell_count = 0
         
@@ -160,15 +293,27 @@ def process_classifications(classifications_data):
             print(f"Warning: No cells found for image '{filename}'.")
         
         # Extract deployment ID and timestamp from filename
-        deployment_id, timestamp = extract_deployment_and_timestamp(filename)
+        deployment_id, timestamp_str = extract_deployment_and_timestamp(filename)
         
-        # Store the results for this image
-        results[filename] = {
+        # Initialize data dictionary for this image
+        image_result = {
             "count": total_count,
             "deployment_id": deployment_id,
-            "timestamp": timestamp,
+            "timestamp": timestamp_str,
             "sun_cell_count": sun_cell_count
         }
+        
+        # Calculate wind statistics if we have wind data and previous timestamp
+        if wind_df is not None and not wind_df.empty and prev_timestamp is not None and current_timestamp is not None:
+            wind_stats = calculate_wind_stats(wind_df, prev_timestamp, current_timestamp)
+            image_result.update(wind_stats)
+        
+        # Store the results for this image
+        results[filename] = image_result
+        
+        # Update previous timestamp for next iteration
+        prev_filename = filename
+        prev_timestamp = current_timestamp
     
     return results
 
@@ -178,26 +323,54 @@ def save_results_to_csv(results, output_file="count_totals.csv"):
     
     Args:
         results (dict): Dictionary with image filenames as keys and details
-                       including count, deployment_id, timestamp, and sun_cell_count as values
+                       including count, deployment_id, timestamp, sun_cell_count,
+                       and wind statistics as values
         output_file (str): Path to the output CSV file
     
     Returns:
         bool: True if successful, False otherwise
     """
     try:
+        # Collect all possible fields from all data entries
+        # This ensures we include all possible wind stats fields
+        all_fields = set(['filename', 'count', 'deployment_id', 'timestamp', 'sun_cell_count'])
+        wind_fields = {
+            'wind_observations', 
+            'wind_speed_mean', 'wind_speed_mode', 'wind_speed_var',
+            'wind_gust_mean', 'wind_gust_mode', 'wind_gust_var'
+        }
+        
+        # Check all entries to find all possible fields
+        for data in results.values():
+            for field in wind_fields:
+                if field in data:
+                    all_fields.add(field)
+        
+        # Convert to list and ensure standard fields come first
+        fieldnames = ['filename', 'count', 'deployment_id', 'timestamp', 'sun_cell_count']
+        for field in sorted(all_fields - set(fieldnames)):
+            fieldnames.append(field)
+        
         with open(output_file, 'w', newline='') as f:
-            fieldnames = ['filename', 'count', 'deployment_id', 'timestamp', 'sun_cell_count']
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
             
             writer.writeheader()
             for filename, data in results.items():
-                writer.writerow({
+                # Start with basic row data
+                row_data = {
                     'filename': filename,
                     'count': data['count'],
                     'deployment_id': data['deployment_id'],
                     'timestamp': data['timestamp'],
                     'sun_cell_count': data['sun_cell_count']
-                })
+                }
+                
+                # Add all other fields from the data
+                for field in data:
+                    if field not in row_data:
+                        row_data[field] = data[field]
+                
+                writer.writerow(row_data)
                 
         print(f"Results saved to {output_file}")
         return True
@@ -205,13 +378,14 @@ def save_results_to_csv(results, output_file="count_totals.csv"):
         print(f"Error saving results to {output_file}: {e}")
         return False
 
-def main(file_path="classifications.json", output_file=None):
+def main(file_path="classifications.json", output_file=None, wind_db=None):
     """
     Main function to run the classification converter.
     
     Args:
         file_path (str): Path to the classifications.json file
         output_file (str, optional): Path to save the results as CSV
+        wind_db (str, optional): Path to SQLite database containing wind data
     """
     # Load classifications
     classifications_data = load_classifications(file_path)
@@ -219,15 +393,32 @@ def main(file_path="classifications.json", output_file=None):
     if not classifications_data:
         return
     
-    # Process classifications to get count totals and metadata
-    results = process_classifications(classifications_data)
+    # Load wind data if a database path was provided
+    wind_df = None
+    if wind_db:
+        print(f"Loading wind data from {wind_db}...")
+        wind_df = load_wind_data(wind_db)
+        if wind_df.empty:
+            print("Warning: Failed to load wind data or no data found.")
+        else:
+            print(f"Loaded {len(wind_df)} wind observations.")
+    
+    # Process classifications to get count totals, metadata, and wind statistics
+    results = process_classifications(classifications_data, wind_df)
     
     # Print results
     if results:
         print("\nCalculated Results:")
         print("------------------")
         for filename, data in results.items():
-            print(f"{filename}: Count={data['count']}, Deployment={data['deployment_id']}, Timestamp={data['timestamp']}, Sun Cells={data['sun_cell_count']}")
+            base_info = f"{filename}: Count={data['count']}, Deployment={data['deployment_id']}, Timestamp={data['timestamp']}, Sun Cells={data['sun_cell_count']}"
+            
+            # Add wind info if available
+            if 'wind_speed_mean' in data and data['wind_speed_mean'] is not None:
+                wind_info = f", Wind Speed={data['wind_speed_mean']} mph, Wind Gust={data['wind_gust_mean']} mph"
+                print(base_info + wind_info)
+            else:
+                print(base_info)
         
         # Also print total number of images processed and total monarch count
         print(f"\nTotal images processed: {len(results)}")
@@ -249,8 +440,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convert trail camera classification counts from categorical to numerical values.")
     parser.add_argument("-i", "--input", default="classifications.json", help="Path to input classifications.json file")
     parser.add_argument("-o", "--output", help="Path to output CSV file (optional)")
+    parser.add_argument("-w", "--wind", help="Path to SQLite database containing wind data (optional)")
     
     args = parser.parse_args()
     
     # Run the main function with provided arguments
-    main(file_path=args.input, output_file=args.output)
+    main(file_path=args.input, output_file=args.output, wind_db=args.wind)

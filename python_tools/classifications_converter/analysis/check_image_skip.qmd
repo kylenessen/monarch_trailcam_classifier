@@ -271,3 +271,4 @@ bind_rows(
 ```
 
 Looking at it in a different way from a descriptive statistics perspective, it seems like the number of samples or the mean count and the standard deviation looks really good compared to different sampling intervals. This is worth considering further.
+
