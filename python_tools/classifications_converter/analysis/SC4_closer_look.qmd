@@ -1,0 +1,306 @@
+---
+title: "SC4 closer look"
+author: "Kyle Nessen"
+date: today
+format: 
+    html:
+        embed-resources: true
+execute:
+    echo: false
+    warning: false
+    message: false
+---
+
+This notebook is designed to take a closer look at the deployment SC4. Specifically, I want to know how wind and light interact with relative monarch abundance, and if we can reduce the sampling period.
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+# Read the SC4 wind and sun data file
+df <- read_csv("data/SC4WindSun.csv") %>%
+    mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")) %>% 
+  drop_na()
+
+# Create dataframes with different sampling intervals
+df_30min <- df %>% 
+  slice(seq(1, n(), by = 3)) # Every 30 minutes (every 3rd row, as original is 10min)
+
+df_60min <- df %>%
+  slice(seq(1, n(), by = 6)) # Every 60 minutes (every 6th row)
+```
+
+## Original 10-minute interval plots
+
+```{r}
+# Create a dual y-axis plot with monarch count and wind speed
+# Calculate appropriate scaling factor for wind speed
+max_count <- max(df$count)
+max_wind <- max(df$wind_speed_mean)
+scaling_factor <- max_count/max_wind
+
+# Plot with dual y-axis: monarchs and wind speed
+ggplot(df, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Wind speed on secondary y-axis (scaled)
+  geom_line(aes(y = wind_speed_mean * scaling_factor, color = "Wind Speed"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor, name = "Wind Speed (mph)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Wind Speed" = "blue")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Wind Speed Over Time (10-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "blue"),
+    legend.position = "top"
+  )
+```
+
+```{r}
+# Create a dual y-axis plot with monarch count and light levels
+# Calculate appropriate scaling factor for light
+max_sun <- max(df$sun_cell_count)
+scaling_factor_sun <- if(max_sun > 0) max_count/max_sun else 1
+
+# Plot with dual y-axis: monarchs and light
+ggplot(df, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Light on secondary y-axis (scaled)
+  geom_line(aes(y = sun_cell_count * scaling_factor_sun, color = "Light"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor_sun, name = "Light (sun_cell_count)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Light" = "gold")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Light Over Time (10-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "gold"),
+    legend.position = "top"
+  )
+```
+
+## 30-minute interval plots
+
+```{r}
+# Calculate appropriate scaling factor for wind speed (30-min data)
+max_count_30 <- max(df_30min$count)
+max_wind_30 <- max(df_30min$wind_speed_mean)
+scaling_factor_30 <- max_count_30/max_wind_30
+
+# Plot with dual y-axis: monarchs and wind speed (30-min intervals)
+ggplot(df_30min, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Wind speed on secondary y-axis (scaled)
+  geom_line(aes(y = wind_speed_mean * scaling_factor_30, color = "Wind Speed"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor_30, name = "Wind Speed (mph)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Wind Speed" = "blue")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Wind Speed Over Time (30-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "blue"),
+    legend.position = "top"
+  )
+```
+
+```{r}
+# Calculate appropriate scaling factor for light (30-min data)
+max_sun_30 <- max(df_30min$sun_cell_count)
+scaling_factor_sun_30 <- if(max_sun_30 > 0) max_count_30/max_sun_30 else 1
+
+# Plot with dual y-axis: monarchs and light (30-min intervals)
+ggplot(df_30min, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Light on secondary y-axis (scaled)
+  geom_line(aes(y = sun_cell_count * scaling_factor_sun_30, color = "Light"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor_sun_30, name = "Light (sun_cell_count)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Light" = "gold")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Light Over Time (30-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "gold"),
+    legend.position = "top"
+  )
+```
+
+## 60-minute interval plots
+
+```{r}
+# Calculate appropriate scaling factor for wind speed (60-min data)
+max_count_60 <- max(df_60min$count)
+max_wind_60 <- max(df_60min$wind_speed_mean)
+scaling_factor_60 <- max_count_60/max_wind_60
+
+# Plot with dual y-axis: monarchs and wind speed (60-min intervals)
+ggplot(df_60min, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Wind speed on secondary y-axis (scaled)
+  geom_line(aes(y = wind_speed_mean * scaling_factor_60, color = "Wind Speed"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor_60, name = "Wind Speed (mph)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Wind Speed" = "blue")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Wind Speed Over Time (60-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "blue"),
+    legend.position = "top"
+  )
+```
+
+```{r}
+# Calculate appropriate scaling factor for light (60-min data)
+max_sun_60 <- max(df_60min$sun_cell_count)
+scaling_factor_sun_60 <- if(max_sun_60 > 0) max_count_60/max_sun_60 else 1
+
+# Plot with dual y-axis: monarchs and light (60-min intervals)
+ggplot(df_60min, aes(x = time)) +
+  # Monarch count on primary y-axis
+  geom_line(aes(y = count, color = "Monarch Count"), size = 1) +
+  # Light on secondary y-axis (scaled)
+  geom_line(aes(y = sun_cell_count * scaling_factor_sun_60, color = "Light"), size = 1) +
+  # Configure axes
+  scale_y_continuous(
+    name = "Monarch Count",
+    sec.axis = sec_axis(~./scaling_factor_sun_60, name = "Light (sun_cell_count)")
+  ) +
+  scale_color_manual(values = c("Monarch Count" = "orange", "Light" = "gold")) +
+  # Labels and theming
+  labs(
+    title = "Monarch Count and Light Over Time (60-minute intervals)",
+    x = "Time", 
+    color = "Variable"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_text(color = "orange"),
+    axis.title.y.right = element_text(color = "gold"),
+    legend.position = "top"
+  )
+```
+
+## Comparing Different Sampling Intervals
+
+In this section, we'll directly compare the three different sampling intervals (10-min, 30-min, 60-min) on the same plots to visualize the impact of sampling frequency.
+
+```{r}
+# Prepare data for comparison by labeling each dataset with its sampling interval
+df_10min <- df %>% 
+  mutate(interval = "10-minute")
+
+df_30min <- df_30min %>% 
+  mutate(interval = "30-minute")
+
+df_60min <- df_60min %>% 
+  mutate(interval = "60-minute")
+
+# Combine all datasets
+all_intervals <- bind_rows(df_10min, df_30min, df_60min) %>%
+  mutate(interval = factor(interval, levels = c("10-minute", "30-minute", "60-minute")))
+```
+
+### Comparing Monarch Counts
+
+```{r}
+# Plot monarch counts for all three intervals
+ggplot(all_intervals, aes(x = time, y = count, color = interval)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("10-minute" = "darkgreen", "30-minute" = "orange", "60-minute" = "red")) +
+  labs(
+    title = "Comparison of Monarch Counts at Different Sampling Intervals",
+    x = "Time",
+    y = "Monarch Count",
+    color = "Sampling Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "top"
+  )
+```
+
+### Comparing Wind Speed
+
+```{r}
+# Plot wind speed for all three intervals
+ggplot(all_intervals, aes(x = time, y = wind_speed_mean, color = interval)) +
+  geom_line(size = 1) +
+  scale_color_manual(values = c("10-minute" = "darkblue", "30-minute" = "blue", "60-minute" = "lightblue")) +
+  labs(
+    title = "Comparison of Wind Speed at Different Sampling Intervals",
+    x = "Time",
+    y = "Wind Speed (mph)",
+    color = "Sampling Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "top"
+  )
+```
+
+### Comparing Light Levels
+
+```{r}
+# Plot light levels for all three intervals
+ggplot(all_intervals, aes(x = time, y = sun_cell_count, color = interval)) +
+  geom_point(size = 1) +
+  geom_smooth() +
+  scale_color_manual(values = c("10-minute" = "gold", "30-minute" = "orange", "60-minute" = "red")) +
+  labs(
+    title = "Comparison of Light Levels at Different Sampling Intervals",
+    x = "Time",
+    y = "Light (sun_cell_count)",
+    color = "Sampling Interval"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "top"
+  )
+```
