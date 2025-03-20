@@ -299,3 +299,4 @@ print(summary(best_model$model))
 
 # Plot residuals vs fitted values for best model
 plot(best_model$model, which = 1)
+```
