@@ -1,27 +1,71 @@
----
-title: "Sampling Interval Analysis"
-author: "Kyle Nessen"
-date: today
-format: 
-    html:
-        embed-resources: true
-execute:
-    echo: false
-    warning: false
-    message: false
----
 
+## Prep monarch count data
+Here I am loading in the available count data so far. SC1 and SC2 are the only deployments with a 5 minute interval, so I am removing every other row initially to get it to 10 mins. Then I append SC4, which is more typical. 
 ```{r}
 library(tidyverse)
 
 data_directory <- "data/"
-csv_files <- c("SC1.csv", "SC2.csv", "SC4.csv")
+csv_files <- c("SC1.csv", "SC2.csv") # Load the 5 min interval datasets
 
 df <- csv_files %>%
     map_df(~ read_csv(file.path(data_directory, .))) %>%
     mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")) %>%
+    arrange(deployment_id, time) %>%
+    group_by(deployment_id) %>%
+    filter(row_number() %% 2 == 1) %>% # Keep every other row (odd numbered rows)
+    ungroup() %>%
     as_tibble()
 
+# Read SC4 data and process it similarly to the other files
+SC4 <- read.csv("data/SC4.csv") %>%
+    mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")) %>%
+    as_tibble()
+
+# Combine all data
+df <- bind_rows(df, SC4) %>%
+    arrange(deployment_id, time)
+```
+## Generate the subsampled datasets
+Here I split out the original df into my test dataset. I'm going to go with 10, 20, 30, 60, 90, and 120 minutes. They will be named accordingly. 
+
+```{r}
+# 10 minutes (keep all rows)
+df10 <- df
+
+# 20 minutes (keep every other row)
+df20 <- df %>%
+  group_by(deployment_id) %>%
+  filter(row_number() %% 2 == 1) %>%
+  ungroup()
+
+# 30 minutes (keep every third row)
+df30 <- df %>%
+  group_by(deployment_id) %>%
+  filter(row_number() %% 3 == 1) %>%
+  ungroup()
+
+# 60 minutes (keep every sixth row)
+df60 <- df %>%
+  group_by(deployment_id) %>%
+  filter(row_number() %% 6 == 1) %>%
+  ungroup()
+
+# 90 minutes (keep every ninth row)
+df90 <- df %>%
+  group_by(deployment_id) %>%
+  filter(row_number() %% 9 == 1) %>%
+  ungroup()
+
+# 120 minutes (keep every twelfth row)
+df120 <- df %>%
+  group_by(deployment_id) %>%
+  filter(row_number() %% 12 == 1) %>%
+  ungroup()
+```
+
+
+
+```{r}
 wind <- read_csv("https://raw.githubusercontent.com/kylenessen/masters-wind-data/main/vsfb/vsfb_wind_data.csv")
 
 # Add wind data summaries between observation intervals
@@ -82,21 +126,14 @@ wind_summaries <- pmap_dfr(
 
 # Add the wind summaries to the original data frame
 df_with_wind <- bind_cols(df_with_intervals, wind_summaries)
-```
 
-## Calculate change in monarchs
-
-```{r}
 # Calculate change in monarch counts between consecutive images
 df_with_wind <- df_with_wind %>%
-  arrange(deployment_id, time) %>%
-  group_by(deployment_id) %>%
-  mutate(
-    prev_count = lag(count),
-    monarch_change = count - prev_count
-  ) %>%
-  ungroup()
+    arrange(deployment_id, time) %>%
+    group_by(deployment_id) %>%
+    mutate(
+        prev_count = lag(count),
+        monarch_change = count - prev_count
+    ) %>%
+    ungroup()
 ```
-
-
-
