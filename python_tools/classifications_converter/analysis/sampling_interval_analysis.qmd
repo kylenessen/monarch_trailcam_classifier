@@ -26,61 +26,140 @@ wind <- read_csv("https://raw.githubusercontent.com/kylenessen/masters-wind-data
 
 # Add wind data summaries between observation intervals
 df_with_intervals <- df %>%
-  arrange(deployment_id, time) %>%
-  group_by(deployment_id) %>%
-  mutate(
-    interval_end = time,
-    interval_start = lag(time)
-  ) %>%
-  ungroup()
+    arrange(deployment_id, time) %>%
+    group_by(deployment_id) %>%
+    mutate(
+        interval_end = time,
+        interval_start = lag(time)
+    ) %>%
+    ungroup()
 
 # Function to summarize wind data between intervals
 summarize_wind <- function(deploy_id, start_time, end_time) {
-  if(is.na(start_time)) {
-    return(tibble(
-      avg_wind_speed_mph = NA_real_,
-      avg_wind_gust_mph = NA_real_,
-      max_wind_gust_mph = NA_real_,
-      n_wind_obs = 0L
-    ))
-  }
-  
-  wind_interval <- wind %>%
-    filter(
-      deployment_id == deploy_id,
-      time >= start_time,
-      time <= end_time
-    )
-  
-  if(nrow(wind_interval) == 0) {
-    return(tibble(
-      avg_wind_speed_mph = NA_real_,
-      avg_wind_gust_mph = NA_real_,
-      max_wind_gust_mph = NA_real_, 
-      n_wind_obs = 0L
-    ))
-  }
-  
-  wind_interval %>%
-    summarize(
-      avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
-      avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
-      max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
-      n_wind_obs = n()
-    )
+    if (is.na(start_time)) {
+        return(tibble(
+            avg_wind_speed_mph = NA_real_,
+            avg_wind_gust_mph = NA_real_,
+            max_wind_gust_mph = NA_real_,
+            n_wind_obs = 0L
+        ))
+    }
+
+    wind_interval <- wind %>%
+        filter(
+            deployment_id == deploy_id,
+            time >= start_time,
+            time <= end_time
+        )
+
+    if (nrow(wind_interval) == 0) {
+        return(tibble(
+            avg_wind_speed_mph = NA_real_,
+            avg_wind_gust_mph = NA_real_,
+            max_wind_gust_mph = NA_real_,
+            n_wind_obs = 0L
+        ))
+    }
+
+    wind_interval %>%
+        summarize(
+            avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
+            avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
+            max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
+            n_wind_obs = n()
+        )
 }
 
 # Apply wind summarization to each interval
 wind_summaries <- pmap_dfr(
-  list(
-    deploy_id = df_with_intervals$deployment_id,
-    start_time = df_with_intervals$interval_start,
-    end_time = df_with_intervals$interval_end
-  ),
-  summarize_wind
+    list(
+        deploy_id = df_with_intervals$deployment_id,
+        start_time = df_with_intervals$interval_start,
+        end_time = df_with_intervals$interval_end
+    ),
+    summarize_wind
 )
 
 # Add the wind summaries to the original data frame
 df_with_wind <- bind_cols(df_with_intervals, wind_summaries)
 ```
 
+## Calculate change in monarchs
+
+```{r}
+# Calculate change in monarch counts between consecutive images
+df_with_wind <- df_with_wind %>%
+  arrange(deployment_id, time) %>%
+  group_by(deployment_id) %>%
+  mutate(
+    prev_count = lag(count),
+    monarch_change = count - prev_count
+  ) %>%
+  ungroup()
+
+# View summary of monarch changes
+df_with_wind %>%
+  filter(!is.na(monarch_change)) %>%
+  summarize(
+    mean_change = mean(monarch_change),
+    median_change = median(monarch_change),
+    min_change = min(monarch_change),
+    max_change = max(monarch_change)
+  )
+```
+
+## Visualizing monarch changes in relation to wind
+
+```{r}
+# Plot monarch change vs average wind speed
+ggplot(df_with_wind %>% filter(!is.na(monarch_change), !is.na(avg_wind_speed_mph)), 
+       aes(x = avg_wind_speed_mph, y = monarch_change)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Monarch Count Change vs Average Wind Speed",
+       x = "Average Wind Speed (mph)",
+       y = "Change in Monarch Count",
+       caption = "Negative values indicate decreasing monarchs") +
+  theme_minimal()
+
+# Plot monarch change vs maximum gust
+ggplot(df_with_wind %>% filter(!is.na(monarch_change), !is.na(max_wind_gust_mph)), 
+       aes(x = max_wind_gust_mph, y = monarch_change)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm") +
+  labs(title = "Monarch Count Change vs Maximum Wind Gust",
+       x = "Maximum Wind Gust (mph)",
+       y = "Change in Monarch Count",
+       caption = "Negative values indicate decreasing monarchs") +
+  theme_minimal()
+
+# Distribution of monarch changes
+ggplot(df_with_wind %>% filter(!is.na(monarch_change)), 
+       aes(x = monarch_change)) +
+  geom_histogram(binwidth = 5) +
+  labs(title = "Distribution of Changes in Monarch Counts",
+       x = "Change in Monarch Count",
+       y = "Frequency") +
+  theme_minimal()
+```
+
+## Statistical analysis
+
+```{r}
+# Simple linear model for wind speed effect on monarch changes
+wind_speed_model <- lm(monarch_change ~ avg_wind_speed_mph, 
+                       data = df_with_wind %>% filter(!is.na(monarch_change), !is.na(avg_wind_speed_mph)))
+summary(wind_speed_model)
+
+# Linear model for maximum gust effect on monarch changes
+max_gust_model <- lm(monarch_change ~ max_wind_gust_mph, 
+                     data = df_with_wind %>% filter(!is.na(monarch_change), !is.na(max_wind_gust_mph)))
+summary(max_gust_model)
+
+# Combined model with both predictors
+combined_model <- lm(monarch_change ~ avg_wind_speed_mph + max_wind_gust_mph, 
+                     data = df_with_wind %>% filter(!is.na(monarch_change), 
+                                                   !is.na(avg_wind_speed_mph),
+                                                   !is.na(max_wind_gust_mph)))
+summary(combined_model)
+```
