@@ -1,0 +1,86 @@
+---
+title: "Sampling Interval Analysis"
+author: "Kyle Nessen"
+date: today
+format: 
+    html:
+        embed-resources: true
+execute:
+    echo: false
+    warning: false
+    message: false
+---
+
+```{r}
+library(tidyverse)
+
+data_directory <- "data/"
+csv_files <- c("SC1.csv", "SC2.csv", "SC4.csv")
+
+df <- csv_files %>%
+    map_df(~ read_csv(file.path(data_directory, .))) %>%
+    mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")) %>%
+    as_tibble()
+
+wind <- read_csv("https://raw.githubusercontent.com/kylenessen/masters-wind-data/main/vsfb/vsfb_wind_data.csv")
+
+# Add wind data summaries between observation intervals
+df_with_intervals <- df %>%
+  arrange(deployment_id, time) %>%
+  group_by(deployment_id) %>%
+  mutate(
+    interval_end = time,
+    interval_start = lag(time)
+  ) %>%
+  ungroup()
+
+# Function to summarize wind data between intervals
+summarize_wind <- function(deploy_id, start_time, end_time) {
+  if(is.na(start_time)) {
+    return(tibble(
+      avg_wind_speed_mph = NA_real_,
+      avg_wind_gust_mph = NA_real_,
+      max_wind_gust_mph = NA_real_,
+      n_wind_obs = 0L
+    ))
+  }
+  
+  wind_interval <- wind %>%
+    filter(
+      deployment_id == deploy_id,
+      time >= start_time,
+      time <= end_time
+    )
+  
+  if(nrow(wind_interval) == 0) {
+    return(tibble(
+      avg_wind_speed_mph = NA_real_,
+      avg_wind_gust_mph = NA_real_,
+      max_wind_gust_mph = NA_real_, 
+      n_wind_obs = 0L
+    ))
+  }
+  
+  wind_interval %>%
+    summarize(
+      avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
+      avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
+      max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
+      n_wind_obs = n()
+    )
+}
+
+# Apply wind summarization to each interval
+wind_summaries <- pmap_dfr(
+  list(
+    deploy_id = df_with_intervals$deployment_id,
+    start_time = df_with_intervals$interval_start,
+    end_time = df_with_intervals$interval_end
+  ),
+  summarize_wind
+)
+
+# Add the wind summaries to the original data frame
+df_with_wind <- bind_cols(df_with_intervals, wind_summaries)
+```
+
