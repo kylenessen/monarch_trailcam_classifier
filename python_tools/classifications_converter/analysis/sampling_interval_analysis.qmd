@@ -63,6 +63,32 @@ df120 <- df %>%
   ungroup()
 ```
 
+## Calculate change in monarch counts for each dataset
+Here I define a function to calculate the change in monarch butterfly abundance and then apply it to all of my datasets
+
+```{r}
+# Function to calculate monarch count changes
+calculate_monarch_changes <- function(df) {
+  df %>%
+    arrange(deployment_id, time) %>%
+    group_by(deployment_id) %>%
+    mutate(
+      prev_count = lag(count),
+      monarch_change = count - prev_count,
+      time_diff_minutes = as.numeric(difftime(time, lag(time), units = "mins"))
+    ) %>%
+    ungroup()
+}
+
+# Apply the function to each dataset
+df10 <- calculate_monarch_changes(df10)
+df20 <- calculate_monarch_changes(df20)
+df30 <- calculate_monarch_changes(df30)
+df60 <- calculate_monarch_changes(df60)
+df90 <- calculate_monarch_changes(df90)
+df120 <- calculate_monarch_changes(df120)
+```
+
 
 
 ```{r}
@@ -127,13 +153,3 @@ wind_summaries <- pmap_dfr(
 # Add the wind summaries to the original data frame
 df_with_wind <- bind_cols(df_with_intervals, wind_summaries)
 
-# Calculate change in monarch counts between consecutive images
-df_with_wind <- df_with_wind %>%
-    arrange(deployment_id, time) %>%
-    group_by(deployment_id) %>%
-    mutate(
-        prev_count = lag(count),
-        monarch_change = count - prev_count
-    ) %>%
-    ungroup()
-```
