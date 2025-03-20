@@ -96,70 +96,7 @@ df_with_wind <- df_with_wind %>%
     monarch_change = count - prev_count
   ) %>%
   ungroup()
-
-# View summary of monarch changes
-df_with_wind %>%
-  filter(!is.na(monarch_change)) %>%
-  summarize(
-    mean_change = mean(monarch_change),
-    median_change = median(monarch_change),
-    min_change = min(monarch_change),
-    max_change = max(monarch_change)
-  )
 ```
 
-## Visualizing monarch changes in relation to wind
 
-```{r}
-# Plot monarch change vs average wind speed
-ggplot(df_with_wind %>% filter(!is.na(monarch_change), !is.na(avg_wind_speed_mph)), 
-       aes(x = avg_wind_speed_mph, y = monarch_change)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm") +
-  labs(title = "Monarch Count Change vs Average Wind Speed",
-       x = "Average Wind Speed (mph)",
-       y = "Change in Monarch Count",
-       caption = "Negative values indicate decreasing monarchs") +
-  theme_minimal()
 
-# Plot monarch change vs maximum gust
-ggplot(df_with_wind %>% filter(!is.na(monarch_change), !is.na(max_wind_gust_mph)), 
-       aes(x = max_wind_gust_mph, y = monarch_change)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm") +
-  labs(title = "Monarch Count Change vs Maximum Wind Gust",
-       x = "Maximum Wind Gust (mph)",
-       y = "Change in Monarch Count",
-       caption = "Negative values indicate decreasing monarchs") +
-  theme_minimal()
-
-# Distribution of monarch changes
-ggplot(df_with_wind %>% filter(!is.na(monarch_change)), 
-       aes(x = monarch_change)) +
-  geom_histogram(binwidth = 5) +
-  labs(title = "Distribution of Changes in Monarch Counts",
-       x = "Change in Monarch Count",
-       y = "Frequency") +
-  theme_minimal()
-```
-
-## Statistical analysis
-
-```{r}
-# Simple linear model for wind speed effect on monarch changes
-wind_speed_model <- lm(monarch_change ~ avg_wind_speed_mph, 
-                       data = df_with_wind %>% filter(!is.na(monarch_change), !is.na(avg_wind_speed_mph)))
-summary(wind_speed_model)
-
-# Linear model for maximum gust effect on monarch changes
-max_gust_model <- lm(monarch_change ~ max_wind_gust_mph, 
-                     data = df_with_wind %>% filter(!is.na(monarch_change), !is.na(max_wind_gust_mph)))
-summary(max_gust_model)
-
-# Combined model with both predictors
-combined_model <- lm(monarch_change ~ avg_wind_speed_mph + max_wind_gust_mph, 
-                     data = df_with_wind %>% filter(!is.na(monarch_change), 
-                                                   !is.na(avg_wind_speed_mph),
-                                                   !is.na(max_wind_gust_mph)))
-summary(combined_model)
-```
