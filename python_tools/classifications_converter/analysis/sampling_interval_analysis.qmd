@@ -1,4 +1,3 @@
-
 ## Prep monarch count data
 Here I am loading in the available count data so far. SC1 and SC2 are the only deployments with a 5 minute interval, so I am removing every other row initially to get it to 10 mins. Then I append SC4, which is more typical. 
 ```{r}
@@ -89,67 +88,214 @@ df90 <- calculate_monarch_changes(df90)
 df120 <- calculate_monarch_changes(df120)
 ```
 
-
+## Calculate wind parameters between intervals
+Here I calculate wind metric summaries between butterfly observations
 
 ```{r}
+# Load wind data
 wind <- read_csv("https://raw.githubusercontent.com/kylenessen/masters-wind-data/main/vsfb/vsfb_wind_data.csv")
+```
 
-# Add wind data summaries between observation intervals
-df_with_intervals <- df %>%
+```{r}
+# Helper function to create empty wind summary
+create_empty_wind_summary <- function() {
+  tibble(
+    avg_wind_speed_mph = NA_real_,
+    avg_wind_gust_mph = NA_real_,
+    max_wind_gust_mph = NA_real_,
+    n_wind_obs = 0L
+  )
+}
+
+# Function to add interval timestamps to a dataframe
+add_intervals <- function(df) {
+  df %>%
     arrange(deployment_id, time) %>%
     group_by(deployment_id) %>%
     mutate(
-        interval_end = time,
-        interval_start = lag(time)
+      interval_end = time,
+      interval_start = lag(time)
     ) %>%
     ungroup()
-
-# Function to summarize wind data between intervals
-summarize_wind <- function(deploy_id, start_time, end_time) {
-    if (is.na(start_time)) {
-        return(tibble(
-            avg_wind_speed_mph = NA_real_,
-            avg_wind_gust_mph = NA_real_,
-            max_wind_gust_mph = NA_real_,
-            n_wind_obs = 0L
-        ))
-    }
-
-    wind_interval <- wind %>%
-        filter(
-            deployment_id == deploy_id,
-            time >= start_time,
-            time <= end_time
-        )
-
-    if (nrow(wind_interval) == 0) {
-        return(tibble(
-            avg_wind_speed_mph = NA_real_,
-            avg_wind_gust_mph = NA_real_,
-            max_wind_gust_mph = NA_real_,
-            n_wind_obs = 0L
-        ))
-    }
-
-    wind_interval %>%
-        summarize(
-            avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
-            avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
-            max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
-            n_wind_obs = n()
-        )
 }
 
-# Apply wind summarization to each interval
-wind_summaries <- pmap_dfr(
+# Function to calculate wind metrics between intervals
+calculate_wind_metrics <- function(deploy_id, start_time, end_time) {
+  # Return NA values if start time is missing
+  if (is.na(start_time)) {
+    return(create_empty_wind_summary())
+  }
+  
+  # Filter wind data for the interval
+  wind_interval <- wind %>%
+    filter(
+      deployment_id == deploy_id,
+      time >= start_time,
+      time <= end_time
+    )
+  
+  # Return NA values if no wind observations found
+  if (nrow(wind_interval) == 0) {
+    return(create_empty_wind_summary())
+  }
+  
+  # Calculate wind metrics
+  wind_interval %>%
+    summarize(
+      avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
+      avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
+      max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
+      n_wind_obs = n()
+    )
+}
+
+# Main function to add wind metrics to a dataframe
+add_wind_metrics <- function(df) {
+  # Add interval timestamps
+  df_with_intervals <- add_intervals(df)
+  
+  # Calculate wind summaries
+  wind_summaries <- pmap_dfr(
     list(
-        deploy_id = df_with_intervals$deployment_id,
-        start_time = df_with_intervals$interval_start,
-        end_time = df_with_intervals$interval_end
+      deploy_id = df_with_intervals$deployment_id,
+      start_time = df_with_intervals$interval_start,
+      end_time = df_with_intervals$interval_end
     ),
-    summarize_wind
+    calculate_wind_metrics
+  )
+  
+  # Combine original data with wind summaries
+  bind_cols(df_with_intervals, wind_summaries)
+}
+```
+
+```{r}
+# Apply wind metrics calculation to each dataset
+df10 <- add_wind_metrics(df10)
+df20 <- add_wind_metrics(df20)
+df30 <- add_wind_metrics(df30)
+df60 <- add_wind_metrics(df60)
+df90 <- add_wind_metrics(df90)
+df120 <- add_wind_metrics(df120)
+```
+
+
+## Modeling
+The fun part! Let's build a model. `monarch_change` will be the response variable. Our fixed effects are the wind variables: `avg_wind_speed_mph`, `avg_wind_gust_mph`, `max_wind_gust_mph`. Our only random effect is `deployment_id`. I want to also correct for temporal autocorrelation using either `time` (if datetime objects are useful) or `timestamp` if some numerical value must be used. 
+
+Let's build this model for all of our subsampled datasets and compare AIC scores
+
+```{r}
+# Load required packages for mixed effects models and temporal autocorrelation
+library(lme4)
+library(nlme)
+library(lubridate)
+
+# Function to prepare data for modeling by removing NA values and scaling predictors
+prepare_data <- function(df) {
+  df %>%
+    filter(!is.na(monarch_change), !is.na(avg_wind_speed_mph), 
+           !is.na(avg_wind_gust_mph), !is.na(max_wind_gust_mph)) %>%
+    mutate(
+      # Scale wind variables
+      avg_wind_speed_scaled = scale(avg_wind_speed_mph),
+      avg_wind_gust_scaled = scale(avg_wind_gust_mph),
+      max_wind_gust_scaled = scale(max_wind_gust_mph),
+      # Create numeric time variable for autocorrelation
+      time_numeric = as.numeric(time)
+    )
+}
+
+# Function to fit model and extract AIC
+fit_model <- function(df, interval) {
+  # Prepare data
+  model_data <- prepare_data(df)
+  
+  # Fit model with temporal correlation structure
+  model <- try({
+    lme(monarch_change ~ avg_wind_speed_scaled + avg_wind_gust_scaled + max_wind_gust_scaled,
+        random = ~ 1 | deployment_id,
+        correlation = corAR1(form = ~ time_numeric | deployment_id),
+        data = model_data,
+        method = "REML")
+  }, silent = TRUE)
+  
+  # Extract model results
+  if (!inherits(model, "try-error")) {
+    # Extract fixed effects
+    fixed_effects <- fixef(model)
+    # Extract random effects variance
+    random_effects_var <- as.numeric(VarCorr(model)[1,1])
+    # Get correlation parameter
+    corr_param <- coef(model$modelStruct$corStruct, unconstrained = FALSE)
+    # Calculate AIC
+    aic <- AIC(model)
+    
+    # Return results
+    list(
+      interval = interval,
+      converged = TRUE,
+      AIC = aic,
+      fixed_effects = fixed_effects,
+      random_effects_var = random_effects_var,
+      correlation = corr_param,
+      n_obs = nrow(model_data),
+      model = model
+    )
+  } else {
+    # Return NA values if model fails
+    list(
+      interval = interval,
+      converged = FALSE,
+      AIC = NA,
+      fixed_effects = NA,
+      random_effects_var = NA,
+      correlation = NA,
+      n_obs = nrow(model_data),
+      model = NA
+    )
+  }
+}
+
+# Fit models for each dataset
+results_10 <- fit_model(df10, 10)
+results_20 <- fit_model(df20, 20)
+results_30 <- fit_model(df30, 30)
+results_60 <- fit_model(df60, 60)
+results_90 <- fit_model(df90, 90)
+results_120 <- fit_model(df120, 120)
+
+# Combine results into a data frame
+model_comparison <- tibble(
+  Interval = c(10, 20, 30, 60, 90, 120),
+  AIC = c(results_10$AIC, results_20$AIC, results_30$AIC, 
+          results_60$AIC, results_90$AIC, results_120$AIC),
+  N = c(results_10$n_obs, results_20$n_obs, results_30$n_obs,
+        results_60$n_obs, results_90$n_obs, results_120$n_obs),
+  Converged = c(results_10$converged, results_20$converged, results_30$converged,
+                results_60$converged, results_90$converged, results_120$converged)
 )
 
-# Add the wind summaries to the original data frame
-df_with_wind <- bind_cols(df_with_intervals, wind_summaries)
+# Display model comparison results
+print("Model Comparison Results:")
+print(model_comparison)
 
+# Plot AIC scores
+ggplot(model_comparison, aes(x = Interval, y = AIC)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "AIC Scores by Sampling Interval",
+       x = "Sampling Interval (minutes)",
+       y = "AIC Score") +
+  theme_minimal()
+
+# Display detailed results for the best model (lowest AIC)
+best_model_idx <- which.min(model_comparison$AIC)
+best_interval <- model_comparison$Interval[best_model_idx]
+best_model <- get(paste0("results_", best_interval))
+
+print(paste("\nBest Model (", best_interval, "minute interval):"))
+print(summary(best_model$model))
+
+# Plot residuals vs fitted values for best model
+plot(best_model$model, which = 1)
