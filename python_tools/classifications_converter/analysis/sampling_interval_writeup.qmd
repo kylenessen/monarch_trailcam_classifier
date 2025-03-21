@@ -3,17 +3,19 @@ title: "Sampling Interval Analysis"
 author: "Kyle Nessen"
 date: today
 format: 
-    html:
-        embed-resources: true
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 3
 execute:
-    echo: false
-    warning: false
-    message: false
+  echo: false
+  warning: false
+  message: false
 ---
 
 ## Background 
 
-This report was generated at the request of Francis to answer the question of what is an appropriate sampling interval for the Vandenberg space-for-space camera study. The goal here is to empirically interrogate if subsampling the photo data is functionally equivalent to the full resolution of images. My motivation for sub-sampling is that labeling these photos is labor-intensive, and I suspect that such a high frequency of 10-minute intervals is introducing unneeded noise. If we can reduce the number of images that we label, we can process these images much sooner. Even switching from 30-minute intervals to 10-minute intervals will reduce the total number of images we have to process by three times. However, we should be careful that we're not throwing away necessary information to answer the question at hand, which this report is intended to shed some light on.
+This report was generated to answer the question of what is an appropriate sampling interval for the VSFB camera study. The goal here is to empirically interrogate if subsampling the photo data is functionally equivalent to the full resolution of images. My motivation for sub-sampling is that labeling these photos is labor-intensive, and I suspect that such a high frequency of 10-minute intervals is introducing unneeded noise. If we can reduce the number of images that we label, we can process these images much sooner. Even switching from 30-minute intervals to 10-minute intervals will reduce the total number of images we have to process by three times. However, we should be careful that we're not throwing away necessary information to answer the question at hand, which this report is intended to shed some light on.
 
 ## Data Preparation
 
@@ -28,6 +30,7 @@ I won't go into the full detail of how I prepared and cleaned the data, but inst
 ### Nighttime Data Removal
 - Defined specific night periods for each deployment where labelers copy and pasted last valid count value
 - Removed observations during these periods to avoid duplicated or unreliable counts.
+- Generated an "observation period" unique identifier, which is the combination of deployment and date. This gives a way to group by complete observation periods.
 
 ### Subsampling
 - Created datasets at 10, 20, 30, 60, 90, and 120-minute intervals by retaining every nth row within each deployment group.
@@ -43,7 +46,7 @@ I won't go into the full detail of how I prepared and cleaned the data, but inst
 
 ## Modeling
 
-Based on my conversation with Francis, we decided to try an information theoretic approach: essentially build the sub-sampled datasets, run the same model on each, and compare AIC scores. Below is some information on how I did that.
+Based on my conversation with Francis, we decided to try an information theoretic approach: essentially build the sub-sampled datasets, run the same stastics model on each, and compare AIC scores. Below is some information on how I did that.
 
 #### Model Preparation
 - Defined `monarch_change` as the response variable (log transformed).
@@ -59,7 +62,7 @@ Based on my conversation with Francis, we decided to try an information theoreti
 - Captured model convergence status, AIC, fixed and random effects, and autocorrelation parameter.
 
 ## AIC Comparison
-Below are the AIC scores for each sub-sample dataset along with a chart. It's clear from these results that the longest interval performs the best model. However, I'm cautious about these interpretations because I think we are misusing AIC as a tool of comparison since we are effectively changing the dataset for each model. I believe the AIC score is very sensitive to the number of data points, which may explain why we see such a predictable decrease as we increase the interval.
+Below are the AIC scores for each sub-sample dataset along with a chart. It's clear from these results that the longest interval is the best performing model. However, I'm cautious about these interpretations because I think we are misusing AIC as a tool of comparison since we are effectively changing the dataset for each model. I believe the AIC score is very sensitive to the number of data points, which may explain why we see such a predictable decrease as we increase the interval between samples. I take an alternative approach below.
 
 ```{r}
 # Read and display the model comparison results
@@ -75,9 +78,15 @@ knitr::kable(model_comparison,
 
 ![AIC scores for all sub-sampled datasets.](figures/aic_scores.png)
 
+## RMSE Comparison
+
+After searching around for another approach to this question, I came across the idea of comparing root mean square error. This has the advantage of giving a direct estimate of how much information is lost at each subsampling level. The graph below shows the relative loss of information compared to the baseline for each interval. Happily, it appears that 30 minutes results in the lowest change, less than 5% of the original information lost. The RMSE increases rapidly after that. So from my view, 30 minutes seems like the sweet spot, and certainly defensible. Looking forward to your thoughts. 
+
+![Relative root mean square error (RMSE) for each subsampling interval compared to the full dataset.](figures/rmse_by_interval.png)
+
 ## 30 Min Model Results
 
-Out of curiosity, I wanted to see how some of these models were performing and if we can glean any insight from them. My intuition keeps pointing me towards 30-minute intervals. And in my initial exploratory analysis, the 30-minute model seemed to have the best performance, but by no means was it perfect.
+Out of curiosity, I wanted to see how some of these models were performing and if we can glean any insight from them. Based on the results of above, and from my initial exploratory analysis, the 30-minute model seemed to have the best performance, but by no means was it perfect.
 
 Below is the performance model output showing that there's some issues, but we're getting close to a defensible model. And below that is the raw output of the results from that model.
 
@@ -121,13 +130,7 @@ Number of Groups: 3
 
 My key takeaway here is that wind does not appear to predict changes in monarch abundance from moment to moment (in this case, every 30 minutes). The same was true for all other models, including the 120 minute, where the p-values were unambigously large. Still, this is only a fraction of the dataset and the model performance still has many issues. These preliminary results agree, however, with what I have been seeing in the video, where clusters don't obviously respond to wind patterns. Exposure to direct sunlight is another story, which I can tackle at another time. 
 
-## RMSE Comparison
 
-After searching around for an alternative approach, I came across the idea of comparing root mean square error. This has the advantage of giving a direct estimate of how much information is lost at each subsampling level. The graph below shows the relative loss of information compared to the baseline for each interval. Happily, it appears that 30 minutes results in the lowest change of less than 5% of the original information lost. The RMSE increases rapidly after that. So from my view, 30 minutes seems like the sweet spot, and certainly defensible. Looking forward to your thoughts. 
-
-Please note, that I used an "observation period" for this analysis, which groups by day per deployment. So all of the groups are continuous stretches of observations without the added complexity of night time photos being removed.
-
-![Relative root mean square error (RMSE) for each subsampling interval compared to the full dataset.](figures/rmse_by_interval.png)
 
 ## Appendix
 I'm including here a lot of time series plots to give you a better sense of the raw data. Each observation period (e.g. SC1 on November 19th) has it's own figure, with all subsampling intervals plotted. Mostly as reference.
