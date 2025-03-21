@@ -121,6 +121,37 @@ Number of Groups: 3
 
 My key takeaway here is that wind does not appear to predict changes in monarch abundance from moment to moment (in this case, every 30 minutes). The same was true for all other models, including the 120 minute, where the p-values were unambigously large. Still, this is only a fraction of the dataset and the model performance still has many issues. These preliminary results agree, however, with what I have been seeing in the video, where clusters don't obviously respond to wind patterns. Exposure to direct sunlight is another story, which I can tackle at another time. 
 
+## RMSE Comparison
 
+After searching around for an alternative approach, I came across the idea of comparing root mean square error. This has the advantage of giving a direct estimate of how much information is lost at each subsampling level. The graph below shows the relative loss of information compared to the baseline for each interval. Happily, it appears that 30 minutes results in the lowest change of less than 5% of the original information lost. The RMSE increases rapidly after that. So from my view, 30 minutes seems like the sweet spot, and certainly defensible. Looking forward to your thoughts. 
 
+Please note, that I used an "observation period" for this analysis, which groups by day per deployment. So all of the groups are continuous stretches of observations without the added complexity of night time photos being removed.
 
+![Relative root mean square error (RMSE) for each subsampling interval compared to the full dataset.](figures/rmse_by_interval.png)
+
+## Appendix
+I'm including here a lot of time series plots to give you a better sense of the raw data. Each observation period (e.g. SC1 on November 19th) has it's own figure, with all subsampling intervals plotted. Mostly as reference.
+
+### SC1 Deployment
+
+![SC1 November 17th, 2023](figures/faceted_SC1_2023-11-17.png)
+
+![SC1 November 18th, 2023](figures/faceted_SC1_2023-11-18.png)
+
+![SC1 November 19th, 2023](figures/faceted_SC1_2023-11-19.png)
+
+![SC1 November 20th, 2023](figures/faceted_SC1_2023-11-20.png)
+
+### SC2 Deployment
+
+![SC2 November 17th, 2023](figures/faceted_SC2_2023-11-17.png)
+
+![SC2 November 18th, 2023](figures/faceted_SC2_2023-11-18.png)
+
+![SC2 November 19th, 2023](figures/faceted_SC2_2023-11-19.png)
+
+### SC4 Deployment
+
+![SC4 December 3rd, 2023](figures/faceted_SC4_2023-12-03.png)
+
+![SC4 December 4th, 2023](figures/faceted_SC4_2023-12-04.png)

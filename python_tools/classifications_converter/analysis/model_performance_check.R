@@ -2,11 +2,8 @@ library(performance)
 library(nlme)
 library(tidyverse)
 
-# Set up output directory
-figures_dir <- "python_tools/classifications_converter/analysis/figures"
-
 # Load and prepare the data
-data_directory <- "python_tools/classifications_converter/analysis/data/"
+data_directory <- "data/"
 csv_files <- c("SC1.csv", "SC2.csv")
 
 df <- csv_files %>%
@@ -18,7 +15,7 @@ df <- csv_files %>%
     ungroup() %>%
     as_tibble()
 
-SC4 <- read.csv(file.path(data_directory, "SC4.csv")) %>%
+SC4 <- read.csv("data/SC4.csv") %>%
     mutate(time = ymd_hms(timestamp, tz = "America/Los_Angeles")) %>%
     as_tibble()
 
@@ -166,12 +163,12 @@ model_30min <- lme(monarch_change ~ avg_wind_speed_scaled + avg_wind_gust_scaled
 check_model_results <- check_model(model_30min)
 
 # Save the plot
-png(file.path(figures_dir, "model_performance_check.png"), width = 1200, height = 1000)
+png("figures/model_performance_check.png", width = 1200, height = 1000)
 plot(check_model_results)
 dev.off()
 
 # Create a detailed model summary
-model_summary <- capture.output({
+summary_stats <- capture.output({
     cat("\n=== 30-Minute Model Performance Summary ===\n\n")
     cat("Model Information:\n")
     cat("- Observations:", nrow(model_data), "\n")
@@ -185,4 +182,4 @@ model_summary <- capture.output({
 })
 
 # Save the summary
-writeLines(model_summary, file.path(figures_dir, "model_performance_summary.txt"))
+writeLines(summary_stats, "figures/model_performance_summary.txt")
