@@ -1,0 +1,49 @@
+
+=== 30-Minute Model Performance Summary ===
+
+Model Information:
+- Observations: 99 
+- Deployments: 3 
+
+Model Summary:
+Linear mixed-effects model fit by REML
+  Data: model_data 
+       AIC      BIC    logLik
+  468.6036 486.4807 -227.3018
+
+Random effects:
+ Formula: ~1 | deployment_id
+         (Intercept) Residual
+StdDev: 9.468284e-05 2.471424
+
+Correlation Structure: ARMA(1,0)
+ Formula: ~time_numeric | deployment_id 
+ Parameter estimate(s):
+Phi1 
+   0 
+Fixed effects:  monarch_change ~ avg_wind_speed_scaled + avg_wind_gust_scaled +      max_wind_gust_scaled 
+                           Value Std.Error DF    t-value p-value
+(Intercept)           -0.4428602 0.2483875 93 -1.7829406  0.0779
+avg_wind_speed_scaled -0.5588815 2.0504707 93 -0.2725625  0.7858
+avg_wind_gust_scaled   0.3342085 2.1447222 93  0.1558283  0.8765
+max_wind_gust_scaled   0.4028745 0.4293107 93  0.9384216  0.3505
+ Correlation: 
+                      (Intr) avg_wnd_s_ avg_wnd_g_
+avg_wind_speed_scaled  0.000                      
+avg_wind_gust_scaled   0.000 -0.981               
+max_wind_gust_scaled   0.000  0.198     -0.349    
+
+Standardized Within-Group Residuals:
+       Min         Q1        Med         Q3        Max 
+-1.9820287 -0.7706652 -0.1926982  0.9128569  2.2988928 
+
+Number of Observations: 99
+Number of Groups: 3 
+
+Model Performance Metrics:
+Random effect variances not available. Returned R2 does not account for random effects.
+# Indices of model performance
+
+AIC     |    AICc |     BIC | R2 (cond.) | R2 (marg.) |  RMSE | Sigma
+---------------------------------------------------------------------
+468.604 | 469.834 | 486.769 |            |      0.013 | 2.421 | 2.471

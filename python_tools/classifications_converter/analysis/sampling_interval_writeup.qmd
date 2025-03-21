@@ -77,3 +77,50 @@ knitr::kable(model_comparison,
 
 ## 30 Min Model Results
 
+Out of curiosity, I wanted to see how some of these models were performing and if we can glean any insight from them. My intuition keeps pointing me towards 30-minute intervals. And in my initial exploratory analysis, the 30-minute model seemed to have the best performance, but by no means was it perfect.
+
+Below is the performance model output showing that there's some issues, but we're getting close to a defensible model. And below that is the raw output of the results from that model.
+
+![Model Performance Diagnostics](figures/model_performance_check.png)
+
+```
+Linear mixed-effects model fit by REML
+  Data: model_data 
+       AIC      BIC    logLik
+  468.6036 486.4807 -227.3018
+
+Random effects:
+ Formula: ~1 | deployment_id
+         (Intercept) Residual
+StdDev: 9.468284e-05 2.471424
+
+Correlation Structure: ARMA(1,0)
+ Formula: ~time_numeric | deployment_id 
+ Parameter estimate(s):
+Phi1 
+   0 
+Fixed effects:  monarch_change ~ avg_wind_speed_scaled + avg_wind_gust_scaled +      max_wind_gust_scaled 
+                           Value Std.Error DF    t-value p-value
+(Intercept)           -0.4428602 0.2483875 93 -1.7829406  0.0779
+avg_wind_speed_scaled -0.5588815 2.0504707 93 -0.2725625  0.7858
+avg_wind_gust_scaled   0.3342085 2.1447222 93  0.1558283  0.8765
+max_wind_gust_scaled   0.4028745 0.4293107 93  0.9384216  0.3505
+ Correlation: 
+                      (Intr) avg_wnd_s_ avg_wnd_g_
+avg_wind_speed_scaled  0.000                      
+avg_wind_gust_scaled   0.000 -0.981               
+max_wind_gust_scaled   0.000  0.198     -0.349    
+
+Standardized Within-Group Residuals:
+       Min         Q1        Med         Q3        Max 
+-1.9820287 -0.7706652 -0.1926982  0.9128569  2.2988928 
+
+Number of Observations: 99
+Number of Groups: 3 
+```
+
+My key takeaway here is that wind does not appear to predict changes in monarch abundance from moment to moment (in this case, every 30 minutes). The same was true for all other models, including the 120 minute, where the p-values were unambigously large. Still, this is only a fraction of the dataset and the model performance still has many issues. These preliminary results agree, however, with what I have been seeing in the video, where clusters don't obviously respond to wind patterns. Exposure to direct sunlight is another story, which I can tackle at another time. 
+
+
+
+
