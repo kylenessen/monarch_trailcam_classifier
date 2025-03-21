@@ -13,9 +13,9 @@ execute:
 
 ## Background 
 
-This report was generated at the request of Francis to answer the question of what is an appropriate sampling interval for the Vandenberg space-for-space camera study. The goal here is to empirically interrogate if subsampling the photo data is functionally equivalent to the full resolution of images. My motivation for sub-sampling is that labeling these photos is labor-intensive, and I suspect that such a high frequency of 10-minute intervals is introducing unneeded noise. And so if we can reduce the number of images that we label, we can process these images much sooner. Even switching from 30 minute intervals from 10 minute intervals will reduce the total number of images we have to process by three times.However, we should be careful that we're not throwing away necessary information to answer the question at hand, which this report is intended to shed some light on.
+This report was generated at the request of Francis to answer the question of what is an appropriate sampling interval for the Vandenberg space-for-space camera study. The goal here is to empirically interrogate if subsampling the photo data is functionally equivalent to the full resolution of images. My motivation for sub-sampling is that labeling these photos is labor-intensive, and I suspect that such a high frequency of 10-minute intervals is introducing unneeded noise. If we can reduce the number of images that we label, we can process these images much sooner. Even switching from 30-minute intervals to 10-minute intervals will reduce the total number of images we have to process by three times. However, we should be careful that we're not throwing away necessary information to answer the question at hand, which this report is intended to shed some light on.
 
-## Data Preperation
+## Data Preparation
 
 I won't go into the full detail of how I prepared and cleaned the data, but instead I'll just give a quick summary to provide additional context for the results that will follow. With that said, I have all the code and the full analysis script that I'm happy to share if someone reading this would like to see the specifics.
 
@@ -43,7 +43,7 @@ I won't go into the full detail of how I prepared and cleaned the data, but inst
 
 ## Modeling
 
-based on my conversation with Francis we decided to try a information theoritic approach. essentially build the sub-sampled datasets, run the same model on each, and compare AIC scores. Below is some information on how I did that.
+Based on my conversation with Francis, we decided to try an information theoretic approach: essentially build the sub-sampled datasets, run the same model on each, and compare AIC scores. Below is some information on how I did that.
 
 #### Model Preparation
 - Defined `monarch_change` as the response variable (log transformed).
@@ -59,7 +59,7 @@ based on my conversation with Francis we decided to try a information theoritic 
 - Captured model convergence status, AIC, fixed and random effects, and autocorrelation parameter.
 
 ## AIC Comparison
-Below is the AIC scores for each sub-sample dataset along with a chart. It's clear from these results that the longest interval performs the best model. But I'm cautious to take these interpretations because I think we are misusing AIC as a tool of comparison because we are effectively changing the data set for each model. I believe the AIC score is very sensitive to the number of data points, which may explain why we see such a predictable decrease as we increase the interval.
+Below are the AIC scores for each sub-sample dataset along with a chart. It's clear from these results that the longest interval performs the best model. However, I'm cautious about these interpretations because I think we are misusing AIC as a tool of comparison since we are effectively changing the dataset for each model. I believe the AIC score is very sensitive to the number of data points, which may explain why we see such a predictable decrease as we increase the interval.
 
 ```{r}
 # Read and display the model comparison results
