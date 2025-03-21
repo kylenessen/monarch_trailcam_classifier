@@ -24,7 +24,11 @@ SC4 <- read.csv("data/SC4.csv") %>%
 
 # Combine all data
 df <- bind_rows(df, SC4) %>%
-    arrange(deployment_id, time)
+    arrange(deployment_id, time) %>%
+    mutate(
+        day = as.Date(time, tz = "America/Los_Angeles"),
+        observation_period = paste(deployment_id, day)
+    )
 ```
 
 ## Remove night photos
@@ -390,4 +394,96 @@ print(summary(best_model$model))
 
 # Plot residuals vs fitted values for best model
 plot(best_model$model, which = 1)
+```
+
+## Fast Fourier Transform (FFT)
+The AIC approach didn't work as we might expected. So after a little bit of looking around, I came across this fast Fourier transformation. I believe what this will do is fit a line to the data and then calculate a curve that we can compare against each other.
+
+
+```{r}
+compute_fft <- function(df) {
+    df %>%
+        group_by(deployment_id, observation_period) %>%
+        summarize(
+            fft_magnitude = abs(fft(count)), # Compute magnitude of FFT
+            fft_frequency = seq(0, length(fft_magnitude) - 1) / length(fft_magnitude) # Normalized frequency
+        ) %>%
+        ungroup()
+}
+
+fft_full <- compute_fft(df10)
+fft_20 <- compute_fft(df20)
+fft_30 <- compute_fft(df30)
+fft_60 <- compute_fft(df60)
+fft_90 <- compute_fft(df90)
+fft_120 <- compute_fft(df120)
+```
+
+
+```{r}
+ks_test_results <- list(
+    df20 = ks.test(fft_full$fft_magnitude, fft_20$fft_magnitude),
+    df30 = ks.test(fft_full$fft_magnitude, fft_30$fft_magnitude),
+    df60 = ks.test(fft_full$fft_magnitude, fft_60$fft_magnitude),
+    df90 = ks.test(fft_full$fft_magnitude, fft_90$fft_magnitude),
+    df120 = ks.test(fft_full$fft_magnitude, fft_120$fft_magnitude)
+)
+
+# Extract p-values
+ks_p_values <- tibble(
+    Interval = c(20, 30, 60, 90, 120),
+    P_Value = c(
+        ks_test_results$df20$p.value,
+        ks_test_results$df30$p.value,
+        ks_test_results$df60$p.value,
+        ks_test_results$df90$p.value,
+        ks_test_results$df120$p.value
+    )
+)
+
+# Flag significant differences
+ks_p_values <- ks_p_values %>%
+    mutate(Significant = P_Value < 0.05)
+
+print(ks_p_values)
+
+```
+
+
+```{r}
+library(ggplot2)
+
+plot_fft <- function(full, subsampled, label) {
+    ggplot() +
+        geom_line(aes(x = full$fft_frequency, y = full$fft_magnitude, color = "Full Resolution")) +
+        geom_line(aes(x = subsampled$fft_frequency, y = subsampled$fft_magnitude, color = label)) +
+        scale_color_manual(values = c("Full Resolution" = "black", label = "red")) +
+        labs(
+            title = paste("FFT Comparison:", label, "vs. Full Resolution"),
+            x = "Frequency",
+            y = "Magnitude"
+        ) +
+        theme_minimal()
+}
+
+plot_fft(fft_full, fft_20, "20-min Interval")
+plot_fft(fft_full, fft_30, "30-min Interval")
+plot_fft(fft_full, fft_60, "60-min Interval")
+plot_fft(fft_full, fft_90, "90-min Interval")
+plot_fft(fft_full, fft_120, "120-min Interval")
+
+```
+
+
+```{r}
+ggplot(ks_p_values, aes(x = factor(Interval), y = P_Value, fill = Significant)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "green")) +
+    labs(
+        title = "Statistical Test: FFT Similarity to Full Resolution",
+        x = "Sampling Interval (minutes)",
+        y = "Kolmogorov-Smirnov P-Value"
+    ) +
+    theme_minimal()
+
 ```
