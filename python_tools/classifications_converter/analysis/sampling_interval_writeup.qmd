@@ -41,25 +41,39 @@ I won't go into the full detail of how I prepared and cleaned the data, but inst
 - Loaded wind data and aligned it with butterfly observation intervals based on deployment and timestamps.
 - Calculated average wind speed, average and max gusts, and number of wind observations per interval.
 
-## Modeling and AIC Comparison
+## Modeling
 
 based on my conversation with Francis we decided to try a information theoritic approach. essentially build the sub-sampled datasets, run the same model on each, and compare AIC scores. Below is some information on how I did that.
 
-### Model Preparation
+#### Model Preparation
 - Defined `monarch_change` as the response variable (log transformed).
 - Selected wind metrics (`avg_wind_speed_mph`, `avg_wind_gust_mph`, `max_wind_gust_mph`) as fixed effects.
 - Included `deployment_id` as a random effect to account for variation between deployments.
 - Scaled all wind predictors for comparability.
 - Converted timestamps to numeric values to model temporal autocorrelation.
 
-### Model Fitting
+#### Model Fitting
 - Used `lme()` from the `nlme` package to fit a linear mixed-effects model.
 - Included a first-order autoregressive structure (`corAR1`) to account for temporal correlation within deployments.
 - Applied the model to each subsampled dataset (10 to 120 minutes).
 - Captured model convergence status, AIC, fixed and random effects, and autocorrelation parameter.
 
-### Model Comparison and Evaluation
-- Compiled results across all intervals into a comparison table.
-- Identified the best model based on the lowest AIC score.
-- Displayed a plot of AIC vs. sampling interval.
-- Printed summary output and diagnostic plots for the best-performing model.
+## AIC Comparison
+Below is the AIC scores for each sub-sample dataset along with a chart. It's clear from these results that the longest interval performs the best model. But I'm cautious to take these interpretations because I think we are misusing AIC as a tool of comparison because we are effectively changing the data set for each model. I believe the AIC score is very sensitive to the number of data points, which may explain why we see such a predictable decrease as we increase the interval.
+
+```{r}
+# Read and display the model comparison results
+model_comparison <- read.csv("figures/model_comparison.csv")
+
+# Create a nicely formatted table using knitr::kable
+knitr::kable(model_comparison,
+    col.names = c("Interval (minutes)", "AIC Score", "Number of Observations", "Model Converged"),
+    digits = 2,
+    caption = "Model comparison across different sampling intervals"
+)
+```
+
+![AIC scores for all sub-sampled datasets.](figures/aic_scores.png)
+
+## 30 Min Model Results
+

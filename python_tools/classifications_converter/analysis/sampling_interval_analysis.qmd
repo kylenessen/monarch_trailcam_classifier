@@ -363,8 +363,11 @@ model_comparison <- tibble(
 print("Model Comparison Results:")
 print(model_comparison)
 
+# Save model comparison results to CSV
+write.csv(model_comparison, "figures/model_comparison.csv", row.names = FALSE)
+
 # Plot AIC scores
-ggplot(model_comparison, aes(x = Interval, y = AIC)) +
+aic_plot <- ggplot(model_comparison, aes(x = Interval, y = AIC)) +
     geom_line() +
     geom_point() +
     labs(
@@ -373,6 +376,9 @@ ggplot(model_comparison, aes(x = Interval, y = AIC)) +
         y = "AIC Score"
     ) +
     theme_minimal()
+
+# Save the plot
+ggsave("figures/aic_scores.png", aic_plot, width = 8, height = 6, dpi = 300)
 
 # Display detailed results for the best model (lowest AIC)
 best_model_idx <- which.min(model_comparison$AIC)
