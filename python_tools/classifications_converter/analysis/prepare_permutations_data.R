@@ -61,45 +61,6 @@ is_night_time <- function(timestamp, deployment_periods) {
     }))
 }
 
-# Load and process wind data
-wind <- read_csv("https://raw.githubusercontent.com/kylenessen/masters-wind-data/main/vsfb/vsfb_wind_data.csv")
-
-# Helper function to create empty wind summary
-create_empty_wind_summary <- function() {
-    tibble(
-        avg_wind_speed_mph = NA_real_,
-        avg_wind_gust_mph = NA_real_,
-        max_wind_gust_mph = NA_real_,
-        n_wind_obs = 0L
-    )
-}
-
-# Function to calculate wind metrics between intervals
-calculate_wind_metrics <- function(deploy_id, start_time, end_time) {
-    if (is.na(start_time)) {
-        return(create_empty_wind_summary())
-    }
-
-    wind_interval <- wind %>%
-        filter(
-            deployment_id == deploy_id,
-            time >= start_time,
-            time <= end_time
-        )
-
-    if (nrow(wind_interval) == 0) {
-        return(create_empty_wind_summary())
-    }
-
-    wind_interval %>%
-        summarize(
-            avg_wind_speed_mph = mean(speed_mph, na.rm = TRUE),
-            avg_wind_gust_mph = mean(gust_mph, na.rm = TRUE),
-            max_wind_gust_mph = max(gust_mph, na.rm = TRUE),
-            n_wind_obs = n()
-        )
-}
-
 # Main processing
 main <- function() {
     # Load 5-min interval datasets and downsample to 10 mins
