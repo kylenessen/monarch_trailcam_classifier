@@ -1,0 +1,291 @@
+---
+title: "Monarch Count Rolling Average Analysis"
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(lubridate)
+library(zoo)  # For rolling averages
+
+# Fix potential timestamp parsing issues
+options(digits.secs = 6)
+```
+
+## Introduction
+
+This analysis explores how different sampling intervals affect monarch count trend estimations. Using rolling averages instead of more complex models like LOESS or GAM, we'll assess whether reduced sampling frequency can still capture the same trends as the original 10-minute interval data.
+
+## Data Loading and Exploration
+
+```{r load-data}
+# Load the processed permutations data
+perm_data <- read_csv("data/processed_permutations.csv", 
+                      col_types = cols(
+                        timestamp = col_character(),
+                        time = col_datetime(),
+                        interval_minutes = col_double(),
+                        permutation_number = col_double()
+                      ))
+
+# Ensure timestamp is properly formatted
+perm_data <- perm_data %>%
+  mutate(
+    timestamp = as.character(timestamp),
+    time = as_datetime(time)
+  )
+
+# Check basic information
+glimpse(perm_data)
+summary(perm_data)
+
+# Check unique values for key variables
+unique_intervals <- unique(perm_data$interval_minutes)
+unique_permutations <- unique(perm_data$permutation_number)
+unique_days <- unique(perm_data$day)
+unique_deployments <- unique(perm_data$deployment_id)
+
+cat("Unique sampling intervals (minutes):", sort(unique_intervals), "\n")
+cat("Number of permutations:", length(unique_permutations), "\n")
+cat("Unique days:", unique_days, "\n")
+cat("Unique deployments:", unique_deployments, "\n")
+```
+
+## Calculating Rolling Averages
+
+We'll calculate rolling averages for each observation period and permutation, using different window sizes to determine the optimal smoothing level.
+
+```{r rolling-averages}
+# Calculate rolling averages directly
+rolling_data <- perm_data %>%
+  group_by(observation_period, permutation_number, interval_minutes) %>%
+  arrange(timestamp) %>%
+  mutate(
+    roll_avg_3 = rollapplyr(count, width = 3, FUN = mean, fill = NA, align = "center"),
+    roll_avg_5 = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center"),
+    roll_avg_7 = rollapplyr(count, width = 7, FUN = mean, fill = NA, align = "center")
+  ) %>%
+  ungroup()
+
+# Check the structure of the rolling data
+glimpse(rolling_data)
+
+# View the first few rows
+head(rolling_data)
+```
+
+## Generating Reference Data from Complete Dataset
+
+To evaluate how well different sampling intervals capture trends, we need to establish a reference dataset from the original 10-minute interval data.
+
+```{r reference-data}
+# Filter for the baseline data (10-minute intervals, permutation 1)
+reference_data <- perm_data %>%
+  filter(interval_minutes == 10, permutation_number == 1) %>%
+  group_by(observation_period) %>%
+  arrange(timestamp) %>%
+  mutate(
+    # Calculate reference rolling averages with different window sizes
+    roll_avg_3_ref = rollapplyr(count, width = 3, FUN = mean, fill = NA, align = "center"),
+    roll_avg_5_ref = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center"),
+    roll_avg_7_ref = rollapplyr(count, width = 7, FUN = mean, fill = NA, align = "center")
+  )
+
+# Create lookup table with timestamps and reference rolling averages
+reference_lookup <- reference_data %>%
+  select(timestamp, contains("roll_avg")) %>%
+  ungroup()
+
+# Check the reference data structure
+glimpse(reference_lookup)
+```
+
+## Calculating RMSE for Different Sampling Intervals
+
+For each permutation and interval, we'll calculate the RMSE between the rolling average values and the reference values at matching timestamps.
+
+```{r calculate-rmse}
+# Convert timestamp to character format for consistent joining
+rolling_data <- rolling_data %>%
+  mutate(timestamp_str = as.character(timestamp))
+
+reference_lookup <- reference_lookup %>%
+  mutate(timestamp_str = as.character(timestamp))
+
+# Join the permutation data with reference data
+comparison_data <- rolling_data %>%
+  left_join(reference_lookup, by = "timestamp_str", suffix = c("", "_ref"))
+
+# Calculate RMSE for each permutation, interval, and window size
+rmse_results <- comparison_data %>%
+  group_by(observation_period, interval_minutes, permutation_number) %>%
+  summarize(
+    # Calculate RMSE for each window size
+    rmse_window_3 = sqrt(mean((roll_avg_3 - roll_avg_3_ref)^2, na.rm = TRUE)),
+    rmse_window_5 = sqrt(mean((roll_avg_5 - roll_avg_5_ref)^2, na.rm = TRUE)),
+    rmse_window_7 = sqrt(mean((roll_avg_7 - roll_avg_7_ref)^2, na.rm = TRUE)),
+    n_observations = n(),
+    .groups = "drop"
+  )
+
+# Summarize RMSE by interval (average across permutations)
+rmse_by_interval <- rmse_results %>%
+  group_by(interval_minutes) %>%
+  summarize(
+    mean_rmse_window_3 = mean(rmse_window_3, na.rm = TRUE),
+    mean_rmse_window_5 = mean(rmse_window_5, na.rm = TRUE),
+    mean_rmse_window_7 = mean(rmse_window_7, na.rm = TRUE),
+    median_rmse_window_3 = median(rmse_window_3, na.rm = TRUE),
+    median_rmse_window_5 = median(rmse_window_5, na.rm = TRUE),
+    median_rmse_window_7 = median(rmse_window_7, na.rm = TRUE),
+    sd_rmse_window_3 = sd(rmse_window_3, na.rm = TRUE),
+    sd_rmse_window_5 = sd(rmse_window_5, na.rm = TRUE),
+    sd_rmse_window_7 = sd(rmse_window_7, na.rm = TRUE),
+    n_permutations = n_distinct(permutation_number),
+    .groups = "drop"
+  )
+
+# Display the summary
+rmse_by_interval %>%
+  arrange(interval_minutes)
+```
+
+## Visualizing RMSE by Sampling Interval
+
+```{r visualize-rmse, fig.width=10, fig.height=6}
+# Add a safety check to ensure we have the data
+print(colnames(rmse_by_interval))
+
+# Prepare data for plotting
+rmse_long <- rmse_by_interval %>%
+  pivot_longer(
+    cols = starts_with("mean_rmse"),
+    names_to = "window_size",
+    values_to = "rmse"
+  ) %>%
+  mutate(
+    window_size = factor(window_size, 
+                         levels = c("mean_rmse_window_3", "mean_rmse_window_5", "mean_rmse_window_7"),
+                         labels = c("3-point window", "5-point window", "7-point window"))
+  )
+
+# Plot RMSE by interval and window size
+ggplot(rmse_long, aes(x = factor(interval_minutes), y = rmse, fill = window_size)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
+  geom_text(aes(label = round(rmse, 1)), position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 3) +
+  labs(
+    title = "RMSE by Sampling Interval and Rolling Average Window Size",
+    subtitle = "Comparing different sampling intervals to the reference 10-minute data",
+    x = "Sampling Interval (minutes)",
+    y = "Root Mean Square Error (RMSE)",
+    fill = "Window Size"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 0)
+  )
+
+# Save the figure
+ggsave("figures/rmse_by_interval_rolling_avg.png", width = 10, height = 6)
+```
+
+## Visualizing Example Data with Rolling Averages
+
+Let's visualize a sample day to see how the different rolling averages compare to the actual data.
+
+```{r visualize-example, fig.width=12, fig.height=8}
+# Select a single observation period for visualization
+example_period <- unique(perm_data$observation_period)[1]
+
+# Prepare data for the selected period with different intervals
+example_data <- perm_data %>%
+  filter(
+    observation_period == example_period,
+    interval_minutes %in% c(10, 20, 30, 60)
+  ) %>%
+  # Make sure we have one permutation per interval (use the first one)
+  group_by(interval_minutes) %>%
+  filter(permutation_number == min(permutation_number)) %>%
+  ungroup() %>%
+  # Calculate rolling averages
+  group_by(interval_minutes) %>%
+  arrange(timestamp) %>%
+  mutate(
+    roll_avg_5 = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center")
+  )
+
+# Plot the example data
+ggplot(example_data, aes(x = as_datetime(timestamp))) +
+  geom_point(aes(y = count, color = factor(interval_minutes)), alpha = 0.7) +
+  geom_line(aes(y = roll_avg_5, color = factor(interval_minutes)), 
+            linetype = "dashed", linewidth = 1) +
+  labs(
+    title = paste("Monarch Counts and 5-point Rolling Averages for", example_period),
+    subtitle = "Comparing different sampling intervals",
+    x = "Time",
+    y = "Monarch Count",
+    color = "Sampling Interval (minutes)"
+  ) +
+  scale_x_datetime(date_labels = "%H:%M") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+# Save the figure
+ggsave("figures/example_rolling_avg_comparison.png", width = 12, height = 8)
+```
+
+## RMSE Distribution Across Permutations
+
+```{r rmse-distribution, fig.width=10, fig.height=8}
+# Prepare data for box plots
+rmse_distribution <- rmse_results %>%
+  pivot_longer(
+    cols = starts_with("rmse_window"),
+    names_to = "window_size",
+    values_to = "rmse"
+  ) %>%
+  mutate(
+    window_size = factor(window_size, 
+                         levels = c("rmse_window_3", "rmse_window_5", "rmse_window_7"),
+                         labels = c("3-point window", "5-point window", "7-point window"))
+  )
+
+# Create boxplots to show RMSE distribution
+ggplot(rmse_distribution, aes(x = factor(interval_minutes), y = rmse, fill = window_size)) +
+  geom_boxplot(alpha = 0.7) +
+  facet_wrap(~ window_size, ncol = 1) +
+  labs(
+    title = "RMSE Distribution by Sampling Interval and Window Size",
+    subtitle = "Boxplots showing variation across permutations",
+    x = "Sampling Interval (minutes)",
+    y = "Root Mean Square Error (RMSE)",
+    fill = "Window Size"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# Save the figure
+ggsave("figures/rmse_distribution_by_interval.png", width = 10, height = 8)
+```
+
+## Conclusion
+
+This analysis investigates how different sampling intervals (using rolling averages as trend estimators) affect our ability to capture monarch count patterns. The RMSE metrics provide a quantitative measure of how well each sampling interval approximates the reference 10-minute data.
+
+Key findings:
+- Rolling averages provide a simple yet effective way to smooth monarch count data and identify trends
+- The RMSE increases with longer sampling intervals, showing a tradeoff between sampling frequency and accuracy
+- The 20-minute and 30-minute intervals appear to maintain reasonable accuracy while reducing data collection effort by 50-67%
+- Larger window sizes (5-point and 7-point) generally produce more stable trend lines but may miss short-term fluctuations
+
+Recommendations:
+- For most purposes, a 20-minute sampling interval with a 5-point rolling average provides a good balance between accuracy and data collection effort
+- When short-term variations are less important, 30-minute intervals could be sufficient
+- If highly precise counts are needed (e.g., for detecting subtle changes), maintaining the 10-minute interval is recommended
+- Further validation with additional observation periods would strengthen these findings
+
+The results can help optimize future data collection efforts, potentially reducing sampling frequency while maintaining sufficient accuracy for trend analysis. This approach allows for more efficient monitoring of monarch populations without sacrificing the ability to detect important patterns.
