@@ -3,7 +3,7 @@ title: "Sampling Interval Analysis"
 author: "Kyle Nessen"
 date: today
 format: 
-  html:
+  pdf:
     embed-resources: true
     toc: true
     toc-depth: 3
