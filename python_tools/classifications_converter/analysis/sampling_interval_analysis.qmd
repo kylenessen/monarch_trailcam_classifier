@@ -100,40 +100,43 @@ df <- df %>%
 ## Generate the subsampled datasets
 
 Here I split out the original df into my test dataset. I'm going to go with 10, 20, 30, 60, 90, and 120 minutes. They will be named accordingly.
+For each interval, I'll generate all possible permutations to get a more robust analysis.
 
 ```{r}
+# Function to generate all possible permutations for a given interval
+generate_permutations <- function(df, interval) {
+  permutations <- list()
+  for(offset in 1:interval) {
+    permutations[[offset]] <- df %>%
+      group_by(deployment_id) %>%
+      filter((row_number() - offset) %% interval == 0) %>%
+      ungroup()
+  }
+  names(permutations) <- paste0("perm_", 1:interval)
+  return(permutations)
+}
+
 # 10 minutes (keep all rows)
-df10 <- df
+df10_list <- list(df)
+names(df10_list) <- "perm_1"
 
 # 20 minutes (keep every other row)
-df20 <- df %>%
-    group_by(deployment_id) %>%
-    filter(row_number() %% 2 == 1) %>%
-    ungroup()
+df20_list <- generate_permutations(df, 2)
 
 # 30 minutes (keep every third row)
-df30 <- df %>%
-    group_by(deployment_id) %>%
-    filter(row_number() %% 3 == 1) %>%
-    ungroup()
+df30_list <- generate_permutations(df, 3)
 
 # 60 minutes (keep every sixth row)
-df60 <- df %>%
-    group_by(deployment_id) %>%
-    filter(row_number() %% 6 == 1) %>%
-    ungroup()
+df60_list <- generate_permutations(df, 6)
 
 # 90 minutes (keep every ninth row)
-df90 <- df %>%
-    group_by(deployment_id) %>%
-    filter(row_number() %% 9 == 1) %>%
-    ungroup()
+df90_list <- generate_permutations(df, 9)
 
 # 120 minutes (keep every twelfth row)
-df120 <- df %>%
-    group_by(deployment_id) %>%
-    filter(row_number() %% 12 == 1) %>%
-    ungroup()
+df120_list <- generate_permutations(df, 12)
+
+# Store all permutation lists in a named list for easier processing
+all_permutations <- list("10" = df10_list, "20" = df20_list, "30" = df30_list, "60" = df60_list, "90" = df90_list, "120" = df120_list)
 ```
 
 ## Calculate change in monarch counts for each dataset
@@ -157,13 +160,18 @@ calculate_monarch_changes <- function(df) {
         ungroup()
 }
 
-# Apply the function to each dataset
-df10 <- calculate_monarch_changes(df10)
-df20 <- calculate_monarch_changes(df20)
-df30 <- calculate_monarch_changes(df30)
-df60 <- calculate_monarch_changes(df60)
-df90 <- calculate_monarch_changes(df90)
-df120 <- calculate_monarch_changes(df120)
+# Apply the function to each permutation in each interval
+all_permutations <- map(all_permutations, function(interval_list) {
+  map(interval_list, calculate_monarch_changes)
+})
+
+# For backward compatibility, create single dataframes for each interval using first permutation
+df10 <- all_permutations[["10"]][[1]]
+df20 <- all_permutations[["20"]][[1]]
+df30 <- all_permutations[["30"]][[1]]
+df60 <- all_permutations[["60"]][[1]]
+df90 <- all_permutations[["90"]][[1]]
+df120 <- all_permutations[["120"]][[1]]
 ```
 
 ## Calculate wind parameters between intervals
@@ -245,13 +253,18 @@ add_wind_metrics <- function(df) {
     bind_cols(df_with_intervals, wind_summaries)
 }
 
-# Apply wind metrics calculation to each dataset
-df10 <- add_wind_metrics(df10)
-df20 <- add_wind_metrics(df20)
-df30 <- add_wind_metrics(df30)
-df60 <- add_wind_metrics(df60)
-df90 <- add_wind_metrics(df90)
-df120 <- add_wind_metrics(df120)
+# Apply wind metrics to each permutation in each interval
+all_permutations <- map(all_permutations, function(interval_list) {
+  map(interval_list, add_wind_metrics)
+})
+
+# Update single dataframes for backward compatibility
+df10 <- all_permutations[["10"]][[1]]
+df20 <- all_permutations[["20"]][[1]]
+df30 <- all_permutations[["30"]][[1]]
+df60 <- all_permutations[["60"]][[1]]
+df90 <- all_permutations[["90"]][[1]]
+df120 <- all_permutations[["120"]][[1]]
 ```
 
 ## Modeling
@@ -437,45 +450,81 @@ calculate_period_rmse <- function(full_data, subsampled_data) {
   sqrt(mean((comparison$avg_count_full - comparison$avg_count_subsampled)^2, na.rm = TRUE))
 }
 
-# Calculate for each subsampled dataset
-rmse_results <- tibble(
-  Interval = c(20, 30, 60, 90, 120),
-  Raw_RMSE = c(
-    calculate_rmse(df10, df20),
-    calculate_rmse(df10, df30),
-    calculate_rmse(df10, df60),
-    calculate_rmse(df10, df90),
-    calculate_rmse(df10, df120)
-  ),
-  Period_RMSE = c(
-    calculate_period_rmse(df10, df20),
-    calculate_period_rmse(df10, df30),
-    calculate_period_rmse(df10, df60),
-    calculate_period_rmse(df10, df90),
-    calculate_period_rmse(df10, df120)
+# Calculate RMSE for all permutations
+calculate_all_permutation_rmse <- function(full_data, interval_list, interval) {
+  map_dfr(names(interval_list), function(perm_name) {
+    tibble(
+      Interval = interval,
+      Permutation = as.numeric(gsub("perm_", "", perm_name)),
+      Raw_RMSE = calculate_rmse(full_data, interval_list[[perm_name]]),
+      Period_RMSE = calculate_period_rmse(full_data, interval_list[[perm_name]])
+    )
+  })
+}
+
+# Calculate RMSE for all intervals except 10 (which is our reference)
+rmse_results <- map_dfr(names(all_permutations)[2:6], function(interval) {
+  calculate_all_permutation_rmse(
+    all_permutations[["10"]][[1]], 
+    all_permutations[[interval]], 
+    as.numeric(interval)
   )
-)
+})
+
+# Calculate summary statistics for each interval
+rmse_summary <- rmse_results %>%
+  group_by(Interval) %>%
+  summarize(
+    Mean_Raw_RMSE = mean(Raw_RMSE),
+    SD_Raw_RMSE = sd(Raw_RMSE),
+    Min_Raw_RMSE = min(Raw_RMSE),
+    Max_Raw_RMSE = max(Raw_RMSE),
+    Mean_Period_RMSE = mean(Period_RMSE),
+    SD_Period_RMSE = sd(Period_RMSE),
+    Min_Period_RMSE = min(Period_RMSE),
+    Max_Period_RMSE = max(Period_RMSE),
+    N_Permutations = n()
+  )
 ```
 
 
 ```{r}
 # Create visualization of RMSE with only Period Averages
-rmse_plot <- ggplot(rmse_results, aes(x = Interval, y = Relative_Period_RMSE)) +
-    geom_line(color = "#E94057", size = 1) +  # Using a red similar to your current graph
-    geom_point(color = "#E94057", size = 3) +
+rmse_plot <- ggplot(rmse_results, aes(x = Interval, y = Period_RMSE)) +
+    # Add individual points for each permutation
+    geom_point(alpha = 0.5, color = "#E94057") +
+    # Add mean line
+    stat_summary(fun = mean, geom = "line", color = "#E94057", size = 1) +
+    # Add error bars showing standard deviation
+    stat_summary(
+      fun.data = mean_sdl,
+      geom = "errorbar",
+      color = "#E94057",
+      width = 5
+    ) +
     labs(
         title = "Relative RMSE by Sampling Interval",
+        subtitle = "Points show individual permutations, line shows mean with error bars",
         x = "Sampling Interval (minutes)",
-        y = "Relative RMSE (%)"
+        y = "Period RMSE"
     ) +
     theme_minimal() +
     theme(
         panel.grid.minor = element_blank(),
-        text = element_text(size = 12)
+        text = element_text(size = 12),
+        plot.subtitle = element_text(size = 10, color = "gray50")
     )
+    
+# Save summary statistics
+write.csv(rmse_summary, "figures/rmse_summary.csv", row.names = FALSE)
+print(rmse_summary)
 
 # Save the plot
 ggsave("figures/rmse_by_interval.png", rmse_plot, width = 8, height = 6, dpi = 300)
+
+# Print the number of permutations for each interval
+cat("\nNumber of permutations per interval:\n")
+print(table(rmse_results$Interval))
 ```
 
 ```{r}
