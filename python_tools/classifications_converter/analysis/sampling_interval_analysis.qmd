@@ -105,15 +105,15 @@ For each interval, I'll generate all possible permutations to get a more robust 
 ```{r}
 # Function to generate all possible permutations for a given interval
 generate_permutations <- function(df, interval) {
-  permutations <- list()
-  for(offset in 1:interval) {
-    permutations[[offset]] <- df %>%
-      group_by(deployment_id) %>%
-      filter((row_number() - offset) %% interval == 0) %>%
-      ungroup()
-  }
-  names(permutations) <- paste0("perm_", 1:interval)
-  return(permutations)
+    permutations <- list()
+    for (offset in 1:interval) {
+        permutations[[offset]] <- df %>%
+            group_by(deployment_id) %>%
+            filter((row_number() - offset) %% interval == 0) %>%
+            ungroup()
+    }
+    names(permutations) <- paste0("perm_", 1:interval)
+    return(permutations)
 }
 
 # 10 minutes (keep all rows)
@@ -162,7 +162,7 @@ calculate_monarch_changes <- function(df) {
 
 # Apply the function to each permutation in each interval
 all_permutations <- map(all_permutations, function(interval_list) {
-  map(interval_list, calculate_monarch_changes)
+    map(interval_list, calculate_monarch_changes)
 })
 
 # For backward compatibility, create single dataframes for each interval using first permutation
@@ -255,7 +255,7 @@ add_wind_metrics <- function(df) {
 
 # Apply wind metrics to each permutation in each interval
 all_permutations <- map(all_permutations, function(interval_list) {
-  map(interval_list, add_wind_metrics)
+    map(interval_list, add_wind_metrics)
 })
 
 # Update single dataframes for backward compatibility
@@ -415,92 +415,163 @@ plot(best_model$model, which = 1)
 ```{r}
 # Calculate RMSE between full dataset and subsampled datasets
 calculate_rmse <- function(full_data, subsampled_data) {
-  # Join datasets by timestamp
-  comparison <- full_data %>%
-    select(deployment_id, time, observation_period, count) %>%
-    rename(full_count = count) %>%
-    inner_join(
-      subsampled_data %>% 
+    # Join datasets by timestamp
+    comparison <- full_data %>%
         select(deployment_id, time, observation_period, count) %>%
-        rename(subsampled_count = count),
-      by = c("deployment_id", "time", "observation_period")
-    )
-  
-  # Calculate RMSE
-  sqrt(mean((comparison$full_count - comparison$subsampled_count)^2, na.rm = TRUE))
+        rename(full_count = count) %>%
+        inner_join(
+            subsampled_data %>%
+                select(deployment_id, time, observation_period, count) %>%
+                rename(subsampled_count = count),
+            by = c("deployment_id", "time", "observation_period")
+        )
+
+    # Calculate RMSE
+    sqrt(mean((comparison$full_count - comparison$subsampled_count)^2, na.rm = TRUE))
 }
 
 # For observation period averages RMSE
 calculate_period_rmse <- function(full_data, subsampled_data) {
-  # Calculate observation period averages
-  full_period <- full_data %>%
-    group_by(observation_period) %>%
-    summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
-  
-  sub_period <- subsampled_data %>%
-    group_by(observation_period) %>%
-    summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
-  
-  # Join and calculate RMSE
-  comparison <- full_period %>%
-    inner_join(sub_period, 
-               by = "observation_period",
-               suffix = c("_full", "_subsampled"))
-  
-  sqrt(mean((comparison$avg_count_full - comparison$avg_count_subsampled)^2, na.rm = TRUE))
+    # Calculate observation period averages
+    full_period <- full_data %>%
+        group_by(observation_period) %>%
+        summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
+
+    sub_period <- subsampled_data %>%
+        group_by(observation_period) %>%
+        summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
+
+    # Join and calculate RMSE
+    comparison <- full_period %>%
+        inner_join(sub_period,
+            by = "observation_period",
+            suffix = c("_full", "_subsampled")
+        )
+
+    sqrt(mean((comparison$avg_count_full - comparison$avg_count_subsampled)^2, na.rm = TRUE))
+}
+
+# Function to calculate RMSE with single outlier removal
+calculate_rmse_with_outlier_removal <- function(full_data, subsampled_data) {
+    # Join datasets by timestamp
+    comparison <- full_data %>%
+        select(deployment_id, time, observation_period, count) %>%
+        rename(full_count = count) %>%
+        inner_join(
+            subsampled_data %>%
+                select(deployment_id, time, observation_period, count) %>%
+                rename(subsampled_count = count),
+            by = c("deployment_id", "time", "observation_period")
+        )
+
+    # Calculate differences and z-scores
+    differences <- comparison$full_count - comparison$subsampled_count
+    z_scores <- scale(differences)
+
+    # Find points > 2 standard deviations
+    outliers <- which(abs(z_scores) > 2)
+
+    if (length(outliers) > 0) {
+        # Find the most extreme outlier
+        most_extreme <- outliers[which.max(abs(z_scores[outliers]))]
+        # Remove the most extreme outlier
+        differences <- differences[-most_extreme]
+    }
+
+    # Calculate RMSE without the outlier
+    sqrt(mean(differences^2, na.rm = TRUE))
+}
+
+# For observation period averages RMSE with outlier removal
+calculate_period_rmse_with_outlier_removal <- function(full_data, subsampled_data) {
+    # Calculate observation period averages
+    full_period <- full_data %>%
+        group_by(observation_period) %>%
+        summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
+
+    sub_period <- subsampled_data %>%
+        group_by(observation_period) %>%
+        summarize(avg_count = mean(count, na.rm = TRUE), .groups = "drop")
+
+    # Calculate differences and remove single most extreme outlier
+    differences <- full_period$avg_count - sub_period$avg_count
+    z_scores <- scale(differences)
+
+    # Find points > 2 standard deviations
+    outliers <- which(abs(z_scores) > 2)
+
+    if (length(outliers) > 0) {
+        # Find the most extreme outlier
+        most_extreme <- outliers[which.max(abs(z_scores[outliers]))]
+        # Remove the most extreme outlier
+        differences <- differences[-most_extreme]
+    }
+
+    # Calculate RMSE without the outlier
+    sqrt(mean(differences^2, na.rm = TRUE))
 }
 
 # Calculate RMSE for all permutations
 calculate_all_permutation_rmse <- function(full_data, interval_list, interval) {
-  map_dfr(names(interval_list), function(perm_name) {
-    tibble(
-      Interval = interval,
-      Permutation = as.numeric(gsub("perm_", "", perm_name)),
-      Raw_RMSE = calculate_rmse(full_data, interval_list[[perm_name]]),
-      Period_RMSE = calculate_period_rmse(full_data, interval_list[[perm_name]])
-    )
-  })
+    map_dfr(names(interval_list), function(perm_name) {
+        tibble(
+            Interval = interval,
+            Permutation = as.numeric(gsub("perm_", "", perm_name)),
+            Raw_RMSE = calculate_rmse(full_data, interval_list[[perm_name]]),
+            Raw_RMSE_No_Outlier = calculate_rmse_with_outlier_removal(full_data, interval_list[[perm_name]]),
+            Period_RMSE = calculate_period_rmse(full_data, interval_list[[perm_name]]),
+            Period_RMSE_No_Outlier = calculate_period_rmse_with_outlier_removal(full_data, interval_list[[perm_name]])
+        )
+    })
 }
 
 # Calculate RMSE for all intervals except 10 (which is our reference)
 rmse_results <- map_dfr(names(all_permutations)[2:6], function(interval) {
-  calculate_all_permutation_rmse(
-    all_permutations[["10"]][[1]], 
-    all_permutations[[interval]], 
-    as.numeric(interval)
-  )
+    calculate_all_permutation_rmse(
+        all_permutations[["10"]][[1]],
+        all_permutations[[interval]],
+        as.numeric(interval)
+    )
 })
 
 # Calculate summary statistics for each interval
 rmse_summary <- rmse_results %>%
-  group_by(Interval) %>%
-  summarize(
-    Mean_Raw_RMSE = mean(Raw_RMSE),
-    SD_Raw_RMSE = sd(Raw_RMSE),
-    Min_Raw_RMSE = min(Raw_RMSE),
-    Max_Raw_RMSE = max(Raw_RMSE),
-    Mean_Period_RMSE = mean(Period_RMSE),
-    SD_Period_RMSE = sd(Period_RMSE),
-    Min_Period_RMSE = min(Period_RMSE),
-    Max_Period_RMSE = max(Period_RMSE),
-    N_Permutations = n()
-  )
+    group_by(Interval) %>%
+    summarize(
+        Mean_Raw_RMSE = mean(Raw_RMSE),
+        SD_Raw_RMSE = sd(Raw_RMSE),
+        Min_Raw_RMSE = min(Raw_RMSE),
+        Max_Raw_RMSE = max(Raw_RMSE),
+        Mean_Raw_RMSE_No_Outlier = mean(Raw_RMSE_No_Outlier),
+        SD_Raw_RMSE_No_Outlier = sd(Raw_RMSE_No_Outlier),
+        Min_Raw_RMSE_No_Outlier = min(Raw_RMSE_No_Outlier),
+        Max_Raw_RMSE_No_Outlier = max(Raw_RMSE_No_Outlier),
+        Mean_Period_RMSE = mean(Period_RMSE),
+        SD_Period_RMSE = sd(Period_RMSE),
+        Min_Period_RMSE = min(Period_RMSE),
+        Max_Period_RMSE = max(Period_RMSE),
+        Mean_Period_RMSE_No_Outlier = mean(Period_RMSE_No_Outlier),
+        SD_Period_RMSE_No_Outlier = sd(Period_RMSE_No_Outlier),
+        Min_Period_RMSE_No_Outlier = min(Period_RMSE_No_Outlier),
+        Max_Period_RMSE_No_Outlier = max(Period_RMSE_No_Outlier),
+        N_Permutations = n()
+    )
 ```
 
 
 ```{r}
 # Create visualization of RMSE with only Period Averages
-rmse_plot <- ggplot(rmse_results, aes(x = Interval, y = Period_RMSE)) +
+rmse_plot_original <- ggplot(rmse_results, aes(x = Interval, y = Period_RMSE)) +
     # Add individual points for each permutation
     geom_point(alpha = 0.5, color = "#E94057") +
     # Add mean line
     stat_summary(fun = mean, geom = "line", color = "#E94057", size = 1) +
     # Add error bars showing standard deviation
     stat_summary(
-      fun.data = mean_sdl,
-      geom = "errorbar",
-      color = "#E94057",
-      width = 5
+        fun.data = mean_sdl,
+        geom = "errorbar",
+        color = "#E94057",
+        width = 5
     ) +
     labs(
         title = "Relative RMSE by Sampling Interval",
@@ -514,13 +585,63 @@ rmse_plot <- ggplot(rmse_results, aes(x = Interval, y = Period_RMSE)) +
         text = element_text(size = 12),
         plot.subtitle = element_text(size = 10, color = "gray50")
     )
-    
+
+# Create visualization comparing original and outlier-removed RMSE
+rmse_plot_comparison <- rmse_results %>%
+    # Reshape data for comparison
+    select(Interval, Period_RMSE, Period_RMSE_No_Outlier) %>%
+    pivot_longer(
+        cols = c(Period_RMSE, Period_RMSE_No_Outlier),
+        names_to = "metric",
+        values_to = "rmse"
+    ) %>%
+    mutate(
+        metric = factor(
+            metric,
+            levels = c("Period_RMSE", "Period_RMSE_No_Outlier"),
+            labels = c("Original", "Single Outlier Removed")
+        )
+    ) %>%
+    ggplot(aes(x = Interval, y = rmse, color = metric)) +
+    # Add individual points for each permutation
+    geom_point(alpha = 0.5, position = position_dodge(width = 3)) +
+    # Add mean line
+    stat_summary(
+        fun = mean,
+        geom = "line",
+        size = 1,
+        aes(group = metric)
+    ) +
+    # Add error bars showing standard deviation
+    stat_summary(
+        fun.data = mean_sdl,
+        geom = "errorbar",
+        width = 5,
+        position = position_dodge(width = 3)
+    ) +
+    scale_color_manual(values = c("#E94057", "#4A90E2")) +
+    labs(
+        title = "Relative RMSE by Sampling Interval: Original vs Outlier Removed",
+        subtitle = "Single most extreme outlier (>2 SD) removed per permutation if present",
+        x = "Sampling Interval (minutes)",
+        y = "Period RMSE",
+        color = "Method"
+    ) +
+    theme_minimal() +
+    theme(
+        panel.grid.minor = element_blank(),
+        text = element_text(size = 12),
+        plot.subtitle = element_text(size = 10, color = "gray50"),
+        legend.position = "bottom"
+    )
+
 # Save summary statistics
 write.csv(rmse_summary, "figures/rmse_summary.csv", row.names = FALSE)
 print(rmse_summary)
 
-# Save the plot
-ggsave("figures/rmse_by_interval.png", rmse_plot, width = 8, height = 6, dpi = 300)
+# Save both plots
+ggsave("figures/rmse_by_interval.png", rmse_plot_original, width = 8, height = 6, dpi = 300)
+ggsave("figures/rmse_by_interval_comparison.png", rmse_plot_comparison, width = 10, height = 7, dpi = 300)
 
 # Print the number of permutations for each interval
 cat("\nNumber of permutations per interval:\n")
@@ -530,12 +651,12 @@ print(table(rmse_results$Interval))
 ```{r}
 # Create a list of dataframes with different intervals and add an interval label
 df_list <- list(
-  df10 %>% mutate(interval = "10 min"),
-  df20 %>% mutate(interval = "20 min"),
-  df30 %>% mutate(interval = "30 min"),
-  df60 %>% mutate(interval = "60 min"),
-  df90 %>% mutate(interval = "90 min"),
-  df120 %>% mutate(interval = "120 min")
+    df10 %>% mutate(interval = "10 min"),
+    df20 %>% mutate(interval = "20 min"),
+    df30 %>% mutate(interval = "30 min"),
+    df60 %>% mutate(interval = "60 min"),
+    df90 %>% mutate(interval = "90 min"),
+    df120 %>% mutate(interval = "120 min")
 )
 
 # Combine all dataframes
@@ -549,52 +670,52 @@ plot_list <- list()
 
 # Create a faceted plot for each observation period
 for (period in observation_periods) {
-  # Filter data for this observation period
-  period_data <- all_df %>% 
-    filter(observation_period == period)
-  
-  # Create the plot with facets by interval
-  p <- ggplot(period_data, aes(x = time, y = count)) +
-    # Add points and lines without color (since we're faceting)
-    geom_line(size = 0.8) +
-    geom_point(size = 2.5) +
-    # Facet by sampling interval
-    facet_wrap(~interval, ncol = 2) +
-    # Improve labels
-    labs(
-      title = paste("Monarch Counts for", period),
-      subtitle = "Each panel shows a different sampling interval",
-      x = "Time",
-      y = "Count"
-    ) +
-    # Better theme
-    theme_minimal() +
-    theme(
-      strip.background = element_rect(fill = "lightgray", color = NA),
-      strip.text = element_text(face = "bold", size = 12),
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-      panel.spacing = unit(1, "lines"),
-      panel.border = element_rect(color = "gray", fill = NA, size = 0.5)
-    )
-  
-  # Store the plot
-  plot_list[[period]] <- p
+    # Filter data for this observation period
+    period_data <- all_df %>%
+        filter(observation_period == period)
+
+    # Create the plot with facets by interval
+    p <- ggplot(period_data, aes(x = time, y = count)) +
+        # Add points and lines without color (since we're faceting)
+        geom_line(size = 0.8) +
+        geom_point(size = 2.5) +
+        # Facet by sampling interval
+        facet_wrap(~interval, ncol = 2) +
+        # Improve labels
+        labs(
+            title = paste("Monarch Counts for", period),
+            subtitle = "Each panel shows a different sampling interval",
+            x = "Time",
+            y = "Count"
+        ) +
+        # Better theme
+        theme_minimal() +
+        theme(
+            strip.background = element_rect(fill = "lightgray", color = NA),
+            strip.text = element_text(face = "bold", size = 12),
+            axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+            panel.spacing = unit(1, "lines"),
+            panel.border = element_rect(color = "gray", fill = NA, size = 0.5)
+        )
+
+    # Store the plot
+    plot_list[[period]] <- p
 }
 
 # Print all plots
 for (period in observation_periods) {
-  print(plot_list[[period]])
+    print(plot_list[[period]])
 }
 
 # Save each plot
 for (period in observation_periods) {
-  ggsave(
-    filename = paste0("figures/faceted_", gsub(" ", "_", period), ".png"),
-    plot = plot_list[[period]],
-    width = 10,
-    height = 8,
-    dpi = 300
-  )
+    ggsave(
+        filename = paste0("figures/faceted_", gsub(" ", "_", period), ".png"),
+        plot = plot_list[[period]],
+        width = 10,
+        height = 8,
+        dpi = 300
+    )
 }
 ```
 
