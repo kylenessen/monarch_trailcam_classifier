@@ -1,5 +1,5 @@
-import { shell } from 'electron';
-import path from 'path';
+// Removed: import { shell } from 'electron';
+// Removed: import path from 'path';
 import { 
     getState, 
     updateState, 
@@ -118,7 +118,8 @@ async function handleFolderSelection(event) {
     clearImageContainer(); 
 
     updateState({ imagesFolder: folderPath });
-    deploymentIdElement.textContent = path.basename(folderPath);
+    // Use preload function to get basename
+    deploymentIdElement.textContent = await window.electronAPI.getPathBasename(folderPath); 
 
     const imageFiles = await loadImageList(folderPath);
     updateState({ imageFiles: imageFiles, currentImageIndex: -1 }); // Reset index
@@ -141,7 +142,7 @@ function handleCategoryButtonClick(button) {
     updateActiveCategoryButton();
 }
 
-function navigateImageHandler(direction) {
+export function navigateImageHandler(direction) { // Add export
     const state = getCurrentState();
     let newIndex = state.currentImageIndex;
 
@@ -156,11 +157,11 @@ function navigateImageHandler(direction) {
     }
 }
 
-async function findNextUnclassifiedHandler() {
+export async function findNextUnclassifiedHandler() { // Add export
     await findNextUnclassified(); // Call function assumed to be in image-grid.js
 }
 
-function confirmImageHandler() {
+export function confirmImageHandler() { // Add export
     if (!validateUsername()) return;
     const state = getCurrentState();
     const currentImageFile = state.imageFiles[state.currentImageIndex];
@@ -173,7 +174,7 @@ function confirmImageHandler() {
     saveClassifications(getState().classifications); // Save changes
 }
 
-function copyFromPreviousHandler() {
+export function copyFromPreviousHandler() { // Add export
     const state = getCurrentState();
     if (state.currentImageIndex <= 0) {
         showNotification('No previous image available', 'error');
@@ -188,7 +189,7 @@ function copyFromPreviousHandler() {
     saveClassifications(getState().classifications); // Save changes
 }
 
-function resetImageHandler() {
+export function resetImageHandler() { // Add export
     const state = getCurrentState();
     const currentImageFile = state.imageFiles[state.currentImageIndex];
     if (!currentImageFile) return;
@@ -205,9 +206,13 @@ function toggleColorModeHandler() {
     updateColorToggleButton();
 }
 
-function openDocumentation() {
-    shell.openExternal('https://kylenessen.github.io/monarch_trailcam_classifier/')
-        .catch(err => showNotification('Failed to open documentation', 'error'));
+async function openDocumentation() {
+    // Use preload function to open external link
+    const result = await window.electronAPI.openExternalLink('https://kylenessen.github.io/monarch_trailcam_classifier/');
+    if (!result || !result.success) {
+        showNotification('Failed to open documentation', 'error');
+        console.error('Error opening external link:', result?.error);
+    }
 }
 
 // --- UI Update Functions ---
@@ -348,7 +353,7 @@ function initializeKeyboardShortcutsHelp() {
     });
 }
 
-function toggleShortcutsHelp() {
+export function toggleShortcutsHelp() { // Add export
     const helpContainer = document.querySelector('.keyboard-shortcuts-help');
     const indicator = document.querySelector('.shortcuts-header .collapse-indicator'); // More specific selector
     if (helpContainer) {
@@ -360,7 +365,8 @@ function toggleShortcutsHelp() {
 }
 
 // --- Category Cycling ---
-export function cycleCategory(direction) {
+// Already exported, no change needed here.
+export function cycleCategory(direction) { 
     const state = getCurrentState();
     const currentIndex = CATEGORIES.indexOf(state.selectedTool);
     if (currentIndex === -1) return; // Should not happen

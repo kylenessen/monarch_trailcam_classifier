@@ -1,4 +1,4 @@
-import path from 'path';
+// Removed: import path from 'path';
 import { 
     getState, 
     updateState, 
@@ -26,7 +26,7 @@ let isFKeyPressed = false;
 
 // --- Image Loading and Display ---
 
-export async function loadImageByIndex(index) {
+export async function loadImageByIndex(index) { // Already async, good.
     const state = getCurrentState();
     
     // Basic validation
@@ -37,7 +37,8 @@ export async function loadImageByIndex(index) {
     }
 
     const imageFile = state.imageFiles[index];
-    const imagePath = path.join(state.imagesFolder, imageFile);
+    // Use preload API for path joining
+    const imagePath = await window.electronAPI.pathJoin(state.imagesFolder, imageFile); 
 
     try {
         const imageData = await getImageData(imagePath); // Get base64 data
@@ -308,7 +309,7 @@ export async function findNextUnclassified() {
 }
 
 // Check if the current image or previous images prevent editing
-function canEditImage(imageFile) {
+async function canEditImage(imageFile) { // Make async
     const state = getCurrentState();
     const classification = getImageClassification(imageFile);
     
@@ -327,7 +328,8 @@ function canEditImage(imageFile) {
         const prevClassification = getImageClassification(prevImageFile);
         if (!prevClassification || !prevClassification.confirmed) {
             // Found a previous unconfirmed image
-            // showNotification(`Please confirm image ${i + 1} (${path.basename(prevImageFile)}) first.`, 'warning');
+            // const prevImageBaseName = await window.electronAPI.getPathBasename(prevImageFile); // Use preload API
+            // showNotification(`Please confirm image ${i + 1} (${prevImageBaseName}) first.`, 'warning');
             return false;
         }
     }

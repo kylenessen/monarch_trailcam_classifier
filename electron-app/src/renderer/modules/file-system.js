@@ -1,6 +1,6 @@
-import { ipcRenderer } from 'electron';
-import path from 'path';
-import fs from 'fs'; // Use Node.js fs directly in renderer
+// Removed: import { ipcRenderer } from 'electron';
+// Removed: import path from 'path';
+// Removed: import fs from 'fs'; 
 import { 
     updateState, 
     getCurrentState, 
@@ -13,14 +13,14 @@ import { showNotification } from './utils.js'; // Assuming utils.js will have sh
 
 export async function promptForDeploymentFolder() {
     try {
-        const result = await ipcRenderer.invoke('select-folder');
-        if (!result.success) {
-            if (result.error) {
-                throw new Error(result.error);
-            }
-            return null; // User cancelled selection
+        // Use preload API
+        const folderPath = await window.electronAPI.selectFolder(); 
+        // selectFolder now returns path string or null
+        if (!folderPath) {
+            console.log('Folder selection cancelled or failed.');
+            return null; 
         }
-        return result.folderPath;
+        return folderPath;
     } catch (error) {
         console.error('Error in promptForDeploymentFolder:', error);
         showNotification(`Error selecting folder: ${error.message}`, 'error');
@@ -30,25 +30,15 @@ export async function promptForDeploymentFolder() {
 
 export async function loadImageList(folderPath) {
     try {
-        const imageFilesResult = await ipcRenderer.invoke('load-images', folderPath);
-        
-        // Check if the result indicates an error
-        if (typeof imageFilesResult === 'object' && imageFilesResult !== null && imageFilesResult.success === false && imageFilesResult.error) {
-            throw new Error(imageFilesResult.error);
-        }
-        
-        // Check if the result is an array (successful case)
-        if (!Array.isArray(imageFilesResult)) {
-             // Handle unexpected non-array result that isn't a structured error
-             console.error('Unexpected result from load-images IPC:', imageFilesResult);
-             throw new Error('Received unexpected data format when loading images.');
-        }
+        // Use preload API
+        const imageFiles = await window.electronAPI.loadImages(folderPath); 
+        // loadImages now returns array or throws error
 
-        if (imageFilesResult.length === 0) {
+        if (imageFiles.length === 0) {
             showNotification('No images found in selected folder', 'warning');
         }
         
-        return imageFilesResult; // Should be the sorted array of filenames
+        return imageFiles; // Should be the sorted array of filenames
     } catch (error) {
         console.error('Error loading image list:', error);
         showNotification(`Error loading images: ${error.message}`, 'error');
@@ -58,33 +48,34 @@ export async function loadImageList(folderPath) {
 
 export async function getImageData(imagePath) {
     try {
-        const imageDataResult = await ipcRenderer.invoke('get-image-data', imagePath);
-        
-        if (!imageDataResult?.success) {
-            throw new Error(imageDataResult?.error || 'Failed to load image data');
-        }
-        return imageDataResult.data; // Base64 string
+        // Use preload API
+        const base64Data = await window.electronAPI.getImageData(imagePath); 
+        // getImageData now returns base64 string or throws error
+        return base64Data;
     } catch (error) {
-        console.error('Error getting image data:', error);
-        showNotification(`Error loading image ${path.basename(imagePath)}: ${error.message}`, 'error');
+        const imageName = await window.electronAPI.getPathBasename(imagePath); // Get basename via preload
+        console.error(`Error getting image data for ${imageName}:`, error);
+        showNotification(`Error loading image ${imageName}: ${error.message}`, 'error');
         return null;
     }
 }
 
 // --- Classification File Handling ---
 
-function getClassificationFilePath(imagesFolder) {
-    return path.join(imagesFolder, 'classifications.json');
+async function getClassificationFilePath(imagesFolder) {
+    // Use preload API for path joining
+    return await window.electronAPI.pathJoin(imagesFolder, 'classifications.json');
 }
 
 export async function loadClassifications(imagesFolder) {
-    const classificationFile = getClassificationFilePath(imagesFolder);
+    const classificationFile = await getClassificationFilePath(imagesFolder);
     updateState({ classificationFile }); // Store the path in state
 
     try {
-        // Check if the file exists using Node's fs module
-        if (fs.existsSync(classificationFile)) {
-            const data = await fs.promises.readFile(classificationFile, 'utf8');
+        // Use preload API to check existence and read
+        const exists = await window.electronAPI.checkFileExists(classificationFile);
+        if (exists) {
+            const data = await window.electronAPI.readFile(classificationFile);
             const loadedClassifications = JSON.parse(data);
             setAllClassifications(loadedClassifications);
             console.log('Classifications loaded successfully.');
@@ -110,11 +101,14 @@ export async function saveClassifications(classifications) {
     }
 
     try {
-        // Use Node's fs module directly
-        await fs.promises.writeFile(
+        // Use preload API to write file
+        const result = await window.electronAPI.writeFile(
             state.classificationFile,
             JSON.stringify(classifications, null, 2) // Pretty print JSON
         );
+        if (!result || !result.success) {
+             throw new Error(result?.error || 'Unknown error writing file');
+        }
         // console.log('Classifications saved successfully.'); // Optional: for debugging
     } catch (error) {
         console.error('Error saving classifications:', error);
