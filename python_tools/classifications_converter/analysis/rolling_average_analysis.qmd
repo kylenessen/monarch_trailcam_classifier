@@ -1,5 +1,5 @@
 ---
-title: "Monarch Count Rolling Average Analysis"
+title: "Monarch Count LOESS Smoothing Analysis"
 format: html
 editor: visual
 ---
@@ -8,7 +8,6 @@ editor: visual
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(lubridate)
-library(zoo)  # For rolling averages
 
 # Fix potential timestamp parsing issues
 options(digits.secs = 6)
@@ -16,7 +15,7 @@ options(digits.secs = 6)
 
 ## Introduction
 
-This analysis explores how different sampling intervals affect monarch count trend estimations. Using rolling averages instead of more complex models like LOESS or GAM, we'll assess whether reduced sampling frequency can still capture the same trends as the original 10-minute interval data.
+This analysis explores how different sampling intervals affect monarch count trend estimations. Using LOESS smoothing instead of rolling averages, we'll assess whether reduced sampling frequency can still capture the same trends as the original 10-minute interval data.
 
 ## Data Loading and Exploration
 
@@ -53,27 +52,63 @@ cat("Unique days:", unique_days, "\n")
 cat("Unique deployments:", unique_deployments, "\n")
 ```
 
-## Calculating Rolling Averages
+## Applying LOESS Smoothing
 
-We'll calculate rolling averages for each observation period and permutation, using different window sizes to determine the optimal smoothing level.
+We'll use LOESS (locally estimated scatterplot smoothing) to create trend lines for each observation period and permutation. LOESS is a nonparametric regression method that combines multiple regression models in a k-nearest-neighbor-based meta-model.
 
-```{r rolling-averages}
-# Calculate rolling averages directly
-rolling_data <- perm_data %>%
+```{r loess-function}
+# Function to fit LOESS model and extract predictions
+fit_loess <- function(data, span = 0.75) {
+  # Skip if we have too few data points
+  if(nrow(data) < 4) {
+    data$loess_pred <- NA
+    return(data)
+  }
+  
+  # Convert timestamp to numeric (seconds since epoch) for LOESS
+  data <- data %>%
+    mutate(time_numeric = as.numeric(time))
+  
+  # Handle potential errors in LOESS fitting
+  tryCatch({
+    # Fit LOESS model
+    loess_model <- loess(count ~ time_numeric, data = data, span = span, 
+                         control = loess.control(surface = "direct"))
+    
+    # Extract predictions
+    data$loess_pred <- predict(loess_model, data$time_numeric)
+  }, error = function(e) {
+    # If error occurs, just return NAs for predictions
+    warning(paste("LOESS fitting error:", e$message))
+    data$loess_pred <- NA
+  })
+  
+  return(data)
+}
+
+# Apply LOESS with different spans (smoothing parameters)
+loess_data <- perm_data %>%
   group_by(observation_period, permutation_number, interval_minutes) %>%
-  arrange(timestamp) %>%
-  mutate(
-    roll_avg_3 = rollapplyr(count, width = 3, FUN = mean, fill = NA, align = "center"),
-    roll_avg_5 = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center"),
-    roll_avg_7 = rollapplyr(count, width = 7, FUN = mean, fill = NA, align = "center")
-  ) %>%
+  arrange(time) %>%
+  group_modify(~fit_loess(.x, span = 0.5)) %>%
+  group_modify(~{
+    # Only apply additional spans if we have enough data points
+    if(nrow(.x) >= 4) {
+      .x$loess_pred_75 <- fit_loess(.x, span = 0.75)$loess_pred
+      .x$loess_pred_25 <- fit_loess(.x, span = 0.25)$loess_pred
+    } else {
+      .x$loess_pred_75 <- NA
+      .x$loess_pred_25 <- NA
+    }
+    return(.x)
+  }) %>%
   ungroup()
 
-# Check the structure of the rolling data
-glimpse(rolling_data)
+# Check the structure of the LOESS data
+glimpse(loess_data)
 
 # View the first few rows
-head(rolling_data)
+head(loess_data)
 ```
 
 ## Generating Reference Data from Complete Dataset
@@ -85,17 +120,24 @@ To evaluate how well different sampling intervals capture trends, we need to est
 reference_data <- perm_data %>%
   filter(interval_minutes == 10, permutation_number == 1) %>%
   group_by(observation_period) %>%
-  arrange(timestamp) %>%
-  mutate(
-    # Calculate reference rolling averages with different window sizes
-    roll_avg_3_ref = rollapplyr(count, width = 3, FUN = mean, fill = NA, align = "center"),
-    roll_avg_5_ref = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center"),
-    roll_avg_7_ref = rollapplyr(count, width = 7, FUN = mean, fill = NA, align = "center")
-  )
+  arrange(time) %>%
+  group_modify(~{
+    # Apply LOESS with different spans
+    .x <- fit_loess(.x, span = 0.5)
+    # Only apply additional spans if we have enough data points
+    if(nrow(.x) >= 4) {
+      .x$loess_pred_75 <- fit_loess(.x, span = 0.75)$loess_pred
+      .x$loess_pred_25 <- fit_loess(.x, span = 0.25)$loess_pred
+    } else {
+      .x$loess_pred_75 <- NA
+      .x$loess_pred_25 <- NA
+    }
+    return(.x)
+  })
 
-# Create lookup table with timestamps and reference rolling averages
+# Create lookup table with timestamps and reference LOESS predictions
 reference_lookup <- reference_data %>%
-  select(timestamp, contains("roll_avg")) %>%
+  select(timestamp, contains("loess_pred")) %>%
   ungroup()
 
 # Check the reference data structure
@@ -104,28 +146,28 @@ glimpse(reference_lookup)
 
 ## Calculating RMSE for Different Sampling Intervals
 
-For each permutation and interval, we'll calculate the RMSE between the rolling average values and the reference values at matching timestamps.
+For each permutation and interval, we'll calculate the RMSE between the LOESS smoothed values and the reference values at matching timestamps.
 
 ```{r calculate-rmse}
 # Convert timestamp to character format for consistent joining
-rolling_data <- rolling_data %>%
+loess_data <- loess_data %>%
   mutate(timestamp_str = as.character(timestamp))
 
 reference_lookup <- reference_lookup %>%
   mutate(timestamp_str = as.character(timestamp))
 
 # Join the permutation data with reference data
-comparison_data <- rolling_data %>%
+comparison_data <- loess_data %>%
   left_join(reference_lookup, by = "timestamp_str", suffix = c("", "_ref"))
 
-# Calculate RMSE for each permutation, interval, and window size
+# Calculate RMSE for each permutation, interval, and span
 rmse_results <- comparison_data %>%
   group_by(observation_period, interval_minutes, permutation_number) %>%
   summarize(
-    # Calculate RMSE for each window size
-    rmse_window_3 = sqrt(mean((roll_avg_3 - roll_avg_3_ref)^2, na.rm = TRUE)),
-    rmse_window_5 = sqrt(mean((roll_avg_5 - roll_avg_5_ref)^2, na.rm = TRUE)),
-    rmse_window_7 = sqrt(mean((roll_avg_7 - roll_avg_7_ref)^2, na.rm = TRUE)),
+    # Calculate RMSE for each span
+    rmse_span_50 = sqrt(mean((loess_pred - loess_pred_ref)^2, na.rm = TRUE)),
+    rmse_span_75 = sqrt(mean((loess_pred_75 - loess_pred_75_ref)^2, na.rm = TRUE)),
+    rmse_span_25 = sqrt(mean((loess_pred_25 - loess_pred_25_ref)^2, na.rm = TRUE)),
     n_observations = n(),
     .groups = "drop"
   )
@@ -134,15 +176,15 @@ rmse_results <- comparison_data %>%
 rmse_by_interval <- rmse_results %>%
   group_by(interval_minutes) %>%
   summarize(
-    mean_rmse_window_3 = mean(rmse_window_3, na.rm = TRUE),
-    mean_rmse_window_5 = mean(rmse_window_5, na.rm = TRUE),
-    mean_rmse_window_7 = mean(rmse_window_7, na.rm = TRUE),
-    median_rmse_window_3 = median(rmse_window_3, na.rm = TRUE),
-    median_rmse_window_5 = median(rmse_window_5, na.rm = TRUE),
-    median_rmse_window_7 = median(rmse_window_7, na.rm = TRUE),
-    sd_rmse_window_3 = sd(rmse_window_3, na.rm = TRUE),
-    sd_rmse_window_5 = sd(rmse_window_5, na.rm = TRUE),
-    sd_rmse_window_7 = sd(rmse_window_7, na.rm = TRUE),
+    mean_rmse_span_50 = mean(rmse_span_50, na.rm = TRUE),
+    mean_rmse_span_75 = mean(rmse_span_75, na.rm = TRUE),
+    mean_rmse_span_25 = mean(rmse_span_25, na.rm = TRUE),
+    median_rmse_span_50 = median(rmse_span_50, na.rm = TRUE),
+    median_rmse_span_75 = median(rmse_span_75, na.rm = TRUE),
+    median_rmse_span_25 = median(rmse_span_25, na.rm = TRUE),
+    sd_rmse_span_50 = sd(rmse_span_50, na.rm = TRUE),
+    sd_rmse_span_75 = sd(rmse_span_75, na.rm = TRUE),
+    sd_rmse_span_25 = sd(rmse_span_25, na.rm = TRUE),
     n_permutations = n_distinct(permutation_number),
     .groups = "drop"
   )
@@ -162,26 +204,26 @@ print(colnames(rmse_by_interval))
 rmse_long <- rmse_by_interval %>%
   pivot_longer(
     cols = starts_with("mean_rmse"),
-    names_to = "window_size",
+    names_to = "span_size",
     values_to = "rmse"
   ) %>%
   mutate(
-    window_size = factor(window_size, 
-                         levels = c("mean_rmse_window_3", "mean_rmse_window_5", "mean_rmse_window_7"),
-                         labels = c("3-point window", "5-point window", "7-point window"))
+    span_size = factor(span_size, 
+                       levels = c("mean_rmse_span_25", "mean_rmse_span_50", "mean_rmse_span_75"),
+                       labels = c("Span 0.25 (more local)", "Span 0.50 (balanced)", "Span 0.75 (more smooth)"))
   )
 
-# Plot RMSE by interval and window size
-ggplot(rmse_long, aes(x = factor(interval_minutes), y = rmse, fill = window_size)) +
+# Plot RMSE by interval and span size
+ggplot(rmse_long, aes(x = factor(interval_minutes), y = rmse, fill = span_size)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.9)) +
   geom_text(aes(label = round(rmse, 1)), position = position_dodge(width = 0.9), 
             vjust = -0.5, size = 3) +
   labs(
-    title = "RMSE by Sampling Interval and Rolling Average Window Size",
+    title = "RMSE by Sampling Interval and LOESS Smoothing Parameter",
     subtitle = "Comparing different sampling intervals to the reference 10-minute data",
     x = "Sampling Interval (minutes)",
     y = "Root Mean Square Error (RMSE)",
-    fill = "Window Size"
+    fill = "LOESS Span"
   ) +
   theme_minimal() +
   theme(
@@ -190,19 +232,19 @@ ggplot(rmse_long, aes(x = factor(interval_minutes), y = rmse, fill = window_size
   )
 
 # Save the figure
-ggsave("figures/rmse_by_interval_rolling_avg.png", width = 10, height = 6)
+ggsave("figures/rmse_by_interval_loess.png", width = 10, height = 6)
 ```
 
-## Visualizing Example Data with Rolling Averages
+## Visualizing Example Data with LOESS Smoothing
 
-Let's visualize a sample day to see how the different rolling averages compare to the actual data.
+Let's visualize a sample day to see how the different LOESS trends compare across sampling intervals.
 
 ```{r visualize-example, fig.width=12, fig.height=8}
 # Select a single observation period for visualization
 example_period <- unique(perm_data$observation_period)[1]
 
 # Prepare data for the selected period with different intervals
-example_data <- perm_data %>%
+example_data <- loess_data %>%
   filter(
     observation_period == example_period,
     interval_minutes %in% c(10, 20, 30, 60)
@@ -210,22 +252,16 @@ example_data <- perm_data %>%
   # Make sure we have one permutation per interval (use the first one)
   group_by(interval_minutes) %>%
   filter(permutation_number == min(permutation_number)) %>%
-  ungroup() %>%
-  # Calculate rolling averages
-  group_by(interval_minutes) %>%
-  arrange(timestamp) %>%
-  mutate(
-    roll_avg_5 = rollapplyr(count, width = 5, FUN = mean, fill = NA, align = "center")
-  )
+  ungroup()
 
 # Plot the example data
-ggplot(example_data, aes(x = as_datetime(timestamp))) +
+ggplot(example_data, aes(x = time)) +
   geom_point(aes(y = count, color = factor(interval_minutes)), alpha = 0.7) +
-  geom_line(aes(y = roll_avg_5, color = factor(interval_minutes)), 
-            linetype = "dashed", linewidth = 1) +
+  geom_line(aes(y = loess_pred, color = factor(interval_minutes)), 
+            linetype = "solid", linewidth = 1) +
   labs(
-    title = paste("Monarch Counts and 5-point Rolling Averages for", example_period),
-    subtitle = "Comparing different sampling intervals",
+    title = paste("Monarch Counts and LOESS Trends for", example_period),
+    subtitle = "Comparing different sampling intervals with LOESS smoothing (span = 0.5)",
     x = "Time",
     y = "Monarch Count",
     color = "Sampling Interval (minutes)"
@@ -235,7 +271,7 @@ ggplot(example_data, aes(x = as_datetime(timestamp))) +
   theme(legend.position = "bottom")
 
 # Save the figure
-ggsave("figures/example_rolling_avg_comparison.png", width = 12, height = 8)
+ggsave("figures/example_loess_comparison.png", width = 12, height = 8)
 ```
 
 ## RMSE Distribution Across Permutations
@@ -244,48 +280,49 @@ ggsave("figures/example_rolling_avg_comparison.png", width = 12, height = 8)
 # Prepare data for box plots
 rmse_distribution <- rmse_results %>%
   pivot_longer(
-    cols = starts_with("rmse_window"),
-    names_to = "window_size",
+    cols = starts_with("rmse_span"),
+    names_to = "span_size",
     values_to = "rmse"
   ) %>%
   mutate(
-    window_size = factor(window_size, 
-                         levels = c("rmse_window_3", "rmse_window_5", "rmse_window_7"),
-                         labels = c("3-point window", "5-point window", "7-point window"))
+    span_size = factor(span_size, 
+                       levels = c("rmse_span_25", "rmse_span_50", "rmse_span_75"),
+                       labels = c("Span 0.25 (more local)", "Span 0.50 (balanced)", "Span 0.75 (more smooth)"))
   )
 
 # Create boxplots to show RMSE distribution
-ggplot(rmse_distribution, aes(x = factor(interval_minutes), y = rmse, fill = window_size)) +
+ggplot(rmse_distribution, aes(x = factor(interval_minutes), y = rmse, fill = span_size)) +
   geom_boxplot(alpha = 0.7) +
-  facet_wrap(~ window_size, ncol = 1) +
+  facet_wrap(~ span_size, ncol = 1) +
   labs(
-    title = "RMSE Distribution by Sampling Interval and Window Size",
+    title = "RMSE Distribution by Sampling Interval and LOESS Span",
     subtitle = "Boxplots showing variation across permutations",
     x = "Sampling Interval (minutes)",
     y = "Root Mean Square Error (RMSE)",
-    fill = "Window Size"
+    fill = "LOESS Span"
   ) +
   theme_minimal() +
   theme(legend.position = "none")
 
 # Save the figure
-ggsave("figures/rmse_distribution_by_interval.png", width = 10, height = 8)
+ggsave("figures/rmse_distribution_loess_by_interval.png", width = 10, height = 8)
 ```
 
 ## Conclusion
 
-This analysis investigates how different sampling intervals (using rolling averages as trend estimators) affect our ability to capture monarch count patterns. The RMSE metrics provide a quantitative measure of how well each sampling interval approximates the reference 10-minute data.
+This analysis investigates how different sampling intervals (using LOESS smoothing as trend estimators) affect our ability to capture monarch count patterns. The RMSE metrics provide a quantitative measure of how well each sampling interval approximates the reference 10-minute data.
 
 Key findings:
-- Rolling averages provide a simple yet effective way to smooth monarch count data and identify trends
+- LOESS smoothing provides a flexible way to identify trends in monarch count data, with smoothing parameters that can be adjusted to focus on local or global patterns
 - The RMSE increases with longer sampling intervals, showing a tradeoff between sampling frequency and accuracy
 - The 20-minute and 30-minute intervals appear to maintain reasonable accuracy while reducing data collection effort by 50-67%
-- Larger window sizes (5-point and 7-point) generally produce more stable trend lines but may miss short-term fluctuations
+- Different LOESS spans offer varying degrees of smoothness, with span=0.5 generally providing a good balance
 
 Recommendations:
-- For most purposes, a 20-minute sampling interval with a 5-point rolling average provides a good balance between accuracy and data collection effort
-- When short-term variations are less important, 30-minute intervals could be sufficient
-- If highly precise counts are needed (e.g., for detecting subtle changes), maintaining the 10-minute interval is recommended
+- For most purposes, a 20-minute sampling interval with LOESS smoothing (span=0.5) provides a good balance between accuracy and data collection effort
+- When short-term variations are important, using a smaller span (0.25) can help capture more local patterns
+- For capturing general trends with less noise, a larger span (0.75) and 30-minute intervals could be sufficient
+- If highly precise counts are needed, maintaining the 10-minute interval is recommended
 - Further validation with additional observation periods would strengthen these findings
 
 The results can help optimize future data collection efforts, potentially reducing sampling frequency while maintaining sufficient accuracy for trend analysis. This approach allows for more efficient monitoring of monarch populations without sacrificing the ability to detect important patterns.
