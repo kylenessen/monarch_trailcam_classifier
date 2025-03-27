@@ -4,5 +4,5 @@ dist/
 *.log
 images/
 .Rproj.user
-python_tools/classifications_converter/analysis/analysis.Rproj
-python_tools/classifications_converter/analysis/.Rhistory
+python-tools/classifications_converter/analysis/analysis.Rproj
+python-tools/classifications_converter/analysis/.Rhistory

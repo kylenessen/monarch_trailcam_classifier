@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "description": "A desktop application for classifying monarch butterflies in trail-camera photos",
   "author": "",
-  "main": "src/main/main.js",
+  "main": "electron-app/src/main/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron src/main/main.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "electron-builder"
   },
