@@ -13,9 +13,10 @@ test('Keyboard shortcuts help toggle', async () => {
   const window = await electronApp.firstWindow();
   await window.waitForLoadState('domcontentloaded'); // Ensure DOM is ready
 
-  // Locate elements
-  const shortcutsHeader = window.locator('.shortcuts-header');
-  const helpContainer = window.locator('.keyboard-shortcuts-help');
+  // Locate elements specifically for Keyboard Shortcuts section
+  // Find the container that has an h3 with text 'Keyboard Shortcuts'
+  const helpContainer = window.locator('div.keyboard-shortcuts-help:has(h3:has-text("Keyboard Shortcuts"))');
+  const shortcutsHeader = helpContainer.locator('.shortcuts-header'); // Header within the correct container
   const collapseIndicator = shortcutsHeader.locator('.collapse-indicator');
 
   // 1. Initial state: Should be collapsed
@@ -24,8 +25,10 @@ test('Keyboard shortcuts help toggle', async () => {
 
   // 2. Click to expand
   await shortcutsHeader.click();
-  await expect(helpContainer).not.toHaveClass(/collapsed/);
-  await expect(collapseIndicator).toHaveText('−'); // Using minus sign based on ui.js logic
+  // Wait for the class to be removed first, then check the indicator text
+  await expect(helpContainer, 'Help container should not have collapsed class after expand').not.toHaveClass(/collapsed/);
+  await expect(collapseIndicator, 'Indicator should change to minus after expand').toHaveText('−');
+
 
   // 3. Click to collapse again
   await shortcutsHeader.click();
