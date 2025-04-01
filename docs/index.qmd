@@ -227,9 +227,21 @@ If you have any further questions on this aspect of the photo labeling, please g
 
 ## Night photos
 
-Night photos can be challenging to classify due to the trail camera's flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours. You can typically use the `S` key or the "Copy Previous" button to copy classifications from the previous image.
+Night photos can be challenging to classify due to the trail camera's flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours.
 
 If you do observe significant changes in butterfly numbers during nighttime hours, please contact me, as this would be an interesting and unusual finding.
+
+### "Night" Button Feature
+
+To speed up the processing of these often numerous and unchanging night photos, a special "Night" button is available next to the "Confirm Image" button.
+
+-   **Purpose:** This button acts as a macro to quickly apply the previous image's classification to a night photo and move to the next one. It assumes butterflies remain stationary overnight.
+-   **How to Use:** When you encounter the *first* image in a sequence of night photos, simply click the "Night" button. Continue clicking "Night" for each subsequent night photo until you reach a daylight image. Then, resume normal classification.
+-   **How it Works:** Clicking "Night" performs three actions automatically:
+    1.  Copies the classification data from the previously confirmed image.
+    2.  Confirms the current image, specifically marking it with an internal "Night" flag (visible as a light blue border/overlay instead of the usual green).
+    3.  Advances to the next image.
+-   **Undoing Mistakes:** If you accidentally click "Night" on a daylight image or need to correct a night classification, simply use the "Reset Image" button. This will clear the classification *and* remove the "Night" flag, allowing you to classify it normally.
 
 ## Label storage
 

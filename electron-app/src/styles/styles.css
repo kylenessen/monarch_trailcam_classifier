@@ -406,32 +406,65 @@ button:disabled {
     margin: -1px;
 }
 
-/* Confirmed image styles */
-.image-wrapper.confirmed::before {
-    content: '✓ CONFIRMED' !important;
+/* Status indicator styles */
+/* Standard Confirmed */
+.image-wrapper.status-confirmed::before {
+    content: '✓ CONFIRMED'; /* Removed !important */
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background-color: rgba(40, 167, 69, 0.95);
+    top: 10px; /* Adjusted position slightly */
+    right: 10px; /* Adjusted position slightly */
+    background-color: rgba(40, 167, 69, 0.85); /* Slightly less opaque */
     color: var(--white);
-    padding: 10px 20px;
-    border-radius: 6px;
+    padding: 5px 10px; /* Adjusted padding */
+    border-radius: var(--border-radius); /* Use variable */
     z-index: 2;
     font-weight: bold;
-    font-size: 1.2em;
+    font-size: 0.9em; /* Adjusted size */
+    pointer-events: none; /* Prevent interaction */
 }
 
-.image-wrapper.confirmed::after {
+.image-wrapper.status-confirmed::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    border: 10px solid rgba(40, 167, 69, 0.7);
+    border: 5px solid rgba(40, 167, 69, 0.6); /* Adjusted border */
     pointer-events: none;
     z-index: 1;
+    box-sizing: border-box; /* Include border in size */
 }
+
+/* Night Confirmed */
+.image-wrapper.status-night::before {
+    content: '✓ NIGHT';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 122, 255, 0.85); /* Light blue */
+    color: var(--white);
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    z-index: 2;
+    font-weight: bold;
+    font-size: 0.9em;
+    pointer-events: none;
+}
+
+.image-wrapper.status-night::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 5px solid rgba(0, 122, 255, 0.6); /* Light blue border */
+    pointer-events: none;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
 
 /* Welcome message styles */
 #welcome-message {
