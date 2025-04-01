@@ -26,7 +26,7 @@ export function confirmImage(imageFile, user, markAsNight = false) {
         ...classification, // Spread existing data (like cells, index, notes)
         confirmed: !isCurrentlyConfirmed, // Toggle status
         user: !isCurrentlyConfirmed ? user : (classification.user || null), // Add user only when confirming
-        isNight: !isCurrentlyConfirmed ? markAsNight : (classification.isNight || false) // Set isNight on confirm, keep if unconfirming
+        isNight: !isCurrentlyConfirmed ? markAsNight : false // Set isNight on confirm, explicitly reset to false on unconfirm
     };
 
     // Ensure cells exist if confirming a potentially new entry
