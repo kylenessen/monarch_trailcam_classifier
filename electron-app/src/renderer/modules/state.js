@@ -15,6 +15,10 @@ let currentState = {
     isColorMode: false,  // Default to black and white
     notesDialog: {
         isVisible: false
+    },
+    currentGridConfig: { // Added for dynamic grid resolution
+        rows: null,
+        columns: null
     }
 };
 
@@ -25,12 +29,6 @@ export const CLASSIFICATIONS = {
     '10-99': { label: '10-99', color: 'rgba(255, 152, 0, 0.3)' },
     '100-999': { label: '100-999', color: 'rgba(244, 67, 54, 0.3)' },
     '1000+': { label: '1000+', color: 'rgba(156, 39, 176, 0.3)' }
-};
-
-// Grid configuration
-export const GRID_CONFIG = {
-    columns: 16,
-    rows: 9
 };
 
 // Define the category order for cycling
@@ -66,7 +64,7 @@ export function setClassificationForCell(imageName, cellId, classification) {
             index: currentState.imageFiles.indexOf(imageName) // Ensure index is set if creating new entry
         };
     }
-    
+
     // Ensure cells object exists
     if (!currentState.classifications[imageName].cells) {
         currentState.classifications[imageName].cells = {};
@@ -85,6 +83,21 @@ export function getImageClassification(imageName) {
 
 export function setImageClassification(imageName, classificationData) {
     currentState.classifications[imageName] = classificationData;
+}
+
+// --- Grid Configuration Accessors ---
+
+export function getGridConfig() {
+    return currentState.currentGridConfig;
+}
+
+export function setGridConfig(rows, columns) {
+    if (typeof rows === 'number' && rows > 0 && typeof columns === 'number' && columns > 0) {
+        currentState.currentGridConfig = { rows, columns };
+    } else {
+        console.error('Invalid grid dimensions provided to setGridConfig:', rows, columns);
+        // Optionally set to null or keep previous valid config? For now, log error.
+    }
 }
 
 export function getAllClassifications() {
@@ -124,13 +137,21 @@ export function resetApplicationState() {
     };
 }
 
-// Helper to create default grid cells structure
+// Helper to create default grid cells structure for a *new* image entry
 export function createDefaultGridCells() {
     const cells = {};
-    for (let row = 0; row < GRID_CONFIG.rows; row++) {
-        for (let col = 0; col < GRID_CONFIG.columns; col++) {
+    const { rows, columns } = currentState.currentGridConfig; // Use current config
+
+    // Ensure grid config is loaded before calling this
+    if (rows === null || columns === null) {
+        console.error("Attempted to create default grid cells before grid config was set.");
+        return {}; // Return empty object or handle error appropriately
+    }
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < columns; c++) {
             // Use a utility function (which we'll define later) if needed, or keep it simple
-            const cellId = `cell_${row}_${col}`; 
+            const cellId = `cell_${r}_${c}`;
             cells[cellId] = { ...DEFAULT_CELL_CLASSIFICATION }; // Ensure a copy
         }
     }

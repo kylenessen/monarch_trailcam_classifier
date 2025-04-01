@@ -4,13 +4,16 @@ import {
     getState,
     updateState,
     getCurrentState,
+    setGridConfig, // Added
+    setAllClassifications, // Added
     CATEGORIES,
     CLASSIFICATIONS
 } from './state.js';
-import { promptForDeploymentFolder, loadImageList, saveClassifications, loadClassifications, initializeClassificationsIfNeeded } from './file-system.js';
+// Updated import: loadOrInitializeConfiguration handles both loading and init prompt trigger
+import { promptForDeploymentFolder, loadImageList, saveClassifications, loadOrInitializeConfiguration } from './file-system.js';
 import { showNotification, validateUsername } from './utils.js';
 // Import functions from other modules that ui.js will call
-import { loadImageByIndex, findNextUnclassified, updateImageColorMode } from './image-grid.js'; // Assuming these will be in image-grid.js
+import { loadImageByIndex, findNextUnclassified, updateImageColorMode } from './image-grid.js';
 import { confirmImage, copyFromPrevious, resetImage } from './classification.js'; // Assuming these will be in classification.js
 import { toggleNotesDialog } from './notes.js'; // Assuming this will be in notes.js
 
@@ -31,8 +34,13 @@ let copyButton = null;
 let resetButton = null;
 let colorToggleButton = null;
 let notesButton = null;
-let nightButton = null; // Add reference for the new button
+let nightButton = null;
 let documentationButton = null;
+// Add references for grid resolution dialog elements
+let gridResolutionDialog = null;
+let gridResolutionForm = null;
+let gridRowsInput = null;
+// Note: Buttons are referenced within the prompt function's scope
 
 // --- Initialization ---
 
@@ -54,8 +62,13 @@ export function initializeUI() {
     resetButton = document.getElementById('reset-image');
     colorToggleButton = document.getElementById('color-toggle');
     notesButton = document.getElementById('notes-button');
-    nightButton = document.getElementById('night-button'); // Cache the new button
+    nightButton = document.getElementById('night-button');
     documentationButton = document.getElementById('documentation-button');
+    // Cache grid resolution dialog elements
+    gridResolutionDialog = document.getElementById('grid-resolution-dialog');
+    gridResolutionForm = document.getElementById('grid-resolution-form');
+    gridRowsInput = document.getElementById('grid-rows-input');
+    // Buttons are handled within the prompt function
 
     // Initialize username from localStorage
     usernameInputElement.value = localStorage.getItem('monarchUsername') || '';
@@ -120,23 +133,56 @@ async function handleFolderSelection(event) {
     // Clear previous image/grid if any
     clearImageContainer();
 
-    updateState({ imagesFolder: folderPath });
-    // Use preload function to get basename
-    deploymentIdElement.textContent = await window.electronAPI.getPathBasename(folderPath);
+    // Assume the selected folder is the deployment folder containing configurations.json
+    // and potentially an 'images' subfolder (or images are directly inside).
+    // For now, assume images are directly in the selected folder.
+    // TODO: Clarify if images are always in a subfolder named 'images'. If so, adjust path logic.
+    const deploymentFolder = folderPath;
+    const imagesFolder = folderPath; // Assuming images are directly in the deployment folder for now
 
-    const imageFiles = await loadImageList(folderPath);
-    updateState({ imageFiles: imageFiles, currentImageIndex: -1 }); // Reset index
+    updateState({ deploymentFolder: deploymentFolder, imagesFolder: imagesFolder }); // Set both
+    deploymentIdElement.textContent = await window.electronAPI.getPathBasename(deploymentFolder);
 
-    if (imageFiles.length > 0) {
-        const classificationsLoaded = await loadClassifications(folderPath);
-        if (!classificationsLoaded) {
-            initializeClassificationsIfNeeded(imageFiles);
+    // --- Core Loading Sequence ---
+    // 1. Load or Initialize Configuration (This might prompt the user)
+    const configLoaded = await loadOrInitializeConfiguration(deploymentFolder, imagesFolder);
+
+    if (configLoaded) {
+        // 2. If config succeeded, THEN load the image list
+        const loadedImageFiles = await loadImageList(imagesFolder);
+        updateState({ imageFiles: loadedImageFiles, currentImageIndex: -1 }); // Update state with actual images
+
+        if (loadedImageFiles.length > 0) {
+            // 3. If images exist, load the first unclassified one
+            // Grid config should be set by loadOrInitializeConfiguration at this point
+            if (getState().currentGridConfig.rows && getState().currentGridConfig.columns) {
+                await findNextUnclassifiedHandler(); // Load the first unclassified image
+            } else {
+                console.error("Configuration loaded/created, but grid config not set in state.");
+                showNotification("Error: Grid configuration missing after load/init.", "error");
+                handleNoImagesFound(); // Reset UI
+            }
+        } else {
+            // Config loaded/created, but no images found in the folder
+            handleNoImagesFound();
         }
-        await findNextUnclassifiedHandler(); // Load the first unclassified image
     } else {
-        handleNoImagesFound(); // Update UI for no images
+        // Handle configuration loading/creation failure or cancellation by user
+        handleNoImagesFound(); // Reset UI as if no folder was loaded
+        deploymentIdElement.textContent = 'Click to select folder'; // Reset folder display
+        // Ensure state is fully reset
+        updateState({
+            deploymentFolder: null, // Reset deployment folder
+            imagesFolder: null,
+            imageFiles: [],
+            currentImageIndex: -1,
+            classifications: {},
+            classificationFile: null, // Also reset file path
+            currentGridConfig: { rows: null, columns: null }
+        });
     }
-    updateProgress(); // Update progress after loading
+
+    updateProgress(); // Update progress after loading attempt
 }
 
 function handleCategoryButtonClick(button) {
@@ -144,6 +190,104 @@ function handleCategoryButtonClick(button) {
     updateState({ selectedTool });
     updateActiveCategoryButton();
 }
+
+
+// --- Grid Resolution Prompt ---
+
+/**
+ * Displays a modal dialog to get the desired grid rows from the user.
+ * Calculates columns based on a fixed 16:9 aspect ratio, updates state,
+ * and saves the initial configurations.json.
+ * @returns {Promise<boolean>} - True if configuration was successfully created, false on cancel/error.
+ */
+export function promptForGridResolution() { // Removed initialImageDimensions parameter
+    return new Promise((resolve) => {
+        if (!gridResolutionDialog || !gridResolutionForm || !gridRowsInput) {
+            console.error('Grid resolution dialog elements not found.');
+            return resolve(false); // Cannot proceed
+        }
+
+        const confirmButton = gridResolutionDialog.querySelector('#confirm-grid-resolution');
+        const cancelButton = gridResolutionDialog.querySelector('#cancel-grid-resolution');
+
+        // --- Event Handlers for the Dialog ---
+        const handleConfirm = async (event) => {
+            event.preventDefault(); // Prevent default form submission
+            const userRows = parseInt(gridRowsInput.value, 10);
+
+            // Validation
+            if (isNaN(userRows) || userRows < 1) {
+                showNotification('Please enter a valid number of rows (1 or more).', 'warning');
+                return;
+            }
+
+            // Calculate columns using fixed 16:9 aspect ratio
+            const aspectRatio = 16 / 9;
+            const calculatedColumns = Math.max(1, Math.round(userRows * aspectRatio));
+
+            console.log(`Calculated grid (16:9 ratio): ${userRows} rows, ${calculatedColumns} columns`);
+
+            // Update state
+            setGridConfig(userRows, calculatedColumns);
+            setAllClassifications({}); // Initialize classifications as empty
+
+            // Create and save the initial configurations.json file
+            const configFilePath = getState().classificationFile; // Get path set by loadOrInitializeConfiguration
+            if (!configFilePath) {
+                console.error("Configuration file path not set in state before saving.");
+                showNotification("Error: Cannot determine where to save configuration.", "error");
+                cleanupAndResolve(false); // Indicate failure
+                return;
+            }
+
+            const dataToSave = {
+                rows: userRows,
+                columns: calculatedColumns,
+                classifications: {} // Start with empty classifications
+            };
+
+            try {
+                const result = await window.electronAPI.writeFile(
+                    configFilePath,
+                    JSON.stringify(dataToSave, null, 2)
+                );
+                if (!result || !result.success) {
+                    throw new Error(result?.error || 'Unknown error writing configuration file');
+                }
+                console.log('Initial configurations.json saved successfully.');
+                cleanupAndResolve(true); // Indicate success
+            } catch (error) {
+                console.error('Error saving initial configuration:', error);
+                showNotification(`Failed to save configuration file: ${error.message}`, 'error');
+                cleanupAndResolve(false); // Indicate failure
+            }
+        };
+
+        const handleCancel = () => {
+            console.log('Grid resolution cancelled by user.');
+            cleanupAndResolve(false); // Indicate cancellation
+        };
+
+        const cleanupAndResolve = (success) => {
+            gridResolutionForm.removeEventListener('submit', handleConfirm);
+            cancelButton.removeEventListener('click', handleCancel);
+            gridResolutionDialog.close();
+            resolve(success);
+        };
+
+        // --- Attach Listeners and Show Dialog ---
+        gridResolutionForm.addEventListener('submit', handleConfirm);
+        cancelButton.addEventListener('click', handleCancel);
+
+        // Reset input to default just before showing
+        gridRowsInput.value = '9';
+        gridResolutionDialog.showModal();
+    });
+}
+
+
+// --- Original Event Handlers (navigate, findNext, confirm, copy, reset, etc.) ---
+// (Keep the existing handlers below this new section)
 
 export function navigateImageHandler(direction) { // Add export
     const state = getCurrentState();

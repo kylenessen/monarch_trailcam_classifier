@@ -85,9 +85,34 @@
                 <button id="prev-image">Previous</button>
                 <button id="next-image">Next</button>
                 <button id="next-unclassified">Next Unclassified</button>
-            </div>
         </div>
     </div>
-    <script type="module" src="../renderer/renderer.js"></script>
+
+    <!-- Grid Resolution Prompt Modal -->
+    <dialog id="grid-resolution-dialog">
+        <h2>Set Grid Resolution</h2>
+        <p>No configuration found for this deployment.</p>
+        <form id="grid-resolution-form">
+            <label for="grid-rows-input">Enter desired number of rows (default: 9):</label>
+            <input type="number" id="grid-rows-input" name="rows" value="9" min="1" required>
+            <p>Columns will be calculated automatically based on image aspect ratio.</p>
+            <div class="dialog-buttons">
+                <button type="submit" id="confirm-grid-resolution">Confirm</button>
+                <button type="button" id="cancel-grid-resolution">Cancel</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- Notes Modal -->
+    <dialog id="notes-dialog">
+        <h2>Image Notes</h2>
+        <textarea id="notes-textarea" rows="10" cols="50"></textarea>
+        <div class="dialog-buttons">
+            <button id="save-notes-button">Save</button>
+            <button id="cancel-notes-button">Cancel</button>
+        </div>
+    </dialog>
+
+    <script src="renderer.js" type="module"></script>
 </body>
 </html>

@@ -6,8 +6,9 @@ import {
     setClassificationForCell,
     getClassificationForCell,
     getImageClassification,
+    getGridConfig, // Added
     CLASSIFICATIONS,
-    GRID_CONFIG,
+    // GRID_CONFIG, // Removed
     DEFAULT_CELL_CLASSIFICATION
 } from './state.js';
 import { getImageData, saveClassifications } from './file-system.js';
@@ -146,23 +147,34 @@ function createGrid(wrapper, imageWidth, imageHeight) {
     gridOverlay.className = 'grid-overlay';
 
     const state = getCurrentState();
+    const { rows, columns } = getGridConfig(); // Get dynamic config
+
+    // Ensure grid config is valid before creating grid
+    if (!rows || !columns) {
+        console.error("Cannot create grid: Grid configuration not set or invalid.", { rows, columns });
+        showNotification("Error: Grid configuration is missing.", "error");
+        // Optionally clear the wrapper or show an error message within it
+        wrapper.innerHTML = '<div class="error-message">Grid configuration missing</div>';
+        return; // Stop grid creation
+    }
+
     const currentImageFile = state.imageFiles[state.currentImageIndex];
     const imageClassifications = getImageClassification(currentImageFile); // Get full classification object
 
-    for (let row = 0; row < GRID_CONFIG.rows; row++) {
-        for (let col = 0; col < GRID_CONFIG.columns; col++) {
-            const cellId = generateCellId(row, col);
+    for (let r = 0; r < rows; r++) { // Use dynamic rows
+        for (let c = 0; c < columns; c++) { // Use dynamic columns
+            const cellId = generateCellId(r, c); // Use loop variables r, c
             const cell = document.createElement('div');
             cell.className = 'grid-cell';
-            cell.dataset.row = row;
-            cell.dataset.col = col;
+            cell.dataset.row = r; // Use loop variable r
+            cell.dataset.col = c; // Use loop variable c
             cell.dataset.cellId = cellId; // Store cellId for easy access in handler
 
-            // Set dimensions and position using percentages
-            cell.style.width = `${(1 / GRID_CONFIG.columns) * 100}%`;
-            cell.style.height = `${(1 / GRID_CONFIG.rows) * 100}%`;
-            cell.style.left = `${(col / GRID_CONFIG.columns) * 100}%`;
-            cell.style.top = `${(row / GRID_CONFIG.rows) * 100}%`;
+            // Set dimensions and position using percentages with dynamic columns/rows
+            cell.style.width = `${(1 / columns) * 100}%`;
+            cell.style.height = `${(1 / rows) * 100}%`;
+            cell.style.left = `${(c / columns) * 100}%`;
+            cell.style.top = `${(r / rows) * 100}%`;
 
             // Apply existing classification style
             // Ensure cells object exists before accessing
