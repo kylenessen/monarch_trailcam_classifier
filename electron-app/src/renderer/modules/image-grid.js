@@ -1,34 +1,34 @@
 // Removed: import path from 'path';
-import { 
-    getState, 
-    updateState, 
-    getCurrentState, 
-    setClassificationForCell, 
-    getClassificationForCell, 
+import {
+    getState,
+    updateState,
+    getCurrentState,
+    setClassificationForCell,
+    getClassificationForCell,
     getImageClassification,
-    CLASSIFICATIONS, 
+    CLASSIFICATIONS,
     GRID_CONFIG,
     DEFAULT_CELL_CLASSIFICATION
 } from './state.js';
 import { getImageData, saveClassifications } from './file-system.js';
 import { showNotification, generateCellId } from './utils.js';
-import { 
-    updateProgress, 
-    updateNavigationButtons, 
-    disableClassificationTools, 
+import {
+    updateProgress,
+    updateNavigationButtons,
+    disableClassificationTools,
     updateConfirmButtonState,
     updateNotesButtonState,
     clearImageContainer
 } from './ui.js'; // Import UI update functions
 
 // Keep track of F key state locally within this module if only grid interaction uses it
-let isFKeyPressed = false; 
+let isFKeyPressed = false;
 
 // --- Image Loading and Display ---
 
 export async function loadImageByIndex(index) { // Already async, good.
     const state = getCurrentState();
-    
+
     // Basic validation
     if (index < 0 || index >= state.imageFiles.length) {
         console.error('Invalid image index requested:', index);
@@ -38,13 +38,13 @@ export async function loadImageByIndex(index) { // Already async, good.
 
     const imageFile = state.imageFiles[index];
     // Use preload API for path joining
-    const imagePath = await window.electronAPI.pathJoin(state.imagesFolder, imageFile); 
+    const imagePath = await window.electronAPI.pathJoin(state.imagesFolder, imageFile);
 
     try {
         const imageData = await getImageData(imagePath); // Get base64 data
         if (!imageData) {
             // Error handled within getImageData, just exit
-            return; 
+            return;
         }
 
         // Update state *before* async UI operations
@@ -52,13 +52,13 @@ export async function loadImageByIndex(index) { // Already async, good.
 
         // Setup display
         await setupImageDisplay(imageFile, imageData);
-        
+
         // Update UI elements after image is potentially displayed
         updateNavigationButtons();
         updateProgress();
         updateNotesButtonState(); // Update based on the new image's notes
         updateConfirmButtonState(imageFile); // Update confirm button based on new image's state
-        
+
         // Check if the newly loaded image is confirmed and disable tools if necessary
         const classification = getImageClassification(imageFile);
         disableClassificationTools(classification?.confirmed || false);
@@ -89,20 +89,20 @@ async function setupImageDisplay(imageFile, imageData) {
         img.onload = () => {
             try {
                 // Store original dimensions in state
-                updateState({ 
-                    originalImageWidth: img.naturalWidth, 
-                    originalImageHeight: img.naturalHeight 
+                updateState({
+                    originalImageWidth: img.naturalWidth,
+                    originalImageHeight: img.naturalHeight
                 });
-                
+
                 // Apply initial color mode
-                updateImageColorMode(img); 
-                
+                updateImageColorMode(img);
+
                 // Create the grid
                 createGrid(wrapper, img.naturalWidth, img.naturalHeight);
-                
+
                 // Setup resize observer for the new image/wrapper
-                setupResizeObserver(wrapper); 
-                
+                setupResizeObserver(wrapper);
+
                 resolve();
             } catch (error) {
                 console.error("Error during image onload processing:", error);
@@ -125,9 +125,17 @@ function createImageWrapper(imageFile) {
     const wrapper = document.createElement('div');
     wrapper.className = 'image-wrapper';
     const classification = getImageClassification(imageFile);
+
+    // Add status class based on confirmed and isNight status
     if (classification?.confirmed) {
-        wrapper.classList.add('confirmed');
+        if (classification.isNight) {
+            wrapper.classList.add('status-night');
+        } else {
+            wrapper.classList.add('status-confirmed');
+        }
     }
+    // No class added if not confirmed
+
     return wrapper;
 }
 
@@ -136,7 +144,7 @@ function createImageWrapper(imageFile) {
 function createGrid(wrapper, imageWidth, imageHeight) {
     const gridOverlay = document.createElement('div');
     gridOverlay.className = 'grid-overlay';
-    
+
     const state = getCurrentState();
     const currentImageFile = state.imageFiles[state.currentImageIndex];
     const imageClassifications = getImageClassification(currentImageFile); // Get full classification object
@@ -180,19 +188,19 @@ function handleCellClick(event) {
     if (!currentImageFile || state.isLocked || getImageClassification(currentImageFile)?.confirmed) {
         // If locked, confirmed, or no image, do nothing on normal click unless a modifier is pressed
         if (!event.ctrlKey && !event.metaKey && !isFKeyPressed) {
-             return;
+            return;
         }
     }
-    
+
     // Check edit permissions only if trying to modify
-     if ((event.ctrlKey || event.metaKey || isFKeyPressed) && !canEditImage(currentImageFile)) {
-         showNotification('Please confirm all previous images before making annotations.', 'error');
-         return;
-     }
+    if ((event.ctrlKey || event.metaKey || isFKeyPressed) && !canEditImage(currentImageFile)) {
+        showNotification('Please confirm all previous images before making annotations.', 'error');
+        return;
+    }
 
     // Get current cell classification or default if none exists
-    const currentCellClassification = getClassificationForCell(currentImageFile, cellId) 
-                                     || { ...DEFAULT_CELL_CLASSIFICATION }; // Use a copy of default
+    const currentCellClassification = getClassificationForCell(currentImageFile, cellId)
+        || { ...DEFAULT_CELL_CLASSIFICATION }; // Use a copy of default
 
     let classificationChanged = false;
 
@@ -228,11 +236,11 @@ function handleCellContextMenu(event) {
 
     // Only allow reset if Ctrl/Cmd is pressed and image is editable
     if ((event.metaKey || event.ctrlKey) && currentImageFile && !state.isLocked && !getImageClassification(currentImageFile)?.confirmed) {
-         if (!canEditImage(currentImageFile)) {
-             showNotification('Please confirm all previous images before making annotations.', 'error');
-             return;
-         }
-        
+        if (!canEditImage(currentImageFile)) {
+            showNotification('Please confirm all previous images before making annotations.', 'error');
+            return;
+        }
+
         const defaultClassification = { ...DEFAULT_CELL_CLASSIFICATION };
         setClassificationForCell(currentImageFile, cellId, defaultClassification);
         applyCellStyle(cell, defaultClassification);
@@ -279,7 +287,7 @@ function setupResizeObserver(wrapper) {
 export function updateImageColorMode(imgElement = null) {
     const img = imgElement || document.getElementById('display-image');
     if (!img) return;
-    
+
     const state = getCurrentState();
     img.style.filter = state.isColorMode ? 'none' : 'grayscale(100%)';
 }
@@ -291,7 +299,7 @@ export async function findNextUnclassified() {
         const checkIndex = (state.currentImageIndex + i) % state.imageFiles.length;
         const imageName = state.imageFiles[checkIndex];
         const classification = getImageClassification(imageName);
-        
+
         // Check if classification exists and if it's not confirmed
         if (!classification || !classification.confirmed) {
             await loadImageByIndex(checkIndex);
@@ -302,7 +310,7 @@ export async function findNextUnclassified() {
     showNotification('All images have been classified!', 'info');
     // Optionally, load the first image again or stay on the last one
     if (state.imageFiles.length > 0 && state.currentImageIndex === -1) {
-         await loadImageByIndex(0); // Load first image if none was loaded initially
+        await loadImageByIndex(0); // Load first image if none was loaded initially
     } else if (state.currentImageIndex !== -1) {
         // Stay on the current image, maybe disable "Next Unclassified" button
     }
@@ -312,11 +320,11 @@ export async function findNextUnclassified() {
 async function canEditImage(imageFile) { // Make async
     const state = getCurrentState();
     const classification = getImageClassification(imageFile);
-    
+
     // Cannot edit if the image itself is confirmed
     if (classification?.confirmed) {
         // showNotification('This image is confirmed. Unlock it first to make changes.', 'warning');
-        return false; 
+        return false;
     }
 
     // Check if all *previous* images are confirmed
@@ -333,7 +341,7 @@ async function canEditImage(imageFile) { // Make async
             return false;
         }
     }
-    
+
     return true; // All previous images are confirmed
 }
 
@@ -342,8 +350,8 @@ async function canEditImage(imageFile) { // Make async
 // These need to be attached to the document in the main renderer.js or ui.js initialization
 
 export function setupGridKeyListener() {
-     document.addEventListener('keydown', handleGridKeyDown);
-     document.addEventListener('keyup', handleGridKeyUp);
+    document.addEventListener('keydown', handleGridKeyDown);
+    document.addEventListener('keyup', handleGridKeyUp);
 }
 
 function handleGridKeyDown(e) {
@@ -357,7 +365,7 @@ function handleGridKeyDown(e) {
 }
 
 function handleGridKeyUp(e) {
-     // Ignore if typing in input/textarea
+    // Ignore if typing in input/textarea
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
     }

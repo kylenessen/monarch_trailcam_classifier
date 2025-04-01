@@ -1,8 +1,8 @@
-import { 
-    getState, 
-    updateState, 
-    getCurrentState, 
-    getImageClassification, 
+import {
+    getState,
+    updateState,
+    getCurrentState,
+    getImageClassification,
     setImageClassification,
     createDefaultGridCells,
     DEFAULT_CELL_CLASSIFICATION // Import if needed for reset logic specifically
@@ -15,8 +15,9 @@ import { disableClassificationTools } from './ui.js'; // To lock/unlock UI on co
  * Toggles the confirmation status of an image classification.
  * @param {string} imageFile - The filename of the image.
  * @param {string} user - The username/initials confirming the image.
+ * @param {boolean} [markAsNight=false] - Whether to mark this confirmation as a 'Night' image.
  */
-export function confirmImage(imageFile, user) {
+export function confirmImage(imageFile, user, markAsNight = false) {
     const classification = getImageClassification(imageFile) || {}; // Get current or empty object
     const isCurrentlyConfirmed = classification.confirmed || false;
 
@@ -24,14 +25,15 @@ export function confirmImage(imageFile, user) {
     const updatedClassification = {
         ...classification, // Spread existing data (like cells, index, notes)
         confirmed: !isCurrentlyConfirmed, // Toggle status
-        user: !isCurrentlyConfirmed ? user : (classification.user || null) // Add user only when confirming
+        user: !isCurrentlyConfirmed ? user : (classification.user || null), // Add user only when confirming
+        isNight: !isCurrentlyConfirmed ? markAsNight : (classification.isNight || false) // Set isNight on confirm, keep if unconfirming
     };
 
     // Ensure cells exist if confirming a potentially new entry
     if (!updatedClassification.cells) {
-         updatedClassification.cells = createDefaultGridCells();
+        updatedClassification.cells = createDefaultGridCells();
     }
-     // Ensure index exists
+    // Ensure index exists
     if (typeof updatedClassification.index === 'undefined') {
         const state = getCurrentState();
         updatedClassification.index = state.imageFiles.indexOf(imageFile);
@@ -70,7 +72,7 @@ export function copyFromPrevious(currentImageFile, previousImageFile) {
         return false;
     }
     // Cannot copy if previous image has no cell data (shouldn't happen if confirmed, but check anyway)
-     if (!previousClassification.cells) {
+    if (!previousClassification.cells) {
         showNotification('Previous image has no classification data to copy.', 'error');
         return false;
     }
@@ -86,10 +88,11 @@ export function copyFromPrevious(currentImageFile, previousImageFile) {
         ...(currentClassification || {}), // Keep existing index, notes, etc.
         cells: JSON.parse(JSON.stringify(previousClassification.cells)), // Deep copy cells
         confirmed: false, // Ensure current image remains unconfirmed
-        user: null // Clear user from copied data
+        user: null, // Clear user from copied data
+        isNight: false // Explicitly set isNight to false when copying
     };
-    
-     // Ensure index exists if currentClassification was initially null/undefined
+
+    // Ensure index exists if currentClassification was initially null/undefined
     if (typeof updatedClassification.index === 'undefined') {
         updatedClassification.index = state.imageFiles.indexOf(currentImageFile);
     }
@@ -113,7 +116,7 @@ export function resetImage(imageFile) {
         showNotification('Cannot reset a confirmed image. Unlock it first.', 'error');
         return false;
     }
-     // Check edit permissions (redundant check maybe, but safe)
+    // Check edit permissions (redundant check maybe, but safe)
     // if (!canEditImage(imageFile)) { // canEditImage would need to be imported or moved to utils
     //     showNotification('Please confirm all previous images before making annotations.', 'error');
     //     return false;
@@ -127,7 +130,8 @@ export function resetImage(imageFile) {
         notes: currentClassification?.notes || '', // Keep existing notes
         cells: defaultCells,
         confirmed: false,
-        user: null
+        user: null,
+        isNight: false // Explicitly set isNight to false on reset
     };
 
     setImageClassification(imageFile, resetClassification);

@@ -1,11 +1,11 @@
 // Removed: import { ipcRenderer } from 'electron';
 // Removed: import path from 'path';
 // Removed: import fs from 'fs'; 
-import { 
-    updateState, 
-    getCurrentState, 
-    setAllClassifications, 
-    createDefaultGridCells 
+import {
+    updateState,
+    getCurrentState,
+    setAllClassifications,
+    createDefaultGridCells
 } from './state.js';
 import { showNotification } from './utils.js'; // Assuming utils.js will have showNotification
 
@@ -14,11 +14,11 @@ import { showNotification } from './utils.js'; // Assuming utils.js will have sh
 export async function promptForDeploymentFolder() {
     try {
         // Use preload API
-        const folderPath = await window.electronAPI.selectFolder(); 
+        const folderPath = await window.electronAPI.selectFolder();
         // selectFolder now returns path string or null
         if (!folderPath) {
             console.log('Folder selection cancelled or failed.');
-            return null; 
+            return null;
         }
         return folderPath;
     } catch (error) {
@@ -31,13 +31,13 @@ export async function promptForDeploymentFolder() {
 export async function loadImageList(folderPath) {
     try {
         // Use preload API
-        const imageFiles = await window.electronAPI.loadImages(folderPath); 
+        const imageFiles = await window.electronAPI.loadImages(folderPath);
         // loadImages now returns array or throws error
 
         if (imageFiles.length === 0) {
             showNotification('No images found in selected folder', 'warning');
         }
-        
+
         return imageFiles; // Should be the sorted array of filenames
     } catch (error) {
         console.error('Error loading image list:', error);
@@ -49,7 +49,7 @@ export async function loadImageList(folderPath) {
 export async function getImageData(imagePath) {
     try {
         // Use preload API
-        const base64Data = await window.electronAPI.getImageData(imagePath); 
+        const base64Data = await window.electronAPI.getImageData(imagePath);
         // getImageData now returns base64 string or throws error
         return base64Data;
     } catch (error) {
@@ -107,7 +107,7 @@ export async function saveClassifications(classifications) {
             JSON.stringify(classifications, null, 2) // Pretty print JSON
         );
         if (!result || !result.success) {
-             throw new Error(result?.error || 'Unknown error writing file');
+            throw new Error(result?.error || 'Unknown error writing file');
         }
         // console.log('Classifications saved successfully.'); // Optional: for debugging
     } catch (error) {
@@ -124,7 +124,8 @@ export function initializeClassificationsIfNeeded(imageFiles) {
             confirmed: false,
             cells: { ...JSON.parse(JSON.stringify(defaultCells)) }, // Deep copy
             index: index,
-            notes: '' // Add notes field
+            notes: '', // Add notes field
+            isNight: false // Add default isNight field
         };
         return classifications;
     }, {});

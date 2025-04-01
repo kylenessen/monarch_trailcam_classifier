@@ -1,11 +1,11 @@
 // Removed: import { shell } from 'electron';
 // Removed: import path from 'path';
-import { 
-    getState, 
-    updateState, 
-    getCurrentState, 
-    CATEGORIES, 
-    CLASSIFICATIONS 
+import {
+    getState,
+    updateState,
+    getCurrentState,
+    CATEGORIES,
+    CLASSIFICATIONS
 } from './state.js';
 import { promptForDeploymentFolder, loadImageList, saveClassifications, loadClassifications, initializeClassificationsIfNeeded } from './file-system.js';
 import { showNotification, validateUsername } from './utils.js';
@@ -31,6 +31,7 @@ let copyButton = null;
 let resetButton = null;
 let colorToggleButton = null;
 let notesButton = null;
+let nightButton = null; // Add reference for the new button
 let documentationButton = null;
 
 // --- Initialization ---
@@ -53,6 +54,7 @@ export function initializeUI() {
     resetButton = document.getElementById('reset-image');
     colorToggleButton = document.getElementById('color-toggle');
     notesButton = document.getElementById('notes-button');
+    nightButton = document.getElementById('night-button'); // Cache the new button
     documentationButton = document.getElementById('documentation-button');
 
     // Initialize username from localStorage
@@ -91,12 +93,13 @@ function setupEventListeners() {
     confirmButton.addEventListener('click', confirmImageHandler);
     copyButton.addEventListener('click', copyFromPreviousHandler);
     resetButton.addEventListener('click', resetImageHandler);
+    nightButton.addEventListener('click', nightButtonHandler); // Add listener for night button
     colorToggleButton.addEventListener('click', toggleColorModeHandler);
     notesButton.addEventListener('click', toggleNotesDialog); // Directly call from notes module
 
     // Documentation button
     documentationButton.addEventListener('click', openDocumentation);
-    
+
     // Help toggle
     document.querySelector('.shortcuts-header').addEventListener('click', toggleShortcutsHelp);
 }
@@ -106,7 +109,7 @@ function setupEventListeners() {
 async function handleFolderSelection(event) {
     event.preventDefault();
     event.stopPropagation();
-    
+
     const folderPath = await promptForDeploymentFolder();
     if (!folderPath) return; // User cancelled or error occurred
 
@@ -115,11 +118,11 @@ async function handleFolderSelection(event) {
         welcomeMessageElement.style.display = 'none';
     }
     // Clear previous image/grid if any
-    clearImageContainer(); 
+    clearImageContainer();
 
     updateState({ imagesFolder: folderPath });
     // Use preload function to get basename
-    deploymentIdElement.textContent = await window.electronAPI.getPathBasename(folderPath); 
+    deploymentIdElement.textContent = await window.electronAPI.getPathBasename(folderPath);
 
     const imageFiles = await loadImageList(folderPath);
     updateState({ imageFiles: imageFiles, currentImageIndex: -1 }); // Reset index
@@ -168,10 +171,13 @@ export function confirmImageHandler() { // Add export
     if (!currentImageFile) return;
 
     const user = usernameInputElement.value.trim();
-    confirmImage(currentImageFile, user); // Call function assumed to be in classification.js
-    updateConfirmButtonState(currentImageFile); // Update button text/state
-    updateProgress(); // Progress depends on confirmed count
+    // Call confirmImage from classification.js, passing false for markAsNight
+    confirmImage(currentImageFile, user, false);
     saveClassifications(getState().classifications); // Save changes
+    // Reload the image display to update the visual status (confirmed/unlocked)
+    loadImageByIndex(state.currentImageIndex);
+    // No need to call updateConfirmButtonState or updateProgress here, 
+    // as loadImageByIndex will trigger them.
 }
 
 export function copyFromPreviousHandler() { // Add export
@@ -182,11 +188,14 @@ export function copyFromPreviousHandler() { // Add export
     }
     const currentImageFile = state.imageFiles[state.currentImageIndex];
     const previousImageFile = state.imageFiles[state.currentImageIndex - 1];
-    
-    copyFromPrevious(currentImageFile, previousImageFile); // Call function assumed to be in classification.js
-    // Reloading the grid/image display will be handled by loadImageByIndex or similar
-    loadImageByIndex(state.currentImageIndex); // Reload current image to show copied classifications
-    saveClassifications(getState().classifications); // Save changes
+    // Call copyFromPrevious from classification.js
+    const success = copyFromPrevious(currentImageFile, previousImageFile);
+    if (success) {
+        // Reloading the grid/image display will be handled by loadImageByIndex or similar
+        loadImageByIndex(state.currentImageIndex); // Reload current image to show copied classifications
+        saveClassifications(getState().classifications); // Save changes
+    }
+    return success; // Return success status for the night button handler
 }
 
 export function resetImageHandler() { // Add export
@@ -194,10 +203,44 @@ export function resetImageHandler() { // Add export
     const currentImageFile = state.imageFiles[state.currentImageIndex];
     if (!currentImageFile) return;
 
-    resetImage(currentImageFile); // Call function assumed to be in classification.js
-    loadImageByIndex(state.currentImageIndex); // Reload current image
-    saveClassifications(getState().classifications); // Save changes
+    // Call resetImage from classification.js
+    const success = resetImage(currentImageFile);
+    if (success) {
+        loadImageByIndex(state.currentImageIndex); // Reload current image
+        saveClassifications(getState().classifications); // Save changes
+    }
 }
+
+// --- Night Button Handler ---
+async function nightButtonHandler() {
+    if (!validateUsername()) return;
+    const state = getCurrentState();
+    const currentImageFile = state.imageFiles[state.currentImageIndex];
+    if (!currentImageFile) return;
+
+    // 1. Attempt to copy from previous
+    const copySuccess = copyFromPreviousHandler(); // This now returns true/false
+    if (!copySuccess) {
+        // Error notification handled within copyFromPreviousHandler or copyFromPrevious
+        return;
+    }
+
+    // 2. Confirm the image, marking it as night
+    const user = usernameInputElement.value.trim();
+    // Directly call confirmImage from classification.js, setting markAsNight to true
+    confirmImage(currentImageFile, user, true);
+    saveClassifications(getState().classifications); // Save after confirm
+
+    // 3. Navigate to the next image (don't reload current, just navigate)
+    // Use a slight delay to allow the user to see the confirmation briefly if needed,
+    // or navigate immediately. Let's navigate immediately for speed.
+    navigateImageHandler('next');
+
+    // Optional: Add a specific notification for the night action sequence
+    // showNotification('Night image processed.', 'success'); 
+    // Note: confirmImage already shows a notification, might be redundant.
+}
+
 
 function toggleColorModeHandler() {
     const state = getCurrentState();
@@ -223,22 +266,22 @@ export function updateProgress() {
 
     const total = state.imageFiles.length;
     const current = total === 0 ? 0 : state.currentImageIndex + 1;
-    
+
     const classifiedCount = Object.values(state.classifications).filter(c => c && c.confirmed === true).length;
-    
+
     currentImageSpan.textContent = current;
     totalImagesSpan.textContent = total;
-    
+
     const progress = total === 0 ? 0 : (classifiedCount / total) * 100;
     const roundedProgress = Math.round(progress);
-    
+
     progressBar.style.width = `${progress}%`;
     progressPercent.textContent = `${roundedProgress}%`;
 }
 
 export function updateNavigationButtons() {
     const state = getCurrentState();
-     if (!prevButton || !nextButton) return; // Ensure elements are cached
+    if (!prevButton || !nextButton) return; // Ensure elements are cached
 
     prevButton.disabled = state.currentImageIndex <= 0;
     nextButton.disabled = state.currentImageIndex >= state.imageFiles.length - 1;
@@ -253,16 +296,16 @@ export function disableClassificationTools(disabled) {
     // Disable/enable action buttons that modify classifications
     if (copyButton) copyButton.disabled = disabled;
     if (resetButton) resetButton.disabled = disabled;
-    
+
     updateState({ isLocked: disabled }); // Update global lock state
 }
 
 export function updateConfirmButtonState(imageFile) {
-     if (!confirmButton) return; // Ensure element is cached
-     
+    if (!confirmButton) return; // Ensure element is cached
+
     const classification = getState().classifications[imageFile];
     const isConfirmed = classification?.confirmed || false;
-    
+
     confirmButton.textContent = isConfirmed ? 'Unlock Image' : 'Confirm Image';
     // Potentially change button style as well
 }
@@ -275,7 +318,7 @@ function updateActiveCategoryButton() {
 }
 
 function updateColorToggleButton() {
-     if (!colorToggleButton) return; // Ensure element is cached
+    if (!colorToggleButton) return; // Ensure element is cached
     const state = getCurrentState();
     colorToggleButton.textContent = state.isColorMode ? 'Switch to B&W' : 'Switch to Color';
 }
@@ -284,9 +327,9 @@ export function updateNotesButtonState() {
     if (!notesButton) return; // Ensure element is cached
     const state = getCurrentState();
     const currentImageFile = state.imageFiles[state.currentImageIndex];
-    const hasNotes = currentImageFile && 
-                     state.classifications[currentImageFile]?.notes && 
-                     state.classifications[currentImageFile].notes.trim() !== '';
+    const hasNotes = currentImageFile &&
+        state.classifications[currentImageFile]?.notes &&
+        state.classifications[currentImageFile].notes.trim() !== '';
     notesButton.classList.toggle('has-notes', hasNotes);
 }
 
@@ -316,7 +359,7 @@ export function clearImageContainer() {
             imageContainerElement.removeChild(imageContainerElement.firstChild);
         }
     }
-     // Disconnect observer if it exists
+    // Disconnect observer if it exists
     const observer = getState().resizeObserver;
     if (observer) {
         observer.disconnect();
@@ -366,7 +409,7 @@ export function toggleShortcutsHelp() { // Add export
 
 // --- Category Cycling ---
 // Already exported, no change needed here.
-export function cycleCategory(direction) { 
+export function cycleCategory(direction) {
     const state = getCurrentState();
     const currentIndex = CATEGORIES.indexOf(state.selectedTool);
     if (currentIndex === -1) return; // Should not happen
