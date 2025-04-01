@@ -145,7 +145,7 @@ export function createDefaultGridCells() {
     // Ensure grid config is loaded before calling this
     if (rows === null || columns === null) {
         console.error("Attempted to create default grid cells before grid config was set.");
-        return {}; // Return empty object or handle error appropriately
+        throw new Error("Grid configuration is missing. Please set rows and columns before creating default grid cells.");
     }
 
     for (let r = 0; r < rows; r++) {

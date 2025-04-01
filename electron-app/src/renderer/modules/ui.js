@@ -207,7 +207,7 @@ export function promptForGridResolution() { // Removed initialImageDimensions pa
             return resolve(false); // Cannot proceed
         }
 
-        const confirmButton = gridResolutionDialog.querySelector('#confirm-grid-resolution');
+        // Removed unused confirmButton declaration
         const cancelButton = gridResolutionDialog.querySelector('#cancel-grid-resolution');
 
         // --- Event Handlers for the Dialog ---
