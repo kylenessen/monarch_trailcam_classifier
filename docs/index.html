@@ -71,6 +71,7 @@ ul.task-list li input[type="checkbox"] {
   <ul class="collapse">
   <li><a href="#night-button-feature" id="toc-night-button-feature" class="nav-link" data-scroll-target="#night-button-feature">“Night” Button Feature</a></li>
   </ul></li>
+  <li><a href="#setting-grid-resolution-new-deployments-only" id="toc-setting-grid-resolution-new-deployments-only" class="nav-link" data-scroll-target="#setting-grid-resolution-new-deployments-only">Setting Grid Resolution (New Deployments Only)</a></li>
   <li><a href="#label-storage" id="toc-label-storage" class="nav-link" data-scroll-target="#label-storage">Label storage</a></li>
   <li><a href="#classification-process" id="toc-classification-process" class="nav-link" data-scroll-target="#classification-process">Classification process</a>
   <ul class="collapse">
@@ -492,6 +493,28 @@ Warning
 <li><strong>Undoing Mistakes:</strong> If you accidentally click “Night” on a daylight image or need to correct a night classification, simply use the “Reset Image” button. This will clear the classification <em>and</em> remove the “Night” flag, allowing you to classify it normally.</li>
 </ul>
 </section>
+</section>
+<section id="setting-grid-resolution-new-deployments-only" class="level2">
+<h2 class="anchored" data-anchor-id="setting-grid-resolution-new-deployments-only">Setting Grid Resolution (New Deployments Only)</h2>
+<p>When you load a deployment folder for the <em>very first time</em> (one that hasn’t been classified before), the application will notice that the <code>configurations.json</code> file is missing. Before you can start classifying, you will be prompted to set the grid resolution for this specific deployment:</p>
+<ul>
+<li>A dialog box will appear asking you to enter the desired number of <strong>rows</strong> for the grid. The default is 9.</li>
+<li>The number of <strong>columns</strong> will be calculated automatically based on your input, assuming a standard 16:9 image aspect ratio.</li>
+<li>Once you confirm, the application will create the <code>configurations.json</code> file with these dimensions.</li>
+</ul>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Important:</strong> The grid resolution (number of rows and columns) is <strong>fixed</strong> for the entire deployment once set. You cannot change it after you start classifying. If you believe the chosen resolution is incorrect or unsuitable for the images in the deployment, please <strong>stop classifying and contact me (Kyle) immediately</strong> <em>before</em> proceeding further. We will need to manually reset the configuration and you will likely lose your work.</p>
+</div>
+</div>
 </section>
 <section id="label-storage" class="level2">
 <h2 class="anchored" data-anchor-id="label-storage">Label storage</h2>

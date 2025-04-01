@@ -243,6 +243,18 @@ To speed up the processing of these often numerous and unchanging night photos, 
     3.  Advances to the next image.
 -   **Undoing Mistakes:** If you accidentally click "Night" on a daylight image or need to correct a night classification, simply use the "Reset Image" button. This will clear the classification *and* remove the "Night" flag, allowing you to classify it normally.
 
+## Setting Grid Resolution (New Deployments Only)
+
+When you load a deployment folder for the *very first time* (one that hasn't been classified before), the application will notice that the `configurations.json` file is missing. Before you can start classifying, you will be prompted to set the grid resolution for this specific deployment:
+
+-   A dialog box will appear asking you to enter the desired number of **rows** for the grid. The default is 9.
+-   The number of **columns** will be calculated automatically based on your input, assuming a standard 16:9 image aspect ratio.
+-   Once you confirm, the application will create the `configurations.json` file with these dimensions.
+
+::: {.callout-warning}
+**Important:** The grid resolution (number of rows and columns) is **fixed** for the entire deployment once set. You cannot change it after you start classifying. If you believe the chosen resolution is incorrect or unsuitable for the images in the deployment, please **stop classifying and contact me (Kyle) immediately** *before* proceeding further. We will need to manually reset the configuration and you will likely lose your work.
+:::
+
 ## Label storage
 
 When you open a deployment folder for the first time, the program will make a file called `classifications.json` next to the images. This is where all of your hard earned work will be saved, so please be careful! You don't need to actually interact with this file, but deleting it or moving it can cause unexpected behavior.

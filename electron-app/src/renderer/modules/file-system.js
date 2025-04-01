@@ -1,13 +1,16 @@
 // Removed: import { ipcRenderer } from 'electron';
 // Removed: import path from 'path';
-// Removed: import fs from 'fs'; 
+// Removed: import fs from 'fs';
 import {
-    updateState,
+    updateState, // Keep only one
     getCurrentState,
     setAllClassifications,
-    createDefaultGridCells
+    // createDefaultGridCells, // No longer needed here
+    setGridConfig,
+    getGridConfig
 } from './state.js';
-import { showNotification } from './utils.js'; // Assuming utils.js will have showNotification
+import { showNotification } from './utils.js';
+import { promptForGridResolution } from './ui.js'; // Import the new UI prompt function (will be created later)
 
 // --- Folder and Image Loading ---
 
@@ -60,76 +63,107 @@ export async function getImageData(imagePath) {
     }
 }
 
-// --- Classification File Handling ---
+// --- Configuration and Classification File Handling ---
 
-async function getClassificationFilePath(imagesFolder) {
+// Gets the path to configurations.json within the deployment folder
+async function getConfigurationFilePath(deploymentFolder) {
     // Use preload API for path joining
-    return await window.electronAPI.pathJoin(imagesFolder, 'classifications.json');
+    return await window.electronAPI.pathJoin(deploymentFolder, 'configurations.json');
 }
 
-export async function loadClassifications(imagesFolder) {
-    const classificationFile = await getClassificationFilePath(imagesFolder);
-    updateState({ classificationFile }); // Store the path in state
+/**
+ * Loads configuration (grid size) and classifications from configurations.json.
+ * If the file doesn't exist, it prompts the user for grid settings and creates the file.
+ * @param {string} deploymentFolder - The main folder selected by the user.
+ * @param {string} imagesFolder - The path to the subfolder containing images.
+ * @returns {Promise<boolean>} - True if configuration was loaded/created successfully, false otherwise.
+ */
+export async function loadOrInitializeConfiguration(deploymentFolder, imagesFolder) {
+    const configFilePath = await getConfigurationFilePath(deploymentFolder);
+    updateState({ classificationFile: configFilePath }); // Store path for saving later
 
     try {
-        // Use preload API to check existence and read
-        const exists = await window.electronAPI.checkFileExists(classificationFile);
+        const exists = await window.electronAPI.checkFileExists(configFilePath);
+
         if (exists) {
-            const data = await window.electronAPI.readFile(classificationFile);
-            const loadedClassifications = JSON.parse(data);
-            setAllClassifications(loadedClassifications);
-            console.log('Classifications loaded successfully.');
-            return true;
+            // --- Load Existing Configuration ---
+            console.log('Loading existing configurations.json...');
+            const fileContent = await window.electronAPI.readFile(configFilePath);
+            const parsedData = JSON.parse(fileContent);
+
+            // Validate structure
+            if (typeof parsedData.rows !== 'number' || typeof parsedData.columns !== 'number' || typeof parsedData.classifications !== 'object') {
+                console.error('Invalid configurations.json structure.', parsedData);
+                showNotification('Error: configurations.json has an invalid format.', 'error');
+                return false; // Indicate failure
+            }
+
+            // Set state from loaded file
+            setGridConfig(parsedData.rows, parsedData.columns);
+            setAllClassifications(parsedData.classifications);
+            console.log(`Configuration loaded: ${parsedData.rows} rows, ${parsedData.columns} columns.`);
+            return true; // Indicate success
+
         } else {
-            console.log('No classification file found. Initializing new classifications.');
-            return false; // Indicate that initialization is needed
+            // --- Initialize New Configuration ---
+            console.log('No configurations.json found. Initializing new configuration...');
+
+            // No need to get image dimensions if aspect ratio is fixed 16:9
+
+            // Prompt user for rows and create file (logic is in ui.js)
+            // promptForGridResolution will now use the fixed 16:9 ratio internally.
+            const creationSuccess = await promptForGridResolution(); // Call without dimensions
+
+            if (creationSuccess) {
+                console.log('New configuration created and saved.');
+                // Classifications state is already initialized to {} by prompt handler
+                return true; // Indicate success
+            } else {
+                console.log('Configuration creation cancelled or failed.');
+                return false; // Indicate failure or cancellation
+            }
         }
     } catch (error) {
-        console.error('Error loading classifications:', error);
-        showNotification('Failed to load classifications. Starting fresh.', 'error');
-        setAllClassifications({}); // Reset classifications in state on error
-        return false; // Indicate that initialization is needed
+        console.error('Error loading or initializing configuration:', error);
+        showNotification(`Error processing configuration: ${error.message}`, 'error');
+        setAllClassifications({}); // Reset state on error
+        setGridConfig(null, null); // Reset grid config
+        return false; // Indicate failure
     }
 }
 
-export async function saveClassifications(classifications) {
+/**
+ * Saves the current classifications state (including grid config) to configurations.json.
+ */
+export async function saveClassifications() {
     const state = getCurrentState();
     if (!state.classificationFile) {
-        console.error('Cannot save classifications: classification file path not set in state.');
-        showNotification('Error: Classification file path not set.', 'error');
+        console.error('Cannot save classifications: configuration file path not set.');
+        // No notification here, might be too noisy during normal operation
         return;
     }
+
+    // Construct the data object in the new format
+    const dataToSave = {
+        rows: state.currentGridConfig.rows,
+        columns: state.currentGridConfig.columns,
+        classifications: state.classifications // The actual image classifications
+    };
 
     try {
         // Use preload API to write file
         const result = await window.electronAPI.writeFile(
             state.classificationFile,
-            JSON.stringify(classifications, null, 2) // Pretty print JSON
+            JSON.stringify(dataToSave, null, 2) // Pretty print JSON
         );
         if (!result || !result.success) {
             throw new Error(result?.error || 'Unknown error writing file');
         }
-        // console.log('Classifications saved successfully.'); // Optional: for debugging
+        // console.log('Configuration saved successfully.'); // Optional: for debugging
     } catch (error) {
-        console.error('Error saving classifications:', error);
-        showNotification('Failed to save classifications', 'error');
+        console.error('Error saving configuration:', error);
+        showNotification('Failed to save configuration', 'error');
     }
 }
 
-// Helper function to initialize classifications if file doesn't exist
-export function initializeClassificationsIfNeeded(imageFiles) {
-    const defaultCells = createDefaultGridCells();
-    const initialClassifications = imageFiles.reduce((classifications, image, index) => {
-        classifications[image] = {
-            confirmed: false,
-            cells: { ...JSON.parse(JSON.stringify(defaultCells)) }, // Deep copy
-            index: index,
-            notes: '', // Add notes field
-            isNight: false // Add default isNight field
-        };
-        return classifications;
-    }, {});
-    setAllClassifications(initialClassifications);
-    saveClassifications(initialClassifications); // Save the initial structure
-    console.log('Initialized and saved new classifications structure.');
-}
+// Removed initializeClassificationsIfNeeded function as its logic is integrated elsewhere.
