@@ -67,7 +67,10 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#thousands-of-butterflies" id="toc-thousands-of-butterflies" class="nav-link" data-scroll-target="#thousands-of-butterflies">(1000+) Thousands of butterflies</a></li>
   </ul></li>
   <li><a href="#direct-sunlight" id="toc-direct-sunlight" class="nav-link" data-scroll-target="#direct-sunlight">Direct sunlight</a></li>
-  <li><a href="#night-photos" id="toc-night-photos" class="nav-link" data-scroll-target="#night-photos">Night photos</a></li>
+  <li><a href="#night-photos" id="toc-night-photos" class="nav-link" data-scroll-target="#night-photos">Night photos</a>
+  <ul class="collapse">
+  <li><a href="#night-button-feature" id="toc-night-button-feature" class="nav-link" data-scroll-target="#night-button-feature">“Night” Button Feature</a></li>
+  </ul></li>
   <li><a href="#label-storage" id="toc-label-storage" class="nav-link" data-scroll-target="#label-storage">Label storage</a></li>
   <li><a href="#classification-process" id="toc-classification-process" class="nav-link" data-scroll-target="#classification-process">Classification process</a>
   <ul class="collapse">
@@ -472,8 +475,23 @@ Warning
 </section>
 <section id="night-photos" class="level2">
 <h2 class="anchored" data-anchor-id="night-photos">Night photos</h2>
-<p>Night photos can be challenging to classify due to the trail camera’s flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours. You can typically use the <code>S</code> key or the “Copy Previous” button to copy classifications from the previous image.</p>
+<p>Night photos can be challenging to classify due to the trail camera’s flash. While butterflies may be harder to see at night, our observations suggest that monarchs remain stationary during nighttime hours.</p>
 <p>If you do observe significant changes in butterfly numbers during nighttime hours, please contact me, as this would be an interesting and unusual finding.</p>
+<section id="night-button-feature" class="level3">
+<h3 class="anchored" data-anchor-id="night-button-feature">“Night” Button Feature</h3>
+<p>To speed up the processing of these often numerous and unchanging night photos, a special “Night” button is available next to the “Confirm Image” button.</p>
+<ul>
+<li><strong>Purpose:</strong> This button acts as a macro to quickly apply the previous image’s classification to a night photo and move to the next one. It assumes butterflies remain stationary overnight.</li>
+<li><strong>How to Use:</strong> When you encounter the <em>first</em> image in a sequence of night photos, simply click the “Night” button. Continue clicking “Night” for each subsequent night photo until you reach a daylight image. Then, resume normal classification.</li>
+<li><strong>How it Works:</strong> Clicking “Night” performs three actions automatically:
+<ol type="1">
+<li>Copies the classification data from the previously confirmed image.</li>
+<li>Confirms the current image, specifically marking it with an internal “Night” flag (visible as a light blue border/overlay instead of the usual green).</li>
+<li>Advances to the next image.</li>
+</ol></li>
+<li><strong>Undoing Mistakes:</strong> If you accidentally click “Night” on a daylight image or need to correct a night classification, simply use the “Reset Image” button. This will clear the classification <em>and</em> remove the “Night” flag, allowing you to classify it normally.</li>
+</ul>
+</section>
 </section>
 <section id="label-storage" class="level2">
 <h2 class="anchored" data-anchor-id="label-storage">Label storage</h2>
