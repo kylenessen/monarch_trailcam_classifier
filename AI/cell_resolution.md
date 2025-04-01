@@ -4,9 +4,9 @@ I would like your help to develop a new feature for my @/electron-app/ . Right n
 
 ---
 
-# Implementation Plan (Dynamic Grid Resolution)
+# Implementation Plan (Dynamic Grid Resolution) - Final
 
-This plan outlines the steps to allow users to define the grid resolution (rows and columns) for a new deployment. It assumes that existing `configurations.json` files will be manually updated or handled separately to conform to the new structure if needed.
+This plan outlines the steps taken to allow users to define the grid resolution (rows and columns) for a new deployment, using a fixed 16:9 aspect ratio for calculations. It assumes that existing `configurations.json` files will be manually updated or handled separately to conform to the new structure if needed.
 
 **New `configurations.json` Structure:**
 
@@ -27,48 +27,53 @@ When a configuration is generated for a new deployment, the file will have the f
 **Implementation Steps:**
 
 1.  **Modify State Management (`electron-app/src/renderer/modules/state.js`):**
-    *   Remove the exported `GRID_CONFIG` constant (`{ columns: 16, rows: 9 }`).
-    *   Introduce a new state variable, `currentGridConfig`, initialized to `{ rows: null, columns: null }`.
-    *   Update the `createDefaultGridCells` function to use `currentState.currentGridConfig.rows` and `currentState.currentGridConfig.columns` when generating the default cell structure for a *new* image classification entry.
-    *   Consider adding getter/setter functions for `currentGridConfig` for cleaner access (e.g., `getGridConfig()`, `setGridConfig(rows, columns)`).
+    *   Removed the exported `GRID_CONFIG` constant (`{ columns: 16, rows: 9 }`).
+    *   Introduced a new state variable, `currentGridConfig`, initialized to `{ rows: null, columns: null }`.
+    *   Updated the `createDefaultGridCells` function to use `currentState.currentGridConfig.rows` and `currentState.currentGridConfig.columns` when generating the default cell structure for a *new* image classification entry.
+    *   Added getter (`getGridConfig`) and setter (`setGridConfig`) functions for `currentGridConfig`.
 
-2.  **Modify File Loading Logic (Likely in `electron-app/src/renderer/modules/file-system.js`'s `loadClassifications` or the calling function in `renderer.js`):**
+2.  **Modify File Loading Logic (`electron-app/src/renderer/modules/file-system.js`):**
+    *   Renamed `loadClassifications` to `loadOrInitializeConfiguration`.
+    *   Updated `getConfigurationFilePath` to use the `deploymentFolder`.
     *   When a deployment folder is selected, construct the path to `configurations.json`.
-    *   Use an IPC call (e.g., `window.electronAPI.checkFileExists`) to check if `configurations.json` exists.
+    *   Use an IPC call (`window.electronAPI.checkFileExists`) to check if `configurations.json` exists.
     *   **If it exists:**
         *   Load and parse the JSON content (`parsedData`).
-        *   **Crucially, validate that `parsedData.rows`, `parsedData.columns`, and `parsedData.classifications` exist.** If not, show an error indicating an invalid/corrupted configuration file.
+        *   Validate that `parsedData.rows`, `parsedData.columns`, and `parsedData.classifications` exist. Show error if not.
         *   Update the `currentGridConfig` state using `parsedData.rows` and `parsedData.columns`.
         *   Load the object from `parsedData.classifications` into the main `classifications` state.
-        *   Proceed with loading the first image.
     *   **If it does *not* exist:**
-        *   Identify the first image file in the `imagesFolder`.
-        *   Use `getImageData` (or an equivalent IPC call) to get the dimensions (`initialImageWidth`, `initialImageHeight`) of this first image. Store these temporarily.
-        *   Trigger the display of the UI prompt (Step 3) to get the desired row count. **Do not load any images for display yet.**
+        *   Trigger the display of the UI prompt (Step 3). **Do not load any images for display yet.** (Removed logic for getting first image dimensions).
 
-3.  **Create UI Prompt (New function/logic in `electron-app/src/renderer/modules/ui.js` or potentially a new module):**
-    *   Implement a modal dialog (e.g., using HTML `<dialog>` element or a library).
-    *   The modal should:
-        *   Prompt the user: "Enter the desired number of grid rows for this deployment:".
-        *   Display the default value (9 rows) as a placeholder or initial value in the input field.
-        *   Include a number input field (`<input type="number">`) for the row count (min value 1).
-        *   Have a "Confirm" button and possibly a "Cancel" button (which would abort loading the folder).
-    *   The "Confirm" button's event handler will:
-        *   Read and validate the user's input for rows (`userRows`). Must be a positive integer.
-        *   Retrieve the stored `initialImageWidth` and `initialImageHeight`.
-        *   Calculate the number of columns: `calculatedColumns = Math.max(1, Math.round(userRows * (initialImageWidth / initialImageHeight)))`. Ensure at least 1 column.
-        *   Update the `currentGridConfig` state: `updateState({ currentGridConfig: { rows: userRows, columns: calculatedColumns } });`.
-        *   Create the initial `configurations.json` content string: `JSON.stringify({ rows: userRows, columns: calculatedColumns, classifications: {} }, null, 2)`.
-        *   Use an IPC call (e.g., `window.electronAPI.saveFileContent`) to write this string to `configurations.json` in the `deploymentFolder`. Handle potential errors during saving.
-        *   Initialize the main `classifications` state in the application: `updateState({ classifications: {} });`.
-        *   Close/hide the modal.
-        *   Signal the main application flow (e.g., via a callback or promise resolution) to proceed with loading the first image using the now-defined configuration.
+3.  **Create UI Prompt (`electron-app/src/renderer/modules/ui.js` and `index.html`):**
+    *   Added a `<dialog>` element (`#grid-resolution-dialog`) to `index.html` for the prompt.
+    *   Implemented the `promptForGridResolution` function in `ui.js`.
+    *   This function shows the modal dialog which:
+        *   Prompts the user: "Enter the desired number of grid rows for this deployment:".
+        *   Displays the default value (9 rows).
+        *   Includes a number input field (`#grid-rows-input`).
+        *   Has "Confirm" and "Cancel" buttons.
+    *   The "Confirm" button's event handler:
+        *   Reads and validates the user's input for rows (`userRows`).
+        *   Calculates the number of columns using a **fixed 16:9 aspect ratio**: `calculatedColumns = Math.max(1, Math.round(userRows * (16 / 9)))`.
+        *   Updates the `currentGridConfig` state.
+        *   Creates the initial `configurations.json` content string: `JSON.stringify({ rows: userRows, columns: calculatedColumns, classifications: {} }, null, 2)`.
+        *   Uses an IPC call (`window.electronAPI.writeFile`) to save the new `configurations.json`.
+        *   Initializes the main `classifications` state to `{}`.
+        *   Closes the modal and resolves a promise indicating success/failure.
 
 4.  **Modify Grid Creation (`electron-app/src/renderer/modules/image-grid.js`):**
     *   In the `createGrid` function:
-        *   Retrieve the current grid dimensions: `const { rows, columns } = getCurrentState().currentGridConfig;`.
-        *   Use these `rows` and `columns` variables in the loops and style calculations instead of the old `GRID_CONFIG.rows` and `GRID_CONFIG.columns`.
+        *   Retrieve the current grid dimensions using `getGridConfig()` from the state.
+        *   Use these dynamic `rows` and `columns` variables in the loops and style calculations.
+        *   Added validation to ensure grid config is set before attempting creation.
 
-5.  **Modify Initialization (`electron-app/src/renderer/renderer.js`):**
-    *   Refactor the application's initialization sequence triggered by folder selection (`handleFolderSelection` or similar).
-    *   Ensure that the process waits for the `configurations.json` loading/creation logic (including the potential UI prompt) to complete *before* attempting to load the first image (`loadImageByIndex(0)`) and display the grid. This might involve using `async/await` or Promises to manage the flow.
+5.  **Modify Initialization (`electron-app/src/renderer/modules/ui.js`):**
+    *   Refactored the `handleFolderSelection` function to manage the correct asynchronous flow:
+        1.  Select Folder.
+        2.  Call `loadOrInitializeConfiguration` (which handles checking the file and potentially showing the prompt).
+        3.  If configuration is successful, load the image list (`loadImageList`).
+        4.  If images exist, load the first unclassified image (`findNextUnclassifiedHandler`).
+        5.  Handle errors and state resets appropriately if configuration or image loading fails.
+
+**Note:** The implementation assumes that any existing `configurations.json` files created before this change will be manually updated to include the top-level `rows`, `columns`, and `classifications` keys. The application no longer contains backward compatibility logic for the old file format.
