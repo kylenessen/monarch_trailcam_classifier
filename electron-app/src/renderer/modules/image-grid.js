@@ -19,8 +19,10 @@ import {
     disableClassificationTools,
     updateConfirmButtonState,
     updateNotesButtonState,
-    clearImageContainer
+    clearImageContainer,
+    updateUndoButtonState // Added for history
 } from './ui.js'; // Import UI update functions
+import { pushState } from './history.js'; // Added for history
 
 // Keep track of F key state locally within this module if only grid interaction uses it
 let isFKeyPressed = false;
@@ -63,6 +65,9 @@ export async function loadImageByIndex(index) { // Already async, good.
         // Check if the newly loaded image is confirmed and disable tools if necessary
         const classification = getImageClassification(imageFile);
         disableClassificationTools(classification?.confirmed || false);
+
+        // Update the undo button state for the newly loaded image
+        updateUndoButtonState();
 
     } catch (error) {
         console.error(`Error loading image at index ${index}:`, error);
@@ -232,6 +237,12 @@ function handleCellClick(event) {
 
     // Update state and UI only if a change occurred
     if (classificationChanged) {
+        // --- Push current state to history BEFORE changing it ---
+        const cellsBeforeChange = getImageClassification(currentImageFile)?.cells;
+        if (cellsBeforeChange) { // Only push if state exists
+            pushState(currentImageFile, cellsBeforeChange);
+        }
+        // --- Now update the state ---
         setClassificationForCell(currentImageFile, cellId, currentCellClassification);
         applyCellStyle(cell, currentCellClassification);
         saveClassifications(getState().classifications); // Save immediately after change
@@ -253,6 +264,12 @@ function handleCellContextMenu(event) {
             return;
         }
 
+        // --- Push current state to history BEFORE changing it ---
+        const cellsBeforeChange = getImageClassification(currentImageFile)?.cells;
+        if (cellsBeforeChange) { // Only push if state exists
+            pushState(currentImageFile, cellsBeforeChange);
+        }
+        // --- Now update the state ---
         const defaultClassification = { ...DEFAULT_CELL_CLASSIFICATION };
         setClassificationForCell(currentImageFile, cellId, defaultClassification);
         applyCellStyle(cell, defaultClassification);
