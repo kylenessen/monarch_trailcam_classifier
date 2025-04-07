@@ -82,7 +82,7 @@ ggplot(df, aes(x = time)) +
     name = "Monarch Count",
     sec.axis = sec_axis(~./scaling_factor_sun, name = "Light (sun_cell_count)")
   ) +
-  scale_color_manual(values = c("Monarch Count" = "orange", "Light" = "gold")) +
+  scale_color_manual(values = c("Monarch Count" = "black", "Light" = "gold")) +
   # Labels and theming
   labs(
     title = "Monarch Count and Light Over Time (10-minute intervals)",

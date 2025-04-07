@@ -97,6 +97,23 @@ df <- df %>%
 
 ```
 
+## Time series for SC1 and SC2
+
+```{r}
+sc1 <- df %>% filter(deployment_id == "SC1")
+ggplot(df, aes(x = time, y = count)) +
+    geom_point(alpha = 0.5) +
+    geom_smooth() +
+    labs(
+        title = "Monarch Counts Over Time - SC1",
+        x = "Time",
+        y = "Count",
+        caption = "Source: Trailcam Images"
+    ) +
+    theme_minimal()
+```
+
+
 ## Generate the subsampled datasets
 
 Here I split out the original df into my test dataset. I'm going to go with 10, 20, 30, 60, 90, and 120 minutes. They will be named accordingly.
