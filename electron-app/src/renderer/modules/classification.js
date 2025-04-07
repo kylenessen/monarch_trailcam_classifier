@@ -5,11 +5,14 @@ import {
     getImageClassification,
     setImageClassification,
     createDefaultGridCells,
-    DEFAULT_CELL_CLASSIFICATION // Import if needed for reset logic specifically
+    getCurrentImageFile, // Added for undo
+    DEFAULT_CELL_CLASSIFICATION
 } from './state.js';
 import { saveClassifications } from './file-system.js';
 import { showNotification } from './utils.js';
-import { disableClassificationTools } from './ui.js'; // To lock/unlock UI on confirm/unconfirm
+import { disableClassificationTools } from './ui.js'; // Removed displayImageAndClassifications import
+import { loadImageByIndex } from './image-grid.js'; // Added loadImageByIndex import for refresh
+import { pushState, popState, clearHistory } from './history.js'; // Added history import
 
 /**
  * Toggles the confirmation status of an image classification.
@@ -45,6 +48,11 @@ export function confirmImage(imageFile, user, markAsNight = false) {
 
     // Lock/unlock UI elements based on the new confirmation status
     disableClassificationTools(updatedClassification.confirmed);
+
+    // Clear history if confirming
+    if (updatedClassification.confirmed) {
+        clearHistory(imageFile);
+    }
 
     // Note: Saving is handled in the UI event handler after calling this function
     showNotification(`Image ${updatedClassification.confirmed ? 'confirmed' : 'unlocked'}`, 'success');
@@ -82,6 +90,12 @@ export function copyFromPrevious(currentImageFile, previousImageFile) {
     //     return false;
     // }
 
+
+    // --- Save current state before overwriting ---
+    const cellsBeforeCopy = currentClassification?.cells;
+    if (cellsBeforeCopy) {
+        pushState(currentImageFile, cellsBeforeCopy);
+    }
 
     // --- Perform Copy ---
     const updatedClassification = {
@@ -122,6 +136,12 @@ export function resetImage(imageFile) {
     //     return false;
     // }
 
+    // --- Save current state before overwriting ---
+    const cellsBeforeReset = currentClassification?.cells;
+    if (cellsBeforeReset) {
+        pushState(imageFile, cellsBeforeReset);
+    }
+
     // --- Perform Reset ---
     const defaultCells = createDefaultGridCells();
     const resetClassification = {
@@ -139,4 +159,51 @@ export function resetImage(imageFile) {
     showNotification('Image classifications reset.', 'success');
     return true; // Indicate success
     // Note: Saving and reloading the image display are handled in the UI event handler
+}
+
+/**
+ * Reverts the last classification change made to the current image from the history.
+ */
+export function undoLastChange() {
+    const currentImage = getCurrentImageFile();
+    if (!currentImage) {
+        showNotification('No image selected to undo.', 'warning');
+        return;
+    }
+
+    const currentClassification = getImageClassification(currentImage);
+    if (currentClassification?.confirmed) {
+        showNotification('Cannot undo changes on a confirmed image.', 'warning');
+        return;
+    }
+
+    const previousCellsState = popState(currentImage);
+
+    if (!previousCellsState) {
+        showNotification('Nothing to undo for this image.', 'info');
+        return;
+    }
+
+    // Restore the cells state, keeping other properties like index, notes, confirmed status
+    const restoredClassification = {
+        ...(currentClassification || {}), // Keep existing data (index, notes, confirmed=false, user=null etc.)
+        cells: previousCellsState // Use the popped state
+    };
+
+    // Ensure index exists if currentClassification was initially null/undefined
+    if (typeof restoredClassification.index === 'undefined') {
+        const state = getCurrentState(); // Need state access if not already available
+        restoredClassification.index = state.imageFiles.indexOf(currentImage);
+    }
+
+    // Update the main state
+    setImageClassification(currentImage, restoredClassification);
+
+    // Trigger UI refresh to show the restored state by reloading the image
+    // loadImageByIndex handles redrawing the grid and updating UI states
+    loadImageByIndex(restoredClassification.index);
+
+    showNotification('Undo successful', 'success');
+
+    // Note: Saving is handled separately by the auto-save mechanism or manual save trigger
 }

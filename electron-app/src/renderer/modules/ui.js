@@ -6,6 +6,8 @@ import {
     getCurrentState,
     setGridConfig, // Added
     setAllClassifications, // Added
+    getCurrentImageFile, // Added for history/undo
+    getImageClassification, // Added for history/undo
     CATEGORIES,
     CLASSIFICATIONS
 } from './state.js';
@@ -14,8 +16,9 @@ import { promptForDeploymentFolder, loadImageList, saveClassifications, loadOrIn
 import { showNotification, validateUsername } from './utils.js';
 // Import functions from other modules that ui.js will call
 import { loadImageByIndex, findNextUnclassified, updateImageColorMode } from './image-grid.js';
-import { confirmImage, copyFromPrevious, resetImage } from './classification.js'; // Assuming these will be in classification.js
+import { confirmImage, copyFromPrevious, resetImage, undoLastChange } from './classification.js'; // Added undoLastChange
 import { toggleNotesDialog } from './notes.js'; // Assuming this will be in notes.js
+import { clearHistory, hasHistory } from './history.js'; // Added history import
 
 // --- DOM Element References ---
 let progressBar = null;
@@ -36,6 +39,7 @@ let colorToggleButton = null;
 let notesButton = null;
 let nightButton = null;
 let documentationButton = null;
+let undoButton = null; // Added Undo button reference
 // Add references for grid resolution dialog elements
 let gridResolutionDialog = null;
 let gridResolutionForm = null;
@@ -64,6 +68,7 @@ export function initializeUI() {
     notesButton = document.getElementById('notes-button');
     nightButton = document.getElementById('night-button');
     documentationButton = document.getElementById('documentation-button');
+    undoButton = document.getElementById('undo-button'); // Cache Undo button
     // Cache grid resolution dialog elements
     gridResolutionDialog = document.getElementById('grid-resolution-dialog');
     gridResolutionForm = document.getElementById('grid-resolution-form');
@@ -112,6 +117,9 @@ function setupEventListeners() {
 
     // Documentation button
     documentationButton.addEventListener('click', openDocumentation);
+
+    // Undo button
+    undoButton.addEventListener('click', undoLastChange); // Call classification.js function
 
     // Help toggle - Target the specific shortcuts section header and pass the event
     document.querySelector('#keyboard-shortcuts-section .shortcuts-header').addEventListener('click', (event) => toggleShortcutsHelp(event));
@@ -300,7 +308,13 @@ export function navigateImageHandler(direction) { // Add export
     }
 
     if (newIndex !== state.currentImageIndex) {
+        // Clear history for the image we are navigating *away* from
+        const previousImageFile = state.imageFiles[state.currentImageIndex];
+        if (previousImageFile) {
+            clearHistory(previousImageFile);
+        }
         loadImageByIndex(newIndex); // Call function assumed to be in image-grid.js
+        // updateUndoButtonState will be called within loadImageByIndex after the new image loads
     }
 }
 
@@ -319,8 +333,8 @@ export function confirmImageHandler() { // Add export
     confirmImage(currentImageFile, user, false);
     saveClassifications(getState().classifications); // Save changes
     // Reload the image display to update the visual status (confirmed/unlocked)
-    loadImageByIndex(state.currentImageIndex);
-    // No need to call updateConfirmButtonState or updateProgress here, 
+    loadImageByIndex(state.currentImageIndex); // This will also trigger updateUndoButtonState
+    // No need to call updateConfirmButtonState or updateProgress here,
     // as loadImageByIndex will trigger them.
 }
 
@@ -381,7 +395,7 @@ async function nightButtonHandler() {
     navigateImageHandler('next');
 
     // Optional: Add a specific notification for the night action sequence
-    // showNotification('Night image processed.', 'success'); 
+    // showNotification('Night image processed.', 'success');
     // Note: confirmImage already shows a notification, might be redundant.
 }
 
@@ -494,6 +508,7 @@ export function handleNoImagesFound() {
     }
     updateProgress(); // Reset progress
     updateNavigationButtons(); // Disable nav buttons
+    updateUndoButtonState(); // Ensure undo is disabled when no folder loaded
 }
 
 export function clearImageContainer() {
@@ -575,4 +590,19 @@ export function cycleCategory(direction) {
 
     updateState({ selectedTool: CATEGORIES[newIndex] });
     updateActiveCategoryButton();
+}
+
+/**
+ * Updates the enabled/disabled state of the Undo button based on history availability
+ * and the confirmation status of the current image.
+ */
+export function updateUndoButtonState() {
+    if (!undoButton) return; // Ensure element is cached
+
+    const currentImage = getCurrentImageFile();
+    const classification = currentImage ? getImageClassification(currentImage) : null;
+    const isConfirmed = classification?.confirmed || false;
+
+    const canUndo = currentImage && !isConfirmed && hasHistory(currentImage);
+    undoButton.disabled = !canUndo;
 }
