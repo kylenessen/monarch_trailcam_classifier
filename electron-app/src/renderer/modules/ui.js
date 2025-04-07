@@ -113,8 +113,8 @@ function setupEventListeners() {
     // Documentation button
     documentationButton.addEventListener('click', openDocumentation);
 
-    // Help toggle
-    document.querySelector('.shortcuts-header').addEventListener('click', toggleShortcutsHelp);
+    // Help toggle - Target the specific shortcuts section header and pass the event
+    document.querySelector('#keyboard-shortcuts-section .shortcuts-header').addEventListener('click', (event) => toggleShortcutsHelp(event));
 }
 
 // --- Event Handlers ---
@@ -540,14 +540,22 @@ function initializeKeyboardShortcutsHelp() {
     });
 }
 
-export function toggleShortcutsHelp() { // Add export
-    const helpContainer = document.querySelector('.keyboard-shortcuts-help');
-    const indicator = document.querySelector('.shortcuts-header .collapse-indicator'); // More specific selector
-    if (helpContainer) {
-        helpContainer.classList.toggle('collapsed');
-        if (indicator) {
-            indicator.textContent = helpContainer.classList.contains('collapsed') ? '+' : '−';
-        }
+// Updated to accept event and target elements relative to the clicked header
+export function toggleShortcutsHelp(event) {
+    // Find the closest parent container with the .keyboard-shortcuts-help class
+    const helpContainer = event.currentTarget.closest('.keyboard-shortcuts-help');
+    if (!helpContainer) {
+        console.error("Could not find parent '.keyboard-shortcuts-help' for the clicked header.");
+        return;
+    }
+
+    // Find the indicator within the clicked header's container
+    const indicator = helpContainer.querySelector('.shortcuts-header .collapse-indicator');
+
+    helpContainer.classList.toggle('collapsed');
+
+    if (indicator) {
+        indicator.textContent = helpContainer.classList.contains('collapsed') ? '+' : '−';
     }
 }
 
