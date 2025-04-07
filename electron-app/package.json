@@ -1,10 +1,10 @@
 {
   "name": "monarch-image-labeler",
   "productName": "Monarch Image Labeler",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A desktop application for classifying monarch butterflies in trail-camera photos",
   "author": "",
-  "main": "electron-app/src/main/main.js",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "electron src/main/main.js",
     "test:e2e": "DEBUG=pw:test* playwright test",
