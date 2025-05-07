@@ -242,10 +242,37 @@ def process_classifications(classifications_data, wind_df=None):
     if not classifications_data:
         print("Error: No valid classification data to process.")
         return results
-    
+
+    # Get the actual classifications dictionary
+    actual_image_classifications = classifications_data.get("classifications")
+    if not actual_image_classifications or not isinstance(actual_image_classifications, dict):
+        # Attempt to handle old format where the root is the classifications dict
+        if isinstance(classifications_data, dict) and all(isinstance(val, dict) for val in classifications_data.values()):
+            # Check if top-level keys look like filenames (e.g., contain '_')
+            # This is a heuristic and might need refinement
+            is_old_format = True
+            for key in classifications_data.keys():
+                if '_' not in key or not key.upper().endswith(('.JPG', '.JPEG', '.PNG')): # Basic check
+                    # If we find keys like "rows", "columns", it's likely the new format with missing "classifications"
+                    if key in ["rows", "columns"]:
+                         print("Error: 'classifications' key not found in JSON, and other top-level keys like 'rows'/'columns' exist.")
+                         return results
+                    # If it's just an unexpected key in an otherwise old-format-looking dict, we might allow it
+                    # For now, let's be strict if we suspect old format but find non-image keys
+            
+            # If all checks pass for old format, use classifications_data directly
+            # However, the error specifically points to the new structure being used.
+            # So, if 'classifications' is missing in the new structure, it's an error.
+            print("Error: 'classifications' key not found in JSON or is not a dictionary.")
+            return results
+        else: # If it's not a dictionary at all or doesn't look like image data
+            print("Error: Classification data is not in the expected format (missing 'classifications' dictionary or malformed).")
+            return results
+            
     # Sort filenames by timestamp to process chronologically
     sorted_filenames = []
-    for filename in classifications_data.keys():
+    # Iterate over keys of the NESTED dictionary
+    for filename in actual_image_classifications.keys():
         deployment_id, timestamp_str = extract_deployment_and_timestamp(filename)
         if timestamp_str:
             try:
@@ -267,7 +294,8 @@ def process_classifications(classifications_data, wind_df=None):
     
     # Iterate through each image in chronological order
     for filename, current_timestamp in sorted_filenames:
-        image_data = classifications_data[filename]
+        # Access from the NESTED dictionary
+        image_data = actual_image_classifications[filename]
         total_count = 0
         sun_cell_count = 0
         

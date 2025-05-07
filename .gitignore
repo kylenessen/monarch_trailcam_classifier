@@ -6,3 +6,4 @@ images/
 .Rproj.user
 python-tools/classifications_converter/analysis/analysis.Rproj
 python-tools/classifications_converter/analysis/.Rhistory
+/venv/

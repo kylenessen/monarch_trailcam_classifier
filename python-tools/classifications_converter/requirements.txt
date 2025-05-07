@@ -1,4 +1,3 @@
 pandas
 numpy
 tqdm
-sqlite3-api
