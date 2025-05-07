@@ -1,0 +1,6 @@
+- Consider removing the copy from previous button
+- Create a note category (instead of 1000)
+- Fix confirmed button (currently not working).
+- Go back to beginning button
+- Go to specific photo button
+- Reset confirmed images but not night images
