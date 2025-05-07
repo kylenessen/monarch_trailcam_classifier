@@ -14,7 +14,7 @@ execute:
 
 ```{r}
 library(tidyverse)
-df <- read.csv("/Users/kylenessen/Documents/Code/monarch_trailcam_classifier/qaqc/SC6/counts.csv")
+df <- read.csv("/Users/kylenessen/Documents/Code/monarch_trailcam_classifier/qaqc/SC8/counts.csv")
 glimpse(df)
 ```
 
