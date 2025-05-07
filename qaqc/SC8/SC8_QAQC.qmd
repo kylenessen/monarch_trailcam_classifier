@@ -1,0 +1,31 @@
+---
+title: "SC8 QAQC"
+author: "Kyle Nessen"
+date: today
+format: 
+    html:
+        code-fold: true
+        toc: true
+        toc-location: left
+execute:
+    warning: false
+    message: false
+---
+
+```{r}
+library(tidyverse)
+df <- read.csv("/Users/kylenessen/Documents/Code/monarch_trailcam_classifier/qaqc/SC6/counts.csv")
+glimpse(df)
+```
+
+```{r}
+# Convert timestamp to datetime
+df$timestamp <- as.POSIXct(df$timestamp, origin = "1970-01-01")
+
+# Create time series plot
+ggplot(df, aes(x = timestamp, y = count)) +
+    geom_point() +
+    geom_smooth() +
+    labs(x = "Time", y = "Count") +
+    theme_minimal()
+```
