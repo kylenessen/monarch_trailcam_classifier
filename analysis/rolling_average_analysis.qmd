@@ -1,6 +1,6 @@
 ---
 title: "Monarch Count LOESS Smoothing Analysis"
-format: html
+format: pdf
 editor: visual
 ---
 
@@ -312,17 +312,8 @@ ggsave("figures/rmse_distribution_loess_by_interval.png", width = 10, height = 8
 
 This analysis investigates how different sampling intervals (using LOESS smoothing as trend estimators) affect our ability to capture monarch count patterns. The RMSE metrics provide a quantitative measure of how well each sampling interval approximates the reference 10-minute data.
 
-Key findings:
-- LOESS smoothing provides a flexible way to identify trends in monarch count data, with smoothing parameters that can be adjusted to focus on local or global patterns
-- The RMSE increases with longer sampling intervals, showing a tradeoff between sampling frequency and accuracy
-- The 20-minute and 30-minute intervals appear to maintain reasonable accuracy while reducing data collection effort by 50-67%
-- Different LOESS spans offer varying degrees of smoothness, with span=0.5 generally providing a good balance
+Key findings: - LOESS smoothing provides a flexible way to identify trends in monarch count data, with smoothing parameters that can be adjusted to focus on local or global patterns - The RMSE increases with longer sampling intervals, showing a tradeoff between sampling frequency and accuracy - The 20-minute and 30-minute intervals appear to maintain reasonable accuracy while reducing data collection effort by 50-67% - Different LOESS spans offer varying degrees of smoothness, with span=0.5 generally providing a good balance
 
-Recommendations:
-- For most purposes, a 20-minute sampling interval with LOESS smoothing (span=0.5) provides a good balance between accuracy and data collection effort
-- When short-term variations are important, using a smaller span (0.25) can help capture more local patterns
-- For capturing general trends with less noise, a larger span (0.75) and 30-minute intervals could be sufficient
-- If highly precise counts are needed, maintaining the 10-minute interval is recommended
-- Further validation with additional observation periods would strengthen these findings
+Recommendations: - For most purposes, a 20-minute sampling interval with LOESS smoothing (span=0.5) provides a good balance between accuracy and data collection effort - When short-term variations are important, using a smaller span (0.25) can help capture more local patterns - For capturing general trends with less noise, a larger span (0.75) and 30-minute intervals could be sufficient - If highly precise counts are needed, maintaining the 10-minute interval is recommended - Further validation with additional observation periods would strengthen these findings
 
 The results can help optimize future data collection efforts, potentially reducing sampling frequency while maintaining sufficient accuracy for trend analysis. This approach allows for more efficient monitoring of monarch populations without sacrificing the ability to detect important patterns.
