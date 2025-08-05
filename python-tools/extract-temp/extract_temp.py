@@ -102,9 +102,56 @@ def find_jpg_files(directory: Path) -> List[Path]:
     return sorted(jpg_files)
 
 
+def extract_temperature_with_settings(image_path: str, reader: easyocr.Reader, bounding_box: tuple, preprocessing_params: dict) -> tuple[str, float]:
+    """
+    Extract temperature with specific settings - helper function for retry logic.
+    """
+    try:
+        # Load image
+        img = Image.open(image_path)
+        
+        # Apply bounding box
+        left, top, right, bottom = bounding_box
+        cropped = img.crop((left, top, right, bottom))
+        
+        # Apply preprocessing if specified
+        if preprocessing_params.get('enhance', False):
+            from PIL import ImageEnhance
+            
+            # Adjust contrast
+            contrast_factor = preprocessing_params.get('contrast', 1.5)
+            enhancer = ImageEnhance.Contrast(cropped)
+            cropped = enhancer.enhance(contrast_factor)
+            
+            # Adjust brightness  
+            brightness_factor = preprocessing_params.get('brightness', 1.2)
+            enhancer = ImageEnhance.Brightness(cropped)
+            cropped = enhancer.enhance(brightness_factor)
+        
+        # Convert PIL image to numpy array for EasyOCR
+        import numpy as np
+        cropped_array = np.array(cropped)
+        
+        # Extract text with EasyOCR parameters
+        width_ths = preprocessing_params.get('width_ths', 0.7)
+        height_ths = preprocessing_params.get('height_ths', 0.7)
+        
+        results = reader.readtext(
+            cropped_array,
+            width_ths=width_ths,      # Text box width threshold
+            height_ths=height_ths,    # Text box height threshold
+            detail=1                  # Return detailed results
+        )
+        
+        return results
+        
+    except Exception as e:
+        return []
+
+
 def extract_temperature(image_path: str, reader: easyocr.Reader) -> tuple[str, float]:
     """
-    Extract temperature from trail camera image.
+    Extract temperature from trail camera image with retry logic.
     
     Args:
         image_path: Path to the image file
@@ -114,78 +161,98 @@ def extract_temperature(image_path: str, reader: easyocr.Reader) -> tuple[str, f
         Tuple of (extracted_text, confidence_score)
     """
     try:
-        # Load image
+        # Load image to get dimensions
         img = Image.open(image_path)
-        
-        # Get image dimensions for bounding box calculation
         width, height = img.size
         
-        # Define bounding box for temperature display area (bottom overlay)
-        # Based on sample images, temperature appears in bottom-left area
-        # Rough estimate: left 40% of width, bottom 10% of height
-        left = 0
-        top = int(height * 0.90)  # Start from 90% down the image
-        right = int(width * 0.4)   # First 40% of width
-        bottom = height
+        # Define multiple retry strategies
+        retry_strategies = [
+            # Strategy 1: Original approach
+            {
+                'bounding_box': (0, int(height * 0.90), int(width * 0.4), height),
+                'preprocessing': {'enhance': True, 'contrast': 1.5, 'brightness': 1.2, 'width_ths': 0.7, 'height_ths': 0.7}
+            },
+            # Strategy 2: Larger bounding box, more aggressive preprocessing
+            {
+                'bounding_box': (0, int(height * 0.88), int(width * 0.5), height),
+                'preprocessing': {'enhance': True, 'contrast': 2.0, 'brightness': 1.4, 'width_ths': 0.5, 'height_ths': 0.5}
+            },
+            # Strategy 3: Even larger box, different EasyOCR thresholds
+            {
+                'bounding_box': (0, int(height * 0.85), int(width * 0.6), height),
+                'preprocessing': {'enhance': True, 'contrast': 1.8, 'brightness': 1.1, 'width_ths': 0.3, 'height_ths': 0.3}
+            },
+            # Strategy 4: Full bottom strip, minimal preprocessing
+            {
+                'bounding_box': (0, int(height * 0.92), width, height),
+                'preprocessing': {'enhance': True, 'contrast': 1.2, 'brightness': 1.1, 'width_ths': 0.8, 'height_ths': 0.8}
+            }
+        ]
         
-        # Crop to region of interest
-        cropped = img.crop((left, top, right, bottom))
-        
-        # Apply basic image preprocessing to improve OCR
-        from PIL import ImageEnhance
-        
-        # Increase contrast to make text clearer
-        enhancer = ImageEnhance.Contrast(cropped)
-        cropped = enhancer.enhance(1.5)  # Increase contrast by 50%
-        
-        # Increase brightness slightly
-        enhancer = ImageEnhance.Brightness(cropped)
-        cropped = enhancer.enhance(1.2)  # Increase brightness by 20%
-        
-        # Convert PIL image to numpy array for EasyOCR
-        import numpy as np
-        cropped_array = np.array(cropped)
-        
-        # Extract text from cropped region using pre-initialized reader
-        results = reader.readtext(cropped_array)
-        
-        # Look for temperature pattern in results - try multiple patterns in order of preference
-        for (bbox, text, confidence) in results:
-            # Pattern 1: Look for Celsius temperature specifically (number before °C)
-            # Patterns: "12 °C", "12°C", "12 'C", "12C", "12 ·C"
-            celsius_match = re.search(r'(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
-            if celsius_match:
-                temp_value = celsius_match.group(1)
-                return temp_value, confidence
+        # Try each strategy until we find a temperature
+        for strategy_idx, strategy in enumerate(retry_strategies):
+            results = extract_temperature_with_settings(
+                image_path, 
+                reader, 
+                strategy['bounding_box'], 
+                strategy['preprocessing']
+            )
             
-            # Pattern 2: Temperature display with T prefix "T 12 °C / 53 °F"
-            temp_display_match = re.search(r'T\s+(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
-            if temp_display_match:
-                temp_value = temp_display_match.group(1)
-                return temp_value, confidence
+            if not results:
+                continue
             
-            # Pattern 3: Look for "X °C / Y °F" pattern and take the first number (Celsius)
-            celsius_fahrenheit_match = re.search(r'(\d+)\s*[°\'·]?\s*C\s*/\s*\d+\s*[°\'·]?\s*F', text, re.IGNORECASE)
-            if celsius_fahrenheit_match:
-                temp_value = celsius_fahrenheit_match.group(1)
-                return temp_value, confidence
-                
-            # Pattern 4: OCR might misread symbols - look for number before C in temperature context
-            # Handle cases where OCR reads symbols as letters/numbers
-            temp_context_match = re.search(r'(\d+)\s*[^\w\s]*\s*C(?:\s|/|\s*\d)', text, re.IGNORECASE)
-            if temp_context_match:
-                temp_value = temp_context_match.group(1)
-                return temp_value, confidence
+            # Look for temperature pattern in results - try multiple patterns in order of preference
+            temp_result = parse_temperature_from_results(results)
+            if temp_result:
+                return temp_result
         
-        # If no temperature found, return all detected text
-        if results:
-            all_text = ' | '.join([f"{text} (conf: {conf:.2f})" for _, text, conf in results])
-            return f"No temperature found. Detected: {all_text}", 0.0
-        else:
-            return "No text detected", 0.0
+        # If all strategies failed, return failure
+        return "No temperature found in any retry attempt", 0.0
             
     except Exception as e:
         return f"Error: {str(e)}", 0.0
+
+
+def parse_temperature_from_results(results) -> tuple[str, float] | None:
+    """
+    Parse temperature from OCR results using multiple pattern matching strategies.
+    
+    Args:
+        results: EasyOCR results list
+        
+    Returns:
+        Tuple of (temperature_value, confidence) or None if not found
+    """
+    for (bbox, text, confidence) in results:
+        # Pattern 1: Look for Celsius temperature specifically (number before °C)
+        # Patterns: "12 °C", "12°C", "12 'C", "12C", "12 ·C"
+        celsius_match = re.search(r'(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
+        if celsius_match:
+            temp_value = celsius_match.group(1)
+            return temp_value, confidence
+        
+        # Pattern 2: Temperature display with T prefix "T 12 °C / 53 °F"
+        temp_display_match = re.search(r'T\s+(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
+        if temp_display_match:
+            temp_value = temp_display_match.group(1)
+            return temp_value, confidence
+        
+        # Pattern 3: Look for "X °C / Y °F" pattern and take the first number (Celsius)
+        celsius_fahrenheit_match = re.search(r'(\d+)\s*[°\'·]?\s*C\s*/\s*\d+\s*[°\'·]?\s*F', text, re.IGNORECASE)
+        if celsius_fahrenheit_match:
+            temp_value = celsius_fahrenheit_match.group(1)
+            return temp_value, confidence
+            
+        # Pattern 4: OCR might misread symbols - look for number before C in temperature context
+        # Handle cases where OCR reads symbols as letters/numbers
+        temp_context_match = re.search(r'(\d+)\s*[^\w\s]*\s*C(?:\s|/|\s*\d)', text, re.IGNORECASE)
+        if temp_context_match:
+            temp_value = temp_context_match.group(1)
+            return temp_value, confidence
+    
+    return None
+
+
 
 
 def process_directory(directory_path: Path) -> List[Dict[str, Any]]:
