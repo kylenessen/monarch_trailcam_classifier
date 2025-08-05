@@ -6,7 +6,7 @@ from pathlib import Path
 
 def process_images(folder_path):
     """
-    Processes images in a folder: keeps the 1st of every 3, moves the 2nd and 3rd.
+    Processes images in a folder: keeps the 1st of every 6, moves the other 5.
 
     Args:
         folder_path (str): The path to the folder containing images.
@@ -37,11 +37,11 @@ def process_images(folder_path):
     print(f"Processing {total_count} images in '{folder_path}'...")
 
     for i, img_file in enumerate(image_files):
-        # Keep the 1st image (index 0), move 2nd (index 1), move 3rd (index 2)
-        # Keep the 4th image (index 3), move 5th (index 4), move 6th (index 5)
+        # Keep the 1st image (index 0), move 2nd-6th (index 1-5)
+        # Keep the 7th image (index 6), move 8th-12th (index 7-11)
         # etc.
-        # The pattern is: keep if index % 3 == 0, move otherwise
-        if i % 3 == 0:
+        # The pattern is: keep if index % 6 == 0, move otherwise
+        if i % 6 == 0:
             kept_count += 1
             # print(f"Keeping: {img_file.name}") # Optional: uncomment for verbose output
         else:
@@ -60,7 +60,7 @@ def process_images(folder_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Keep the first image, move the next two, and repeat for all JPG/JPEG images in a folder."
+        description="Keep the first image, move the next five, and repeat for all JPG/JPEG images in a folder."
     )
     parser.add_argument(
         "folder_path",
