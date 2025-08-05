@@ -19,17 +19,49 @@ from tqdm import tqdm
 warnings.filterwarnings("ignore", message=".*pin_memory.*not supported on MPS.*")
 
 
-def extract_deployment_id(filename: str) -> str:
+def extract_timestamp(filename: str) -> str:
     """
-    Extract deployment ID from filename (everything before first underscore).
+    Extract timestamp from filename.
     
     Args:
         filename: Image filename (e.g., 'SC4_20231203223001.JPG')
         
     Returns:
-        Deployment ID (e.g., 'SC4')
+        Timestamp string (e.g., '20231203223001')
     """
-    return filename.split('_')[0]
+    # Remove .JPG extension first
+    name_without_ext = filename.rsplit('.', 1)[0]
+    # Split on underscores
+    parts = name_without_ext.split('_')
+    # Find the timestamp part (14 digits)
+    for part in parts:
+        if len(part) == 14 and part.isdigit():
+            return part
+    # Fallback: return last part
+    return parts[-1]
+
+
+def extract_deployment_id(filename: str) -> str:
+    """
+    Extract deployment ID from filename by removing timestamp and extension.
+    Handles deployment IDs with underscores (e.g., 'SLC6_1_20240105142001.JPG' -> 'SLC6_1').
+    
+    Args:
+        filename: Image filename (e.g., 'SC4_20231203223001.JPG' or 'SLC6_1_20240105142001.JPG')
+        
+    Returns:
+        Deployment ID (e.g., 'SC4' or 'SLC6_1')
+    """
+    # Remove .JPG extension first
+    name_without_ext = filename.rsplit('.', 1)[0]
+    # Split on underscores
+    parts = name_without_ext.split('_')
+    # Find the timestamp part (14 digits) and take everything before it
+    for i, part in enumerate(parts):
+        if len(part) == 14 and part.isdigit():
+            return '_'.join(parts[:i])
+    # Fallback: return everything except last part
+    return '_'.join(parts[:-1])
 
 
 def validate_temperature(temp_str: str) -> Tuple[int, bool]:
@@ -60,7 +92,7 @@ def find_jpg_files(directory: Path) -> List[Path]:
     Returns:
         List of JPG file paths
     """
-    pattern = re.compile(r'^[A-Z0-9]+_\d+\.JPG$', re.IGNORECASE)
+    pattern = re.compile(r'^[A-Z0-9_]+_\d{14}\.JPG$', re.IGNORECASE)
     jpg_files = []
     
     for file_path in directory.rglob('*.JPG'):
@@ -99,6 +131,17 @@ def extract_temperature(image_path: str, reader: easyocr.Reader) -> tuple[str, f
         # Crop to region of interest
         cropped = img.crop((left, top, right, bottom))
         
+        # Apply basic image preprocessing to improve OCR
+        from PIL import ImageEnhance
+        
+        # Increase contrast to make text clearer
+        enhancer = ImageEnhance.Contrast(cropped)
+        cropped = enhancer.enhance(1.5)  # Increase contrast by 50%
+        
+        # Increase brightness slightly
+        enhancer = ImageEnhance.Brightness(cropped)
+        cropped = enhancer.enhance(1.2)  # Increase brightness by 20%
+        
         # Convert PIL image to numpy array for EasyOCR
         import numpy as np
         cropped_array = np.array(cropped)
@@ -106,18 +149,33 @@ def extract_temperature(image_path: str, reader: easyocr.Reader) -> tuple[str, f
         # Extract text from cropped region using pre-initialized reader
         results = reader.readtext(cropped_array)
         
-        # Look for temperature pattern in results
+        # Look for temperature pattern in results - try multiple patterns in order of preference
         for (bbox, text, confidence) in results:
-            # Look for text containing temperature patterns (°C, C, €, or just numbers with / pattern)
-            if any(char in text for char in ['°C', 'C', '€', '/']):
-                # Try to extract number from various temperature patterns
-                # Look for patterns like "12°C", "12 C", "12 '€", "12 / 53"
-                match = re.search(r'(\d+)', text)
-                if match:
-                    temp_value = match.group(1)
-                    return temp_value, confidence
-                else:
-                    return text, confidence
+            # Pattern 1: Look for Celsius temperature specifically (number before °C)
+            # Patterns: "12 °C", "12°C", "12 'C", "12C", "12 ·C"
+            celsius_match = re.search(r'(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
+            if celsius_match:
+                temp_value = celsius_match.group(1)
+                return temp_value, confidence
+            
+            # Pattern 2: Temperature display with T prefix "T 12 °C / 53 °F"
+            temp_display_match = re.search(r'T\s+(\d+)\s*[°\'·]?\s*C', text, re.IGNORECASE)
+            if temp_display_match:
+                temp_value = temp_display_match.group(1)
+                return temp_value, confidence
+            
+            # Pattern 3: Look for "X °C / Y °F" pattern and take the first number (Celsius)
+            celsius_fahrenheit_match = re.search(r'(\d+)\s*[°\'·]?\s*C\s*/\s*\d+\s*[°\'·]?\s*F', text, re.IGNORECASE)
+            if celsius_fahrenheit_match:
+                temp_value = celsius_fahrenheit_match.group(1)
+                return temp_value, confidence
+                
+            # Pattern 4: OCR might misread symbols - look for number before C in temperature context
+            # Handle cases where OCR reads symbols as letters/numbers
+            temp_context_match = re.search(r'(\d+)\s*[^\w\s]*\s*C(?:\s|/|\s*\d)', text, re.IGNORECASE)
+            if temp_context_match:
+                temp_value = temp_context_match.group(1)
+                return temp_value, confidence
         
         # If no temperature found, return all detected text
         if results:
@@ -159,8 +217,9 @@ def process_directory(directory_path: Path) -> List[Dict[str, Any]]:
     
     # Process each file with progress bar
     for file_path in tqdm(jpg_files, desc="Processing images"):
-        # Extract deployment ID from filename
+        # Extract deployment ID and timestamp from filename
         deployment_id = extract_deployment_id(file_path.name)
+        timestamp = extract_timestamp(file_path.name)
         
         # Extract temperature using shared reader
         temp_result, confidence = extract_temperature(str(file_path), reader)
@@ -182,6 +241,7 @@ def process_directory(directory_path: Path) -> List[Dict[str, Any]]:
         result = {
             'filename': file_path.name,
             'deployment_id': deployment_id,
+            'timestamp': timestamp,
             'temperature': temperature,
             'confidence': confidence,
             'extraction_status': status
@@ -247,12 +307,14 @@ def main():
         print(f"Processing single image: {input_path}")
         
         deployment_id = extract_deployment_id(input_path.name)
+        timestamp = extract_timestamp(input_path.name)
         reader = easyocr.Reader(['en'], gpu=True)
         result, confidence = extract_temperature(str(input_path), reader)
         temp_int, is_valid = validate_temperature(result)
         
         print(f"\nResults:")
         print(f"  Deployment ID: {deployment_id}")
+        print(f"  Timestamp: {timestamp}")
         print(f"  Extracted: {result}")
         print(f"  Confidence: {confidence:.2f}")
         print(f"  Valid temperature: {is_valid}")
