@@ -1,0 +1,3 @@
+filename,full_path,deployment_id,timestamp,temperature,confidence,extraction_status
+UDMH2_20240105124001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH2/UDMH2_20240105124001.JPG,UDMH2,2024-01-05T12:40:01,8,0.6044552598963843,success
+UDMH2_20240105131001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH2/UDMH2_20240105131001.JPG,UDMH2,2024-01-05T13:10:01,9,0.1796431016836313,success

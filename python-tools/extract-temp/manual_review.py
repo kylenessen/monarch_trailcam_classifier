@@ -133,7 +133,8 @@ def update_plot_and_store(deployment_id, stored_data, clickData):
     fig.add_trace(go.Scatter(
         x=plot_df['timestamp'],
         y=plot_df['temperature'],
-        mode='markers',
+        mode='lines+markers',
+        line=dict(width=0.5, color='grey'),
         marker=dict(color=plot_df['color']),
         customdata=plot_df['filename'] # Pass filename for context
     ))
