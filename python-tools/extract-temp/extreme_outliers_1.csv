@@ -1,0 +1,141 @@
+filename,full_path,deployment_id,timestamp,temperature,confidence,extraction_status,outlier_type,suggested_action
+SC3_20231122082001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231122082001.JPG,SC3,20231122082001,43.0,0.6628087172660662,success,high_temp,Convert F to C: 6.1°C
+SC3_20231124082001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231124082001.JPG,SC3,20231124082001,71.0,0.4970447102472301,success,high_temp,Convert F to C: 21.7°C
+SC4_20231210083001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231210083001.JPG,SC4,20231210083001,49.0,0.4085517293079308,success,high_temp,Convert F to C: 9.4°C
+SC4_20231222102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231222102001.JPG,SC4,20231222102001,48.0,0.430740845567985,success,high_temp,Convert F to C: 8.9°C
+SC4_20231222105001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231222105001.JPG,SC4,20231222105001,49.0,0.3917297697359853,success,high_temp,Convert F to C: 9.4°C
+SC4_20231224101001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231224101001.JPG,SC4,20231224101001,49.0,0.3934271263792319,success,high_temp,Convert F to C: 9.4°C
+SC4_20231224103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231224103001.JPG,SC4,20231224103001,49.0,0.3611263489978596,success,high_temp,Convert F to C: 9.4°C
+SC9_20240128111001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128111001.JPG,SC9,20240128111001,35.0,0.7725106550379752,success,high_temp,Review manually
+SC9_20240128112001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128112001.JPG,SC9,20240128112001,36.0,0.8487997979686208,success,high_temp,Review manually
+SC9_20240128113001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128113001.JPG,SC9,20240128113001,37.0,0.7670459164097033,success,high_temp,Review manually
+SC9_20240128114001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128114001.JPG,SC9,20240128114001,37.0,0.4568746455947924,success,high_temp,Review manually
+SC9_20240128115001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128115001.JPG,SC9,20240128115001,37.0,0.3766810552702996,success,high_temp,Review manually
+SC9_20240128120001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128120001.JPG,SC9,20240128120001,37.0,0.3565447896001834,success,high_temp,Review manually
+SC9_20240128121001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128121001.JPG,SC9,20240128121001,37.0,0.7269366356378838,success,high_temp,Review manually
+SC9_20240128122001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128122001.JPG,SC9,20240128122001,37.0,0.4832082392682791,success,high_temp,Review manually
+SC9_20240128123001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128123001.JPG,SC9,20240128123001,36.0,0.6429755296922911,success,high_temp,Review manually
+SC9_20240128124001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128124001.JPG,SC9,20240128124001,36.0,0.6835675040375584,success,high_temp,Review manually
+SC9_20240128125001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128125001.JPG,SC9,20240128125001,36.0,0.7340903304841001,success,high_temp,Review manually
+SC9_20240128130001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128130001.JPG,SC9,20240128130001,35.0,0.6108748316059404,success,high_temp,Review manually
+SC9_20240128131001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128131001.JPG,SC9,20240128131001,35.0,0.3805662739053349,success,high_temp,Review manually
+SC9_20240128132001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128132001.JPG,SC9,20240128132001,35.0,0.4994649183297213,success,high_temp,Review manually
+SC9_20240128133001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128133001.JPG,SC9,20240128133001,35.0,0.3210041186071776,success,high_temp,Review manually
+SC9_20240128134001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128134001.JPG,SC9,20240128134001,35.0,0.5390496170728539,success,high_temp,Review manually
+SC9_20240128135001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC9/SC9_20240128135001.JPG,SC9,20240128135001,35.0,0.465610530000109,success,high_temp,Review manually
+SLC6_1_20231205121001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205121001.JPG,SLC6_1,20231205121001,35.0,0.6089772770012013,success,high_temp,Review manually
+SLC6_1_20231205122001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205122001.JPG,SLC6_1,20231205122001,35.0,0.3929481849825562,success,high_temp,Review manually
+SLC6_1_20231205123001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205123001.JPG,SLC6_1,20231205123001,36.0,0.8437414614332694,success,high_temp,Review manually
+SLC6_1_20231205124001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205124001.JPG,SLC6_1,20231205124001,35.0,0.6501294723231741,success,high_temp,Review manually
+SLC6_1_20231205125001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205125001.JPG,SLC6_1,20231205125001,36.0,0.4095223244114028,success,high_temp,Review manually
+SLC6_2_20231211101201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231211101201.JPG,SLC6_2,20231211101201,48.0,0.2448671180264819,success,high_temp,Convert F to C: 8.9°C
+SLC6_2_20231213101201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231213101201.JPG,SLC6_2,20231213101201,46.0,0.1887135868285301,success,high_temp,Convert F to C: 7.8°C
+SLC6_2_20240104100201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20240104100201.JPG,SLC6_2,20240104100201,72.0,0.2192813019037812,success,high_temp,Convert F to C: 22.2°C
+SLC6_2_20240105083201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20240105083201.JPG,SLC6_2,20240105083201,70.0,0.659881140099339,success,high_temp,Convert F to C: 21.1°C
+UDMH1_20240108074001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240108074001.JPG,UDMH1,20240108074001,59.0,0.3824707230249156,success,high_temp,Convert F to C: 15.0°C
+UDMH1_20240108081001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240108081001.JPG,UDMH1,20240108081001,42.0,0.0586432878472224,success,high_temp,Convert F to C: 5.6°C
+UDMH2_20240105152001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH2/UDMH2_20240105152001.JPG,UDMH2,20240105152001,49.0,0.4301636145928209,success,high_temp,Convert F to C: 9.4°C
+SC1_20231205105001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC1/SC1_20231205105001.JPG,SC1,20231205105001,1.0,0.9659863991589686,success,low_temp,Review manually - likely OCR error
+SC1_20231215103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC1/SC1_20231215103001.JPG,SC1,20231215103001,1.0,0.9507703297777276,success,low_temp,Review manually - likely OCR error
+SC10_20240109101604.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC10/SC10_20240109101604.JPG,SC10,20240109101604,1.0,0.911022564960638,success,low_temp,Review manually - likely OCR error
+SC10_20240126081604.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC10/SC10_20240126081604.JPG,SC10,20240126081604,1.0,0.7898916741931927,success,low_temp,Review manually - likely OCR error
+SC10_20240128094001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC10/SC10_20240128094001.JPG,SC10,20240128094001,0.0,0.4733707287876884,success,low_temp,Review manually - likely OCR error
+SC10_20240128101001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC10/SC10_20240128101001.JPG,SC10,20240128101001,1.0,0.6358420780545438,success,low_temp,Review manually - likely OCR error
+SC11_20240108054501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108054501.JPG,SC11,20240108054501,2.0,0.3992134632511094,success,low_temp,Review manually - likely OCR error
+SC11_20240108055501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108055501.JPG,SC11,20240108055501,2.0,0.4225571910740916,success,low_temp,Review manually - likely OCR error
+SC11_20240108060501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108060501.JPG,SC11,20240108060501,2.0,0.4333706819137546,success,low_temp,Review manually - likely OCR error
+SC11_20240108061501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108061501.JPG,SC11,20240108061501,2.0,0.4785450524065383,success,low_temp,Review manually - likely OCR error
+SC11_20240108062501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108062501.JPG,SC11,20240108062501,2.0,0.4956778397592036,success,low_temp,Review manually - likely OCR error
+SC11_20240108065501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108065501.JPG,SC11,20240108065501,2.0,0.8080273406296692,success,low_temp,Review manually - likely OCR error
+SC11_20240108071501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108071501.JPG,SC11,20240108071501,2.0,0.5333873951249288,success,low_temp,Review manually - likely OCR error
+SC11_20240108072501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108072501.JPG,SC11,20240108072501,2.0,0.864912709533958,success,low_temp,Review manually - likely OCR error
+SC11_20240108073500.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108073500.JPG,SC11,20240108073500,2.0,0.6488393459685149,success,low_temp,Review manually - likely OCR error
+SC11_20240108074501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108074501.JPG,SC11,20240108074501,2.0,0.8555731731046082,success,low_temp,Review manually - likely OCR error
+SC11_20240108075501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108075501.JPG,SC11,20240108075501,2.0,0.8669483849979165,success,low_temp,Review manually - likely OCR error
+SC11_20240108080501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108080501.JPG,SC11,20240108080501,2.0,0.8591523789586254,success,low_temp,Review manually - likely OCR error
+SC11_20240108081501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108081501.JPG,SC11,20240108081501,2.0,0.8200161353128741,success,low_temp,Review manually - likely OCR error
+SC11_20240108082501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108082501.JPG,SC11,20240108082501,2.0,0.6272101900247282,success,low_temp,Review manually - likely OCR error
+SC11_20240108083501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240108083501.JPG,SC11,20240108083501,2.0,0.68626851544413,success,low_temp,Review manually - likely OCR error
+SC11_20240114094501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC11/SC11_20240114094501.JPG,SC11,20240114094501,0.0,0.5921781080878473,success,low_temp,Review manually - likely OCR error
+SC3_20231127082501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231127082501.JPG,SC3,20231127082501,1.0,0.2099854598776265,success,low_temp,Review manually - likely OCR error
+SC3_20231201084501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231201084501.JPG,SC3,20231201084501,2.0,0.3027877897634905,success,low_temp,Review manually - likely OCR error
+SC3_20231202101501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231202101501.JPG,SC3,20231202101501,1.0,0.441490992611146,success,low_temp,Review manually - likely OCR error
+SC3_20231202105001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231202105001.JPG,SC3,20231202105001,1.0,0.2870261631655705,success,low_temp,Review manually - likely OCR error
+SC3_20231202105501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC3/SC3_20231202105501.JPG,SC3,20231202105501,1.0,0.3687935718389365,success,low_temp,Review manually - likely OCR error
+SC4_20231210112001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231210112001.JPG,SC4,20231210112001,2.0,0.6710916246660408,success,low_temp,Review manually - likely OCR error
+SC4_20231211102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231211102001.JPG,SC4,20231211102001,1.0,0.8845072443275607,success,low_temp,Review manually - likely OCR error
+SC5_20240108100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC5/SC5_20240108100001.JPG,SC5,20240108100001,1.0,0.4177461990637377,success,low_temp,Review manually - likely OCR error
+SC5_20240110100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC5/SC5_20240110100001.JPG,SC5,20240110100001,1.0,0.8974272008195284,success,low_temp,Review manually - likely OCR error
+SC5_20240111100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC5/SC5_20240111100001.JPG,SC5,20240111100001,1.0,0.7463199940510907,success,low_temp,Review manually - likely OCR error
+SC5_20240112100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC5/SC5_20240112100001.JPG,SC5,20240112100001,1.0,0.9099589763772964,success,low_temp,Review manually - likely OCR error
+SC5_20240120095001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC5/SC5_20240120095001.JPG,SC5,20240120095001,0.0,0.4833013425841874,success,low_temp,Review manually - likely OCR error
+SC6_20231220224001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC6/SC6_20231220224001.JPG,SC6,20231220224001,1.0,0.9925289052375,success,low_temp,Review manually - likely OCR error
+SC6_20240102102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC6/SC6_20240102102001.JPG,SC6,20240102102001,1.0,0.6816821143536623,success,low_temp,Review manually - likely OCR error
+SC6_20240104103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC6/SC6_20240104103001.JPG,SC6,20240104103001,1.0,0.9815723607492536,success,low_temp,Review manually - likely OCR error
+SC7_20231222100501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20231222100501.JPG,SC7,20231222100501,1.0,0.9959013232933236,success,low_temp,Review manually - likely OCR error
+SC7_20231230102501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20231230102501.JPG,SC7,20231230102501,1.0,0.695530324321925,success,low_temp,Review manually - likely OCR error
+SC7_20231230103501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20231230103501.JPG,SC7,20231230103501,1.0,0.917515294193675,success,low_temp,Review manually - likely OCR error
+SC7_20240101102501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20240101102501.JPG,SC7,20240101102501,1.0,0.8742198068684913,success,low_temp,Review manually - likely OCR error
+SC7_20240102094501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20240102094501.JPG,SC7,20240102094501,0.0,0.6612248337604925,success,low_temp,Review manually - likely OCR error
+SC7_20240103100501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20240103100501.JPG,SC7,20240103100501,1.0,0.7871800279439274,success,low_temp,Review manually - likely OCR error
+SC7_20240103102501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20240103102501.JPG,SC7,20240103102501,1.0,0.6271067440755828,success,low_temp,Review manually - likely OCR error
+SC7_20240104100501.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC7/SC7_20240104100501.JPG,SC7,20240104100501,1.0,0.907525550102204,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231204091001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231204091001.JPG,SLC6_1,20231204091001,0.0,0.495742733742946,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231204220001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231204220001.JPG,SLC6_1,20231204220001,1.0,0.330367312423302,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231204221001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231204221001.JPG,SLC6_1,20231204221001,1.0,0.6959401122212364,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231204225001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231204225001.JPG,SLC6_1,20231204225001,1.0,0.5777507919027476,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231205103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231205103001.JPG,SLC6_1,20231205103001,1.0,0.7292029595189017,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231207100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231207100001.JPG,SLC6_1,20231207100001,1.0,0.7738393335686609,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231207101001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231207101001.JPG,SLC6_1,20231207101001,1.0,0.4314319040091547,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231209101001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231209101001.JPG,SLC6_1,20231209101001,1.0,0.7365382704095362,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231209102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231209102001.JPG,SLC6_1,20231209102001,1.0,0.7265921367982089,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231209103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231209103001.JPG,SLC6_1,20231209103001,1.0,0.9532045011502562,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231209104001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231209104001.JPG,SLC6_1,20231209104001,1.0,0.517579257928524,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231211092001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231211092001.JPG,SLC6_1,20231211092001,0.0,0.532644928884519,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231214094001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231214094001.JPG,SLC6_1,20231214094001,0.0,0.4166842255537339,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231214095001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231214095001.JPG,SLC6_1,20231214095001,0.0,0.1317242311239383,success,low_temp,Review manually - likely OCR error
+SLC6_1_20231216103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_1/SLC6_1_20231216103001.JPG,SLC6_1,20231216103001,1.0,0.8521996310706191,success,low_temp,Review manually - likely OCR error
+SLC6_2_20231204101201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231204101201.JPG,SLC6_2,20231204101201,1.0,0.8893755463888671,success,low_temp,Review manually - likely OCR error
+SLC6_2_20231212101201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231212101201.JPG,SLC6_2,20231212101201,1.0,0.5198591531226397,success,low_temp,Review manually - likely OCR error
+SLC6_2_20231214081201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231214081201.JPG,SLC6_2,20231214081201,1.0,0.2743517298210258,success,low_temp,Review manually - likely OCR error
+SLC6_2_20231224103201.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SLC6_2/SLC6_2_20231224103201.JPG,SLC6_2,20231224103201,1.0,0.4581204430211855,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106043001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106043001.JPG,UDMH1,20240106043001,2.0,0.7137692903992832,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106063001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106063001.JPG,UDMH1,20240106063001,2.0,0.7077488158840253,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106064003.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106064003.JPG,UDMH1,20240106064003,2.0,0.7883929303618392,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106065001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106065001.JPG,UDMH1,20240106065001,1.0,0.7746395695676951,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106070001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106070001.JPG,UDMH1,20240106070001,1.0,0.4266325638070091,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106071001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106071001.JPG,UDMH1,20240106071001,1.0,0.7237742787474114,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106072001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106072001.JPG,UDMH1,20240106072001,1.0,0.5747671085953767,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106073001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106073001.JPG,UDMH1,20240106073001,2.0,0.460315599452641,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106074001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106074001.JPG,UDMH1,20240106074001,2.0,0.6448722041683894,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106075001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106075001.JPG,UDMH1,20240106075001,2.0,0.7774539192129556,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106080001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106080001.JPG,UDMH1,20240106080001,2.0,0.6449526709557685,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106081001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106081001.JPG,UDMH1,20240106081001,2.0,0.8288086149869094,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106082001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106082001.JPG,UDMH1,20240106082001,2.0,0.5289609054065063,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106083001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106083001.JPG,UDMH1,20240106083001,2.0,0.4274894850522403,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106084001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106084001.JPG,UDMH1,20240106084001,2.0,0.1395713588325895,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106085001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106085001.JPG,UDMH1,20240106085001,2.0,0.4721641257319907,success,low_temp,Review manually - likely OCR error
+UDMH1_20240106090001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240106090001.JPG,UDMH1,20240106090001,2.0,0.3911933149845349,success,low_temp,Review manually - likely OCR error
+UDMH1_20240111092001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240111092001.JPG,UDMH1,20240111092001,0.0,0.701492831162945,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112055001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112055001.JPG,UDMH1,20240112055001,2.0,0.6436867469896534,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112060001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112060001.JPG,UDMH1,20240112060001,1.0,0.7792245098559947,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112061001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112061001.JPG,UDMH1,20240112061001,2.0,0.7165430809964778,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112062001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112062001.JPG,UDMH1,20240112062001,1.0,0.726485485002082,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112063001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112063001.JPG,UDMH1,20240112063001,0.0,0.3924151637349197,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112064001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112064001.JPG,UDMH1,20240112064001,0.0,0.5730779305268523,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112065001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112065001.JPG,UDMH1,20240112065001,0.0,0.6627980020550098,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112070001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112070001.JPG,UDMH1,20240112070001,0.0,0.4416774112713557,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112071001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112071001.JPG,UDMH1,20240112071001,0.0,0.5838699483879558,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112072001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112072001.JPG,UDMH1,20240112072001,0.0,0.6042418570153286,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112073001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112073001.JPG,UDMH1,20240112073001,0.0,0.687882208647047,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112074001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112074001.JPG,UDMH1,20240112074001,1.0,0.5066331211435245,success,low_temp,Review manually - likely OCR error
+UDMH1_20240112075001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240112075001.JPG,UDMH1,20240112075001,2.0,0.6151094437447504,success,low_temp,Review manually - likely OCR error
+UDMH1_20240113095001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH1/UDMH1_20240113095001.JPG,UDMH1,20240113095001,0.0,0.4806505504689962,success,low_temp,Review manually - likely OCR error
+UDMH3_20240125103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240125103001.JPG,UDMH3,20240125103001,1.0,0.9216371151633588,success,low_temp,Review manually - likely OCR error
+UDMH3_20240125105001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240125105001.JPG,UDMH3,20240125105001,1.0,0.2424017543577522,success,low_temp,Review manually - likely OCR error
+UDMH3_20240126102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240126102001.JPG,UDMH3,20240126102001,1.0,0.9942572547543262,success,low_temp,Review manually - likely OCR error
+UDMH3_20240127103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240127103001.JPG,UDMH3,20240127103001,1.0,0.9060089551184322,success,low_temp,Review manually - likely OCR error
+UDMH3_20240128103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240128103001.JPG,UDMH3,20240128103001,1.0,0.9839994450170686,success,low_temp,Review manually - likely OCR error
+UDMH3_20240129102001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240129102001.JPG,UDMH3,20240129102001,1.0,0.98958452926527,success,low_temp,Review manually - likely OCR error
+UDMH3_20240129103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240129103001.JPG,UDMH3,20240129103001,1.0,0.9901862777076472,success,low_temp,Review manually - likely OCR error
+UDMH3_20240129104001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/UDMH3/UDMH3_20240129104001.JPG,UDMH3,20240129104001,1.0,0.6685585592317006,success,low_temp,Review manually - likely OCR error
