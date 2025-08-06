@@ -277,7 +277,8 @@ def main():
     # Add more files as needed
     correction_csvs = ['missing_temperature_data.csv',
                        'manual_extreme_temperature_entries.csv',
-                       'manual_temperature_entries_data.csv']
+                       'manual_temperature_entries_data.csv',
+                       'manual_temperature_SC2_data.csv']
 
     # Load and merge data
     df = load_and_merge_data(original_csv, correction_csvs)
