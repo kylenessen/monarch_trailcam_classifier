@@ -1,4 +1,0 @@
-filename,full_path,deployment_id,timestamp,temperature,confidence,extraction_status
-SC4_20231213100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231213100001.JPG,SC4,2023-12-13T10:00:01,8,0.2348960954122543,success
-SC4_20231222100001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231222100001.JPG,SC4,2023-12-22T10:00:01,7,0.3602165161191029,success
-SC4_20231222103001.JPG,/Volumes/MediaVault/Masters/Camelot_Photos/SC4/SC4_20231222103001.JPG,SC4,2023-12-22T10:30:01,8,0.3645581191290359,success
