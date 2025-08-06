@@ -1,0 +1,3 @@
+filename,deployment_id,timestamp,temperature,confidence,extraction_status
+SC10_20240127133001.JPG,SC10,2024-01-27T13:30:01,28.0,1.0,manual_entry
+SC10_20240129084001.JPG,SC10,2024-01-29T08:40:01,14.0,1.0,manual_entry
