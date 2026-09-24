@@ -1,0 +1,31 @@
+name: Classifier checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-14
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: electron-app/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --no-project --python 3.13 python -m unittest discover -s tools -p 'test_*.py'
+      - run: npm ci
+        working-directory: electron-app
+      - run: npm run test:e2e -- --workers=1
+        working-directory: electron-app
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: electron-app/playwright-report/
+          retention-days: 14

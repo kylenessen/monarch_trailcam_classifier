@@ -8,3 +8,9 @@ python-tools/classifications_converter/analysis/analysis.Rproj
 python-tools/classifications_converter/analysis/.Rhistory
 /venv/
 qaqc/SC8/.Rhistory
+
+__pycache__/
+*.pyc
+playwright-report/
+test-results/
+.venv/

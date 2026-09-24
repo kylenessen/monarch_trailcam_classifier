@@ -443,7 +443,8 @@ export function updateNavigationButtons() {
 
     prevButton.disabled = state.currentImageIndex <= 0;
     nextButton.disabled = state.currentImageIndex >= state.imageFiles.length - 1;
-    // nextUnclassifiedButton state might depend on whether all are classified
+    if (copyButton) copyButton.disabled = state.currentImageIndex <= 0 || state.isLocked;
+    if (nextUnclassifiedButton) nextUnclassifiedButton.disabled = state.imageFiles.length === 0;
 }
 
 export function disableClassificationTools(disabled) {
@@ -452,7 +453,7 @@ export function disableClassificationTools(disabled) {
         btn.disabled = disabled;
     });
     // Disable/enable action buttons that modify classifications
-    if (copyButton) copyButton.disabled = disabled;
+    if (copyButton) copyButton.disabled = disabled || getState().currentImageIndex <= 0;
     if (resetButton) resetButton.disabled = disabled;
 
     updateState({ isLocked: disabled }); // Update global lock state

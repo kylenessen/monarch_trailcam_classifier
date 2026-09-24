@@ -1,0 +1,302 @@
+{
+  "rows": 18,
+  "columns": 32,
+  "classifications": {
+    "UDMH2_20240105142001.JPG": {
+      "confirmed": true,
+      "cells": {
+        "cell_13_28": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_13_29": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_0_14": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_0_13": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_0_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_0_15": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_0_9": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_1_9": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_1_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_1_13": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_7_9": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_6_10": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_3_9": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_5_16": {
+          "count": "10-99",
+          "directSun": true
+        },
+        "cell_4_8": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_8_9": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_6_11": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_2_9": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_3_8": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_3_7": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_7": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_6": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_5_7": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_5_6": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_5_8": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_9": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_3_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_5_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_6_9": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_6_8": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_7_8": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_5_11": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_6_14": {
+          "count": "10-99",
+          "directSun": false
+        },
+        "cell_6_13": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_7_11": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_7_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_8_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_5_17": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_6_16": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_16": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_4_14": {
+          "count": "0",
+          "directSun": false
+        },
+        "cell_4_15": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_3_17": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_9_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_10_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_11_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_0_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_2_10": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_2_8": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_4_13": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_5_12": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_6_12": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_5_14": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_5_15": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_11_13": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_12_12": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_12_13": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_1_11": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_0_11": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_0_17": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_5_9": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_6_17": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_2_17": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_4_17": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_3_16": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_5_13": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_7_12": {
+          "count": "1-9",
+          "directSun": true
+        },
+        "cell_15_26": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_16_26": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_16_29": {
+          "count": "1-9",
+          "directSun": false
+        },
+        "cell_12_14": {
+          "count": "1-9",
+          "directSun": false
+        }
+      },
+      "index": 4,
+      "user": "SM",
+      "isNight": false
+    }
+  }
+}
