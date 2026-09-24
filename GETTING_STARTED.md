@@ -10,7 +10,7 @@ Download the example deployment ZIP from the same release and extract it to a wo
 
 ## Run from source
 
-Install Node.js 22 and npm, then run the following commands.
+Install Node.js 22.12 or newer and npm, then run the following commands.
 
 ```sh
 git clone https://github.com/kylenessen/monarch_trailcam_classifier.git
