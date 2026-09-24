@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "Please cite this software version when using the classifier. Cite the associated manuscript and USGS release when using the study data."
+type: software
+title: "Monarch Trailcam Classifier"
+authors:
+  - family-names: Nessen
+    given-names: Kyle
+version: 1.1.1
+date-released: 2026-09-24
+repository-code: "https://github.com/kylenessen/monarch_trailcam_classifier"
+url: "https://github.com/kylenessen/monarch_trailcam_classifier"
+license: ISC
+abstract: "Desktop software for manually annotating butterfly abundance categories and direct sunlight in trail-camera image grids. The software license applies to code. Study data and documentation have separate reuse terms described in REUSE.md."

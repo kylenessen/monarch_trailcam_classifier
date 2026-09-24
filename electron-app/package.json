@@ -1,13 +1,13 @@
 {
   "name": "monarch-image-labeler",
   "productName": "Monarch Image Labeler",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A desktop application for classifying monarch butterflies in trail-camera photos",
-  "author": "",
+  "author": "Kyle Nessen",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron src/main/main.js",
-    "test:e2e": "DEBUG=pw:test* playwright test",
+    "test:e2e": "playwright test",
     "build": "electron-builder"
   },
   "build": {
@@ -23,7 +23,17 @@
         }
       ],
       "icon": "build/icon.icns"
-    }
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../LICENSE",
+        "to": "LICENSE"
+      }
+    ]
   },
   "keywords": [
     "electron",
@@ -37,5 +47,8 @@
     "@types/node": "^22.13.14",
     "electron": "^28.1.0",
     "electron-builder": "^25.1.8"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
