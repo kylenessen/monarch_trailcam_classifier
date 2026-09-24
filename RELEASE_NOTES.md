@@ -7,3 +7,5 @@ The runtime and build tools are updated to Electron 44.4.5, electron-builder 26.
 The original illustrated guide and all archived classification files remain byte-identical to the study archive. Current installation and import instructions are in GETTING_STARTED.md. Source code retains its ISC license. Photographs and research data are covered separately in REUSE.md.
 
 The macOS downloads are unsigned and not notarized. Choose arm64 for Apple silicon or x64 for Intel. The example deployment ZIP lets readers try the application without downloading the larger photograph archive. Windows and Linux installers have not been validated.
+
+The separate historical OCR environment also has updated locked dependencies. Its included three-image example was checked without replacing any study temperatures. Both macOS packages opened the example deployment on Apple silicon, with the Intel package tested through Rosetta. Native Intel hardware was not tested.

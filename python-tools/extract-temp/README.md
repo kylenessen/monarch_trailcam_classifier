@@ -12,3 +12,5 @@ uv run extract_temp.py sample_images -o example_temperatures.csv
 The command writes `sample_images/example_temperatures.csv`. EasyOCR may download model weights on first use. The included images are a small software example, not a validation dataset. Inspect extracted values against the image overlays. Do not substitute unreviewed OCR results for the published reviewed temperatures.
 
 Other scripts retain research-specific paths and interactive review assumptions. Read their configuration and [cleaning workflow](Workflow_for_Manual_Temperature_Data_Cleaning.md) before using them on a new dataset. Camera temperature readings were not independently calibrated against reference sensors.
+
+The September 24, 2026 maintenance pass updated the locked dependencies to address reported vulnerabilities. The three included example photographs run successfully in that environment. Historical temperature CSV files and the illustrated classification guide were not regenerated. The original environment remains available in earlier Git history.
